@@ -49,8 +49,8 @@ jobs:
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
             "chmod +x '${{ secrets.DEPLOY_PATH }}/scripts/post-deploy.sh' || true"
 
-      - name: Run post-deploy tasks
-        run: |
-          ssh -o StrictHostKeyChecking=no -p "${{ secrets.SSH_PORT }}" \
-            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "bash '${{ secrets.DEPLOY_PATH }}/scripts/post-deploy.sh'"
+      - name: Check remote path
+  run: |
+    ssh -o StrictHostKeyChecking=no -p "${{ secrets.SSH_PORT }}" \
+      "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+      "echo PWD=\$PWD; ls -la '${{ secrets.DEPLOY_PATH }}'; ls -la '${{ secrets.DEPLOY_PATH }}/scripts' || true"
