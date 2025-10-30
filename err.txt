@@ -1,6 +1,0 @@
-Loading failed for the <script> with source “https://kostin.syzzhd.web.id/api/docs.json/asset/swagger-ui-bundle.js?v=4a8da969be0e4160d5c2a7797d9dd1b1”. docs:33:120
-Loading failed for the <script> with source “https://kostin.syzzhd.web.id/api/docs.json/asset/swagger-ui-standalone-preset.js?v=7024b7ccfddd55fd7869fd211b11bc65”. docs:34:131
-Uncaught ReferenceError: SwaggerUIBundle is not defined
-    onload https://kostin.syzzhd.web.id/api/docs:42
-docs:42:20
-    onload https://kostin.syzzhd.web.id/api/docs:42
