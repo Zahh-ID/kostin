@@ -1,0 +1,1273 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "KostIn API",
+        "description": "Backend API documentation for KostIn marketplace kos.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Primary API server"
+        }
+    ],
+    "paths": {
+        "/api/v1/auth/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login as a user",
+                "operationId": "a7997e7c1e3bfed64d4e56de82415931",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Authenticated user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResource"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    },
+                    "401": {
+                        "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout current user",
+                "operationId": "f6b8957b4c0b25636613a9f0512a8ba9",
+                "responses": {
+                    "204": {
+                        "description": "Logged out"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/me": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get current authenticated user",
+                "operationId": "37d33f0281f67d31d05b4c45eea0143b",
+                "responses": {
+                    "200": {
+                        "description": "Authenticated user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResource"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/contracts": {
+            "get": {
+                "tags": [
+                    "Contracts"
+                ],
+                "summary": "List contracts",
+                "operationId": "1a1de239414c8c2cc0e74af3c554de14",
+                "responses": {
+                    "200": {
+                        "description": "List of contracts"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Contracts"
+                ],
+                "summary": "Create contract",
+                "operationId": "4a2a27ede5a8e0aa63e3af542248c4f7",
+                "responses": {
+                    "201": {
+                        "description": "Created contract"
+                    }
+                }
+            }
+        },
+        "/api/v1/contracts/{id}": {
+            "get": {
+                "tags": [
+                    "Contracts"
+                ],
+                "summary": "Show contract",
+                "operationId": "aa6cdf41f88b9db7eb5ac2b0e58023fd",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Contract detail"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Contracts"
+                ],
+                "summary": "Update contract",
+                "operationId": "57ef62f01c289ba3913ecf8b1350b1c7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated contract"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Contracts"
+                ],
+                "summary": "Delete contract",
+                "operationId": "08b6206c223296523613fca1d63d7974",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted"
+                    }
+                }
+            }
+        },
+        "/api/v1/invoices": {
+            "get": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "List invoices",
+                "operationId": "bc7d90facaef99e1846d581b3a3b6efa",
+                "parameters": [
+                    {
+                        "name": "contract_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of invoices"
+                    }
+                }
+            }
+        },
+        "/api/v1/invoices/{id}": {
+            "get": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Show invoice",
+                "operationId": "8e26839ec5797200db20667a31142ea0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Invoice detail"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Update invoice",
+                "operationId": "b724d06ace2ed1553d09eae0df8a2ab3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated invoice"
+                    }
+                }
+            }
+        },
+        "/api/v1/invoices/{id}/mark-paid": {
+            "post": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Mark invoice as paid",
+                "operationId": "315f9aa29bbeca2342c0bc50a05265f5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Invoice marked as paid"
+                    }
+                }
+            }
+        },
+        "/api/v1/payments": {
+            "get": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "List payments",
+                "operationId": "e8d0c8549aa2ea8bba8769dd1925862f",
+                "parameters": [
+                    {
+                        "name": "invoice_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of payments"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Create Midtrans QRIS payment",
+                "operationId": "b420a0e9958135f6f1eb64d318ca6df0",
+                "responses": {
+                    "201": {
+                        "description": "Payment initiated"
+                    }
+                }
+            }
+        },
+        "/api/v1/payments/midtrans/webhook": {
+            "post": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Handle Midtrans webhook",
+                "operationId": "b4f156f8884933f3c6026de268d12252",
+                "responses": {
+                    "200": {
+                        "description": "Webhook processed"
+                    }
+                }
+            }
+        },
+        "/api/v1/properties": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "List properties",
+                "operationId": "abcd280d7a77eb9e986b83226090c307",
+                "responses": {
+                    "200": {
+                        "description": "Paginated list of properties"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Create property",
+                "operationId": "ab7e22830cf0aaf3ee5ea338237c64e0",
+                "responses": {
+                    "201": {
+                        "description": "Created property"
+                    }
+                }
+            }
+        },
+        "/api/v1/properties/{id}": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Show property",
+                "operationId": "8c58403de53ed9fd2db94661ebb0ccdc",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Property detail"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Update property",
+                "operationId": "0c1bfc464d4281debbee4491d6ebdc52",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated property"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Delete property",
+                "operationId": "1e3ea6dd2f1d3f4b3dab113ea720fa3b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted"
+                    }
+                }
+            }
+        },
+        "/api/v1/rooms": {
+            "get": {
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "List rooms",
+                "operationId": "31a8839ec4012ed828bcc67b19738698",
+                "parameters": [
+                    {
+                        "name": "room_type_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of rooms"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "Create room",
+                "operationId": "b660449fe16228d1c90a5b92f5716e7e",
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    }
+                }
+            }
+        },
+        "/api/v1/rooms/{id}": {
+            "get": {
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "Show room",
+                "operationId": "20e96d2b586955bc2a4d81fdbff8789d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Room detail"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "Update room",
+                "operationId": "31f55fd305dcdddec286f6ab7b6a3ee2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated room"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "Delete room",
+                "operationId": "7518052060eb6c801b34f9c0de418db6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted"
+                    }
+                }
+            }
+        },
+        "/api/v1/room-types": {
+            "get": {
+                "tags": [
+                    "Room Types"
+                ],
+                "summary": "List room types",
+                "operationId": "4dd32d517823572721c192b0ba60c21c",
+                "parameters": [
+                    {
+                        "name": "property_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of room types"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Room Types"
+                ],
+                "summary": "Create room type",
+                "operationId": "f47cdff53413a95e7805c8af7e03b874",
+                "responses": {
+                    "201": {
+                        "description": "Created room type"
+                    }
+                }
+            }
+        },
+        "/api/v1/room-types/{id}": {
+            "get": {
+                "tags": [
+                    "Room Types"
+                ],
+                "summary": "Show room type",
+                "operationId": "1b26192ec38d072bc969d871b67afc94",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Room type detail"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Room Types"
+                ],
+                "summary": "Update room type",
+                "operationId": "c904203acf0e2122898c92045a49d5ad",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated room type"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Room Types"
+                ],
+                "summary": "Delete room type",
+                "operationId": "1263d02f55e0c566eaaaec4a90660f1e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted"
+                    }
+                }
+            }
+        },
+        "/api/v1/shared-tasks": {
+            "get": {
+                "tags": [
+                    "Shared Tasks"
+                ],
+                "summary": "List shared tasks",
+                "operationId": "1a0ca66c33872aefbafa0d0fe204ce39",
+                "parameters": [
+                    {
+                        "name": "property_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of shared tasks"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Shared Tasks"
+                ],
+                "summary": "Create shared task",
+                "operationId": "13d64e2032cb8b0d3b408c89e7aace9d",
+                "responses": {
+                    "201": {
+                        "description": "Created task"
+                    }
+                }
+            }
+        },
+        "/api/v1/shared-tasks/{id}": {
+            "get": {
+                "tags": [
+                    "Shared Tasks"
+                ],
+                "summary": "Show shared task",
+                "operationId": "7cccb3ee1e6181c4433a506ae1ed1cc1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Shared task detail"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Shared Tasks"
+                ],
+                "summary": "Update shared task",
+                "operationId": "0aa0ce314845116fb3375ebb5eceb754",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated shared task"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Shared Tasks"
+                ],
+                "summary": "Delete shared task",
+                "operationId": "be10a0688b38e6c5172467c445dace18",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted"
+                    }
+                }
+            }
+        },
+        "/api/v1/shared-task-logs": {
+            "get": {
+                "tags": [
+                    "Shared Task Logs"
+                ],
+                "summary": "List shared task logs",
+                "operationId": "653b3ff215af1ef9c8ee619410067efe",
+                "parameters": [
+                    {
+                        "name": "shared_task_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of logs"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Shared Task Logs"
+                ],
+                "summary": "Create shared task log",
+                "operationId": "76648c48e8c3d83de314c9601c2f53ba",
+                "responses": {
+                    "201": {
+                        "description": "Created log"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ContractResource": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "tenant": {
+                        "$ref": "#/components/schemas/UserResource"
+                    },
+                    "room": {
+                        "$ref": "#/components/schemas/RoomResource"
+                    },
+                    "price_per_month": {
+                        "type": "integer"
+                    },
+                    "billing_day": {
+                        "type": "integer"
+                    },
+                    "deposit_amount": {
+                        "type": "integer"
+                    },
+                    "grace_days": {
+                        "type": "integer"
+                    },
+                    "late_fee_per_day": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "ended",
+                            "canceled"
+                        ]
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "InvoiceResource": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "contract_id": {
+                        "type": "integer"
+                    },
+                    "contract": {
+                        "$ref": "#/components/schemas/ContractResource"
+                    },
+                    "period_month": {
+                        "type": "integer"
+                    },
+                    "period_year": {
+                        "type": "integer"
+                    },
+                    "due_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "amount": {
+                        "type": "integer"
+                    },
+                    "late_fee": {
+                        "type": "integer"
+                    },
+                    "total": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "unpaid",
+                            "paid",
+                            "overdue",
+                            "canceled"
+                        ]
+                    },
+                    "external_order_id": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "qris_payload": {
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "payments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PaymentResource"
+                        }
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "PaymentResource": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "invoice_id": {
+                        "type": "integer"
+                    },
+                    "midtrans_order_id": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "payment_type": {
+                        "type": "string",
+                        "enum": [
+                            "qris"
+                        ]
+                    },
+                    "amount": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "success",
+                            "pending",
+                            "failed"
+                        ]
+                    },
+                    "paid_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "raw_webhook_json": {
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "PropertyResource": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "owner": {
+                        "$ref": "#/components/schemas/UserResource"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "lat": {
+                        "type": "number",
+                        "format": "float",
+                        "nullable": true
+                    },
+                    "lng": {
+                        "type": "number",
+                        "format": "float",
+                        "nullable": true
+                    },
+                    "rules_text": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "photos": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "pending",
+                            "approved",
+                            "rejected"
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "room_types": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RoomTypeResource"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "RoomResource": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "room_type_id": {
+                        "type": "integer"
+                    },
+                    "room_code": {
+                        "type": "string"
+                    },
+                    "custom_price": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "available",
+                            "occupied",
+                            "maintenance"
+                        ]
+                    },
+                    "facilities_override_json": {
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "RoomTypeResource": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "property_id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "area_m2": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "bathroom_type": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "base_price": {
+                        "type": "integer"
+                    },
+                    "deposit": {
+                        "type": "integer"
+                    },
+                    "facilities_json": {
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "rooms": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RoomResource"
+                        }
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "SharedTaskLogResource": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "shared_task_id": {
+                        "type": "integer"
+                    },
+                    "shared_task": {
+                        "$ref": "#/components/schemas/SharedTaskResource"
+                    },
+                    "run_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "completed_by": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "completed_by_user": {
+                        "$ref": "#/components/schemas/UserResource"
+                    },
+                    "photo_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "note": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "SharedTaskResource": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "property_id": {
+                        "type": "integer"
+                    },
+                    "property": {
+                        "$ref": "#/components/schemas/PropertyResource"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "rrule": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "next_run_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "assignee_user_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "assignee": {
+                        "$ref": "#/components/schemas/UserResource"
+                    },
+                    "logs": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SharedTaskLogResource"
+                        }
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "UserResource": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "admin",
+                            "owner",
+                            "tenant"
+                        ]
+                    }
+                },
+                "type": "object"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Auth",
+            "description": "Authentication endpoints"
+        },
+        {
+            "name": "Contracts",
+            "description": "Manage rental contracts"
+        },
+        {
+            "name": "Invoices",
+            "description": "Manage invoices"
+        },
+        {
+            "name": "Payments",
+            "description": "Handle invoice payments"
+        },
+        {
+            "name": "Properties",
+            "description": "Manage properties"
+        },
+        {
+            "name": "Rooms",
+            "description": "Manage rooms"
+        },
+        {
+            "name": "Room Types",
+            "description": "Manage room types"
+        },
+        {
+            "name": "Shared Tasks",
+            "description": "Shared housekeeping tasks"
+        },
+        {
+            "name": "Shared Task Logs",
+            "description": "Logs for shared tasks"
+        }
+    ]
+}
