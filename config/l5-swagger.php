@@ -11,7 +11,7 @@ return [
 
             'routes' => [
                 'api' => 'api/docs',
-                'docs' => 'api/docs.json',
+                'docs' => 'api/docs-spec',
             ],
 
             'paths' => [
