@@ -10,8 +10,8 @@ return [
             ],
 
             'routes' => [
-                'api' => 'api/docs',
-                'docs' => 'api/docs-spec',
+                'docs' => 'api/docs',
+                'api' => 'api/docs.json',
             ],
 
             'paths' => [
@@ -30,7 +30,8 @@ return [
 
     'defaults' => [
         'routes' => [
-            'docs' => 'api/docs-spec',
+            'docs' => 'api/docs',
+            'api' => 'api/docs.json',
             'oauth2_callback' => 'api/oauth2-callback',
             'middleware' => [
                 'api' => [],
