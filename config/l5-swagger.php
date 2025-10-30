@@ -10,8 +10,8 @@ return [
             ],
 
             'routes' => [
-                'api' => 'api/docs',
-                'docs' => 'api/docs.json',
+                'api' => 'api/docs.json',
+                'docs' => 'api/docs',
             ],
 
             'paths' => [
