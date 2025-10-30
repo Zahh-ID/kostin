@@ -5,21 +5,44 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
+concurrency:
+  group: kostin-deploy
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: SSH_HOST   # <-- wajib agar job bisa baca Environment secrets
+    environment: SSH_HOST   # <- sesuaikan dengan nama Environment tempat kamu simpan secrets
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
+      # Build aset di CI (Vite)
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: npm-
+
+      - name: Install & Build
+        run: |
+          npm ci --ignore-scripts
+          npm run build
+
+      # Muat private key dari Secrets
       - name: Add SSH key
         uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      - name: Test SSH (cek secrets sudah kebaca)
+      - name: Test SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -31,26 +54,61 @@ jobs:
       - name: Ensure target dir exists
         run: |
           ssh -o StrictHostKeyChecking=no -p "${{ secrets.SSH_PORT }}" \
-            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" "mkdir -p '${{ secrets.DEPLOY_PATH }}'"
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "mkdir -p '${{ secrets.DEPLOY_PATH }}'"
 
-      - name: Sync files to server (rsync with port)
+      - name: Rsync source to server (use SSH port)
         run: |
           rsync -az --delete \
             --exclude='.git/' \
             --exclude='.github/' \
             --exclude='node_modules/' \
             --exclude='vendor/' \
+            --exclude='.env' \
             -e "ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }}" \
             ./ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}"
 
-      - name: Make post-deploy executable (if present)
+      - name: Post-deploy tasks (run on server)
         run: |
           ssh -o StrictHostKeyChecking=no -p "${{ secrets.SSH_PORT }}" \
-            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "chmod +x '${{ secrets.DEPLOY_PATH }}/scripts/post-deploy.sh' || true"
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" bash -lc "
+              set -e
+              cd '${{ secrets.DEPLOY_PATH }}'
 
-      - name: Check remote path
-  run: |
-    ssh -o StrictHostKeyChecking=no -p "${{ secrets.SSH_PORT }}" \
-      "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-      "echo PWD=\$PWD; ls -la '${{ secrets.DEPLOY_PATH }}'; ls -la '${{ secrets.DEPLOY_PATH }}/scripts' || true"
+              # Composer (pasang jika belum ada)
+              if ! command -v composer >/dev/null 2>&1; then
+                curl -sS https://getcomposer.org/installer | php
+                sudo mv composer.phar /usr/local/bin/composer
+              fi
+
+              # .env pertama kali
+              if [ ! -f .env ]; then
+                cp .env.example .env || true
+                php artisan key:generate || true
+                sed -i 's/^APP_ENV=.*/APP_ENV=production/' .env || true
+                sed -i 's/^APP_DEBUG=.*/APP_DEBUG=false/' .env || true
+                sed -i 's/^DB_HOST=.*/DB_HOST=127.0.0.1/' .env || true
+                sed -i 's/^DB_PORT=.*/DB_PORT=3306/' .env || true
+                sed -i 's/^DB_DATABASE=.*/DB_DATABASE=kostin/' .env || true
+                sed -i 's/^DB_USERNAME=.*/DB_USERNAME=kostin/' .env || true
+                sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD=TugasPW!123/' .env || true
+              fi
+
+              # Install deps & optimize
+              composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+
+              php artisan storage:link || true
+              php artisan config:cache
+              php artisan route:cache
+              php artisan view:cache
+              php artisan event:cache
+              php artisan migrate --force || true
+
+              chgrp -R www-data storage bootstrap/cache
+              chmod -R ug+rwx storage bootstrap/cache
+
+              sudo systemctl reload '${{ secrets.PHP_FPM_SERVICE || 'php8.3-fpm' }}' || true
+              sudo systemctl reload '${{ secrets.NGINX_SERVICE || 'nginx' }}' || true
+
+              echo 'Deploy Kostin selesai ✅'
+            "
