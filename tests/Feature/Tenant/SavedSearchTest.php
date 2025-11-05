@@ -43,14 +43,21 @@ it('applies saved search filters and redirects to home', function (): void {
 
     $response = $this->actingAs($tenant)->get(route('tenant.saved-searches.apply', $savedSearch));
 
-    $response->assertRedirect(route('home', [
+    $response->assertRedirect();
+    $location = $response->headers->get('Location');
+
+    expect($location)->not->toBeNull();
+
+    parse_str((string) parse_url($location, PHP_URL_QUERY), $query);
+
+    expect($query)->toMatchArray([
         'search' => 'kampus',
         'city' => 'Bandung',
         'facilities' => 'wifi,ac',
-        'minPrice' => 1_000_000,
-        'maxPrice' => 2_000_000,
+        'minPrice' => '1000000',
+        'maxPrice' => '2000000',
         'saved_search' => (string) $savedSearch->id,
-    ]));
+    ]);
 
     $response->assertSessionHas('status');
 });
