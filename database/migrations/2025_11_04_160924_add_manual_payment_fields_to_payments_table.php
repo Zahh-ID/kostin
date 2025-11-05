@@ -1,0 +1,127 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('payments', function (Blueprint $table) {
+            $table->foreignId('submitted_by')
+                ->nullable()
+                ->after('invoice_id')
+                ->constrained('users')
+                ->nullOnDelete();
+
+            $table->string('manual_method')
+                ->nullable()
+                ->after('payment_type');
+
+            $table->string('proof_path')
+                ->nullable()
+                ->after('manual_method');
+
+            $table->string('proof_filename')
+                ->nullable()
+                ->after('proof_path');
+
+            $table->text('notes')
+                ->nullable()
+                ->after('proof_filename');
+
+            $table->foreignId('verified_by')
+                ->nullable()
+                ->after('paid_at')
+                ->constrained('users')
+                ->nullOnDelete();
+
+            $table->timestamp('verified_at')
+                ->nullable()
+                ->after('verified_by');
+
+            $table->text('rejection_reason')
+                ->nullable()
+                ->after('verified_at');
+        });
+
+        $driver = Schema::getConnection()->getDriverName();
+
+        if ($driver === 'sqlite') {
+            Schema::table('payments', function (Blueprint $table): void {
+                $table->string('payment_type_new')->default('qris');
+                $table->string('status_new')->default('pending');
+            });
+
+            DB::table('payments')->update([
+                'payment_type_new' => DB::raw('payment_type'),
+                'status_new' => DB::raw('status'),
+            ]);
+
+            Schema::table('payments', function (Blueprint $table): void {
+                $table->dropColumn(['payment_type', 'status']);
+            });
+
+            Schema::table('payments', function (Blueprint $table): void {
+                $table->renameColumn('payment_type_new', 'payment_type');
+                $table->renameColumn('status_new', 'status');
+            });
+        } else {
+            DB::statement("ALTER TABLE payments MODIFY COLUMN payment_type ENUM('qris','manual_bank_transfer','manual_cash') NOT NULL DEFAULT 'qris'");
+            DB::statement("ALTER TABLE payments MODIFY COLUMN status ENUM('pending','waiting_verification','success','failed','rejected') NOT NULL DEFAULT 'pending'");
+        }
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('payments', function (Blueprint $table) {
+            $table->dropForeign(['submitted_by']);
+            $table->dropForeign(['verified_by']);
+
+            $table->dropColumn([
+                'submitted_by',
+                'manual_method',
+                'proof_path',
+                'proof_filename',
+                'notes',
+                'verified_by',
+                'verified_at',
+                'rejection_reason',
+            ]);
+        });
+
+        $driver = Schema::getConnection()->getDriverName();
+
+        if ($driver === 'sqlite') {
+            Schema::table('payments', function (Blueprint $table): void {
+                $table->string('payment_type_old')->default('qris');
+                $table->string('status_old')->default('pending');
+            });
+
+            DB::table('payments')->update([
+                'payment_type_old' => 'qris',
+                'status_old' => DB::raw("CASE WHEN status IN ('success','failed') THEN status ELSE 'pending' END"),
+            ]);
+
+            Schema::table('payments', function (Blueprint $table): void {
+                $table->dropColumn(['payment_type', 'status']);
+            });
+
+            Schema::table('payments', function (Blueprint $table): void {
+                $table->renameColumn('payment_type_old', 'payment_type');
+                $table->renameColumn('status_old', 'status');
+            });
+        } else {
+            DB::statement("ALTER TABLE payments MODIFY COLUMN payment_type ENUM('qris') NOT NULL DEFAULT 'qris'");
+            DB::statement("ALTER TABLE payments MODIFY COLUMN status ENUM('success','pending','failed') NOT NULL DEFAULT 'pending'");
+        }
+    }
+};
