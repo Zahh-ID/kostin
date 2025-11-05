@@ -213,6 +213,13 @@ new class extends Component
                             <span class="badge bg-primary rounded-pill">{{ $badges[$item['route']] }}</span>
                         @endif
                     </a>
+                @elseif (isset($item['action']) && $item['action'] === 'logout')
+                    <form method="POST" action="{{ route('logout') }}" class="w-100">
+                        @csrf
+                        <button type="submit" class="nav-link text-start border-0 bg-transparent w-100">
+                            {{ $item['label'] }}
+                        </button>
+                    </form>
                 @elseif (isset($item['action']))
                     <button type="button" class="nav-link text-start" wire:click="{{ $item['action'] }}">
                         {{ $item['label'] }}
