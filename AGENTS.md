@@ -25,7 +25,8 @@
 
 ## Tests
 - Pest feature suites for auth, tenant modules (invoices, wishlist, tickets, chat), owner manual payments/tickets, admin tickets, property API, profile.
+- Midtrans webhook coverage (success, expiry, invalid signature) plus ticket closed_at regression and chat unread/access guard scenarios.
 - Unit tests for contracts etc.
 
 ## Outstanding Backlog
-- Add deeper Pest coverage for payments/ticketing/chat edge cases (webhooks, N+1, unread states).
+- None – next items can be planned based on new requirements.

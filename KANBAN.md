@@ -1,11 +1,11 @@
 # Project Kanban – KostIn (Laravel + Blade)
 
 ## Backlog
-- [ ] Add automated Pest coverage for payments, ticketing, and chat modules
 
 ## In Progress
 
 ## Done
+- [x] Add automated Pest coverage for payments, ticketing, and chat modules
 - [x] Relationalise database schema, factories, and seeders (wishlist, tickets, manual payments, etc.)
 - [x] Rebuild authentication (email + Google OAuth) and role-aware scaffolding
 - [x] Convert shared layouts (public, guest, app) and dashboards to Bootstrap
