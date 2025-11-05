@@ -58,6 +58,7 @@ Route::get('/p/{property}', PublicPropertyController::class)->name('property.sho
 require __DIR__.'/auth.php';
 Route::get('/auth/redirect', [SocialiteController::class, 'redirect'])->name('auth.redirect');
 Route::get('/auth/callback', [SocialiteController::class, 'callback'])->name('auth.callback');
+Route::get('/auth/google/callback', [SocialiteController::class, 'callback']);
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
