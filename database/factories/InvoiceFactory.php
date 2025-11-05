@@ -28,7 +28,7 @@ class InvoiceFactory extends Factory
             'amount' => $amount,
             'late_fee' => $lateFee,
             'total' => $amount + $lateFee,
-            'status' => fake()->randomElement(['unpaid', 'paid', 'overdue', 'canceled']),
+            'status' => fake()->randomElement(['unpaid', 'paid', 'overdue', 'canceled', 'pending_verification']),
             'external_order_id' => null,
             'qris_payload' => null,
         ];

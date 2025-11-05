@@ -4,8 +4,10 @@ namespace Database\Factories;
 
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<Payment>
@@ -16,16 +18,26 @@ class PaymentFactory extends Factory
 
     public function definition(): array
     {
-        $status = fake()->randomElement(['success', 'pending', 'failed']);
+        $status = fake()->randomElement(['pending', 'waiting_verification', 'success', 'failed', 'rejected']);
+        $paymentType = fake()->randomElement(['qris', 'manual_bank_transfer', 'manual_cash']);
+        $isManual = $paymentType !== 'qris';
 
         return [
             'invoice_id' => Invoice::factory(),
-            'midtrans_order_id' => fake()->uuid(),
-            'payment_type' => 'qris',
+            'submitted_by' => $isManual ? User::factory()->tenant() : null,
+            'midtrans_order_id' => $paymentType === 'qris' ? Str::uuid()->toString() : null,
+            'payment_type' => $paymentType,
+            'manual_method' => $isManual ? fake()->randomElement(['BCA', 'Mandiri', 'BNI', 'Cash']) : null,
+            'proof_path' => $isManual ? 'manual-payments/'.Str::uuid()->toString().'.jpg' : null,
+            'proof_filename' => $isManual ? fake()->lexify('bukti-????.jpg') : null,
+            'notes' => $isManual ? fake()->sentence() : null,
             'amount' => fake()->numberBetween(700000, 2500000),
             'status' => $status,
-            'paid_at' => $status === 'success' ? Carbon::now()->subDays(fake()->numberBetween(0, 5)) : null,
-            'raw_webhook_json' => ['foo' => 'bar'],
+            'paid_at' => in_array($status, ['success'], true) ? Carbon::now()->subDays(fake()->numberBetween(0, 5)) : null,
+            'verified_by' => in_array($status, ['success', 'rejected'], true) ? User::factory()->admin() : null,
+            'verified_at' => in_array($status, ['success', 'rejected'], true) ? Carbon::now()->subDays(fake()->numberBetween(0, 3)) : null,
+            'rejection_reason' => $status === 'rejected' ? fake()->sentence() : null,
+            'raw_webhook_json' => $paymentType === 'qris' ? ['snap_token' => Str::uuid()->toString()] : null,
         ];
     }
 }

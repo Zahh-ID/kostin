@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -31,6 +32,7 @@ class User extends Authenticatable
         'phone',
         'role',
         'password',
+        'google_id',
     ];
 
     /**
@@ -76,6 +78,21 @@ class User extends Authenticatable
         return $this->hasMany(SharedTaskLog::class, 'completed_by');
     }
 
+    public function wishlistItems(): HasMany
+    {
+        return $this->hasMany(WishlistItem::class);
+    }
+
+    public function wishlistProperties(): BelongsToMany
+    {
+        return $this->belongsToMany(Property::class, 'wishlist_items');
+    }
+
+    public function savedSearches(): HasMany
+    {
+        return $this->hasMany(SavedSearch::class);
+    }
+
     public function invoices(): HasManyThrough
     {
         return $this->hasManyThrough(
@@ -84,5 +101,47 @@ class User extends Authenticatable
             'tenant_id',
             'contract_id'
         );
+    }
+
+    public function conversations(): BelongsToMany
+    {
+        return $this->belongsToMany(Conversation::class)
+            ->withTimestamps()
+            ->withPivot(['last_read_at', 'role']);
+    }
+
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class);
+    }
+
+    public function submittedPayments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'submitted_by');
+    }
+
+    public function verifiedPayments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'verified_by');
+    }
+
+    public function reportedTickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class, 'reporter_id');
+    }
+
+    public function assignedTickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class, 'assignee_id');
+    }
+
+    public function ticketComments(): HasMany
+    {
+        return $this->hasMany(TicketComment::class);
+    }
+
+    public function ticketEvents(): HasMany
+    {
+        return $this->hasMany(TicketEvent::class);
     }
 }

@@ -11,7 +11,7 @@ return [
 
             'routes' => [
                 'api' => 'api/docs',
-                'docs' => 'api/docs.json',
+                'docs' => 'api/docs-spec',
             ],
 
             'paths' => [
@@ -31,7 +31,7 @@ return [
     'defaults' => [
         'routes' => [
             'api' => 'api/docs',
-            'docs' => 'api/docs.json',
+            'docs' => 'api/docs-spec',
             'oauth2_callback' => 'api/oauth2-callback',
             'middleware' => [
                 'api' => [],

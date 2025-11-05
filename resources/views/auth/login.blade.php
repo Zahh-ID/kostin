@@ -7,6 +7,8 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">Masuk</div>
                 <div class="card-body">
+                    <a href="{{ route('auth.redirect') }}" class="btn btn-danger w-100 mb-3">Masuk dengan Google</a>
+                    <hr>
                     <form method="POST" action="{{ route('login') }}">
                         @csrf
                         <div class="mb-3">
