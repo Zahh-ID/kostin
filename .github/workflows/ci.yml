@@ -68,16 +68,6 @@ jobs:
           DB_PASSWORD: secret
         run: php artisan migrate --force
 
-      - name: Run tests
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: kostin_test
-          DB_USERNAME: kostin
-          DB_PASSWORD: secret
-        run: php artisan test
-
       - name: Cache npm dependencies
         uses: actions/cache@v4
         with:
@@ -90,3 +80,13 @@ jobs:
 
       - name: Build assets
         run: npm run build --if-present
+
+      - name: Run tests
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: kostin_test
+          DB_USERNAME: kostin
+          DB_PASSWORD: secret
+        run: php artisan test
