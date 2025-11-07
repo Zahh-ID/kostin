@@ -8,6 +8,7 @@ use App\Models\PaymentAccount;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
@@ -53,11 +54,17 @@ class InvoiceController extends Controller
         ]);
     }
 
-    public function pdf(Request $request, Invoice $invoice): Response
+    public function pdf(Request $request, Invoice $invoice): Response|RedirectResponse
     {
         /** @var User $tenant */
         $tenant = $request->user();
         $this->ensureTenantOwnsInvoice($tenant, $invoice);
+
+        if ($invoice->status !== 'paid') {
+            return redirect()
+                ->route('tenant.invoices.show', $invoice)
+                ->with('status', __('PDF hanya tersedia setelah pembayaran berhasil.'));
+        }
 
         $invoice->load([
             'contract.room.roomType.property.owner',

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class Contract extends Model
 {
@@ -29,6 +31,39 @@ class Contract extends Model
         'end_date' => 'date',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function (Contract $contract): void {
+            if (! $contract->tenant_id) {
+                return;
+            }
+
+            $activeContract = static::query()
+                ->where('tenant_id', $contract->tenant_id)
+                ->where('status', 'active')
+                ->first();
+
+            if (! $activeContract) {
+                return;
+            }
+
+            if ($activeContract->room_id === $contract->room_id) {
+                throw ValidationException::withMessages([
+                    'room_id' => __('Tenant masih memiliki kontrak aktif pada kamar ini. Akhiri kontrak lama sebelum membuat yang baru.'),
+                ]);
+            }
+
+            $activeContract->status = 'ended';
+
+            $cutoff = Carbon::parse($contract->start_date)->subDay();
+            if (! $activeContract->end_date || $activeContract->end_date->gt($cutoff)) {
+                $activeContract->end_date = $cutoff;
+            }
+
+            $activeContract->save();
+        });
+    }
+
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(User::class, 'tenant_id');
@@ -42,5 +77,10 @@ class Contract extends Model
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    public function terminationRequests(): HasMany
+    {
+        return $this->hasMany(ContractTerminationRequest::class);
     }
 }

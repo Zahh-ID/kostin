@@ -28,21 +28,28 @@ class SocialiteController extends Controller
                 ->with('status', 'Tidak dapat menyelesaikan login Google. Silakan coba lagi.');
         }
 
-        $user = User::firstOrNew(['email' => $googleUser->email]);
+        $existing = User::where('email', $googleUser->email)->first();
 
-        if (! $user->exists) {
-            $user->role = User::ROLE_TENANT;
-            $user->password = Hash::make(Str::random(32));
-            $user->email_verified_at = now();
+        if ($existing) {
+            $existing->update([
+                'name' => $googleUser->name ?? $existing->name,
+                'google_id' => $googleUser->id,
+            ]);
+
+            Auth::login($existing);
+
+            return redirect()->route('dashboard');
         }
 
-        $user->name = $googleUser->name ?? $user->name ?? 'Google User';
-        $user->google_id = $googleUser->id;
+        session([
+            'socialite_google_user' => [
+                'id' => $googleUser->id,
+                'name' => $googleUser->name,
+                'email' => $googleUser->email,
+                'token' => $googleUser->token,
+            ],
+        ]);
 
-        $user->save();
-
-        Auth::login($user);
-
-        return redirect()->route('dashboard');
+        return redirect()->route('auth.social-role');
     }
 }

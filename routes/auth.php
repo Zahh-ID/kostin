@@ -39,3 +39,7 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('home');
     })->name('logout');
 });
+    Route::get('auth/social-role', [\App\Http\Controllers\Auth\SocialRoleController::class, 'create'])
+        ->name('auth.social-role');
+    Route::post('auth/social-role', [\App\Http\Controllers\Auth\SocialRoleController::class, 'store'])
+        ->name('auth.social-role.store');

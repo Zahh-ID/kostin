@@ -28,12 +28,14 @@ class Invoice extends Model
         'status',
         'external_order_id',
         'qris_payload',
+        'paid_at',
     ];
 
     protected $casts = [
         'due_date' => 'date',
         'qris_payload' => 'array',
         'months_count' => 'integer',
+        'paid_at' => 'datetime',
     ];
 
     public function contract(): BelongsTo
@@ -52,5 +54,47 @@ class Invoice extends Model
 
         return $query->where('period_month', $date->month)
             ->where('period_year', $date->year);
+    }
+
+    public function coverageStart(): Carbon
+    {
+        $month = $this->coverage_start_month ?? $this->period_month;
+        $year = $this->coverage_start_year ?? $this->period_year;
+
+        return Carbon::create($year, $month, 1)->startOfMonth();
+    }
+
+    public function coverageEnd(): Carbon
+    {
+        if ($this->coverage_end_month && $this->coverage_end_year) {
+            return Carbon::create($this->coverage_end_year, $this->coverage_end_month, 1)->startOfMonth();
+        }
+
+        return $this->coverageStart()->copy()->addMonths(max(1, $this->months_count ?? 1) - 1);
+    }
+
+    public function markAsPaid(): void
+    {
+        if ($this->status === 'paid') {
+            return;
+        }
+
+        $this->forceFill([
+            'status' => 'paid',
+            'paid_at' => now(),
+        ])->save();
+
+        $contract = $this->contract;
+
+        if (! $contract) {
+            return;
+        }
+
+        $newEnd = $this->coverageEnd()->copy()->endOfMonth();
+
+        if (! $contract->end_date || $newEnd->gt($contract->end_date)) {
+            $contract->end_date = $newEnd;
+            $contract->save();
+        }
     }
 }

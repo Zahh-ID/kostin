@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Owner;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Models\User;
+use App\Services\OwnerWalletService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,10 @@ use Illuminate\View\View;
 
 class ManualPaymentController extends Controller
 {
+    public function __construct(private readonly OwnerWalletService $walletService)
+    {
+    }
+
     public function index(Request $request): View
     {
         /** @var User $owner */
@@ -60,7 +65,8 @@ class ManualPaymentController extends Controller
                     'paid_at' => now(),
                 ]);
 
-                $payment->invoice?->update(['status' => 'paid']);
+                $payment->invoice?->markAsPaid();
+                $this->walletService->creditFromPayment($payment);
             } else {
                 $payment->update([
                     'status' => 'rejected',

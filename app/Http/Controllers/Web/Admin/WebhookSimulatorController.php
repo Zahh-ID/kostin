@@ -39,7 +39,7 @@ class WebhookSimulatorController extends Controller
 
         $payment = Payment::with('invoice')->findOrFail($validated['payment_id']);
         $orderId = $payment->midtrans_order_id ?? $payment->order_id;
-        $grossAmount = number_format($payment->amount, 2, '.', '');
+        $grossAmount = (string) ((int) $payment->amount);
 
         $statusCode = match ($validated['transaction_status']) {
             'settlement', 'capture' => '200',

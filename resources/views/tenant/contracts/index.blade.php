@@ -7,8 +7,18 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <h1 class="text-2xl font-semibold mb-3">{{ __('My Contracts') }}</h1>
-            <p class="text-gray-600 mb-4">{{ __('List of active contracts and rental history.') }}</p>
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                <div>
+                    <h1 class="text-2xl font-semibold mb-1">{{ __('My Contracts') }}</h1>
+                    <p class="text-gray-600 mb-0">
+                        {{ $withHistory ? __('Menampilkan seluruh riwayat kontrak Anda.') : __('Menampilkan kontrak aktif yang sedang berjalan.') }}
+                    </p>
+                </div>
+                <a href="{{ $withHistory ? route('tenant.contracts.index') : route('tenant.contracts.index', ['history' => 1]) }}"
+                   class="text-sm text-indigo-600 hover:text-indigo-800 mt-2 md:mt-0">
+                    {{ $withHistory ? __('Tampilkan kontrak aktif saja') : __('Lihat riwayat kontrak') }}
+                </a>
+            </div>
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
@@ -65,7 +75,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="5" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
-                                            {{ __('No contracts yet. Apply for a rental through the property page.') }}
+                                            {{ $withHistory ? __('Belum ada riwayat kontrak.') : __('Belum ada kontrak aktif. Ajukan sewa melalui halaman properti.') }}
                                         </td>
                                     </tr>
                                 @endforelse

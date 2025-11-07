@@ -75,7 +75,7 @@ class ApplicationController extends Controller
 
             $endDate = \Illuminate\Support\Carbon::parse($data['start_date'])
                 ->copy()
-                ->addMonthsNoOverflow($data['duration_months'])
+                ->addMonthsNoOverflow((int) $data['duration_months'])
                 ->subDay();
 
             Contract::create([

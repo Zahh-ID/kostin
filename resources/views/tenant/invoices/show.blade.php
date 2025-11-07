@@ -47,9 +47,11 @@
             };
         @endphp
         <div class="d-flex gap-2 align-items-center">
-            <a href="{{ route('tenant.invoices.pdf', $invoice) }}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">
-                {{ __('Unduh PDF') }}
-            </a>
+            @if ($invoice->status === 'paid')
+                <a href="{{ route('tenant.invoices.pdf', $invoice) }}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">
+                    {{ __('Unduh PDF') }}
+                </a>
+            @endif
             <span class="badge bg-{{ $statusClass }} text-uppercase">{{ str_replace('_', ' ', $invoice->status) }}</span>
         </div>
     </div>
@@ -61,6 +63,11 @@
                     <h2 class="h6 fw-semibold mb-0">{{ __('Rincian Tagihan') }}</h2>
                 </div>
                 <div class="card-body">
+                    @if ($invoice->status !== 'paid')
+                        <div class="alert alert-warning small">
+                            {{ __('PDF invoice akan tersedia setelah pembayaran dinyatakan lunas.') }}
+                        </div>
+                    @endif
                     <dl class="row small mb-0">
                         <dt class="col-sm-5 text-muted">{{ __('Jatuh Tempo') }}</dt>
                         <dd class="col-sm-7">{{ optional($invoice->due_date)->format('d M Y') ?? '—' }}</dd>

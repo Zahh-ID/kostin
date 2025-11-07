@@ -120,6 +120,8 @@ new class extends Component
                 ['label' => __('Kontrak'), 'route' => 'owner.contracts.index', 'icon' => 'bi-file-earmark-text'],
                 ['label' => __('Pengajuan Tenant'), 'route' => 'owner.applications.index', 'icon' => 'bi-clipboard-data'],
                 ['label' => __('Tugas Bersama'), 'route' => 'owner.shared-tasks.index', 'icon' => 'bi-list-check'],
+                ['label' => __('Saldo & Pencairan'), 'route' => 'owner.wallet.index', 'icon' => 'bi-cash-stack'],
+                ['label' => __('Terminasi Kontrak'), 'route' => 'owner.contract-terminations.index', 'icon' => 'bi-flag'],
                 ['label' => __('Pembayaran Manual'), 'route' => 'owner.manual-payments.index', 'icon' => 'bi-wallet2'],
                 ['label' => __('Tiket'), 'route' => 'owner.tickets.index', 'icon' => 'bi-ticket'],
             ],

@@ -11,6 +11,7 @@ use App\Http\Controllers\Web\Admin\WebhookSimulatorController as AdminWebhookSim
 use App\Http\Controllers\Web\ChatController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\Owner\ContractController as OwnerContractController;
+use App\Http\Controllers\Web\Owner\ContractTerminationController as OwnerContractTerminationController;
 use App\Http\Controllers\Web\Owner\DashboardController as OwnerDashboardController;
 use App\Http\Controllers\Web\Owner\ManualPaymentController as OwnerManualPaymentController;
 use App\Http\Controllers\Web\Owner\PropertyController as OwnerPropertyController;
@@ -19,11 +20,13 @@ use App\Http\Controllers\Web\Owner\RoomTypeController as OwnerRoomTypeController
 use App\Http\Controllers\Web\Owner\SharedTaskController as OwnerSharedTaskController;
 use App\Http\Controllers\Web\Owner\TicketController as OwnerTicketController;
 use App\Http\Controllers\Web\Owner\ApplicationController as OwnerApplicationController;
+use App\Http\Controllers\Web\Owner\WalletController as OwnerWalletController;
 use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\Public\PropertyController as PublicPropertyController;
 use App\Http\Controllers\Web\Public\PublicPageController;
 use App\Http\Controllers\Web\Settings\NotificationController;
 use App\Http\Controllers\Web\Tenant\ContractController as TenantContractController;
+use App\Http\Controllers\Web\Tenant\ContractTerminationController as TenantContractTerminationController;
 use App\Http\Controllers\Web\Tenant\DashboardController as TenantDashboardController;
 use App\Http\Controllers\Web\Tenant\InvoiceController as TenantInvoiceController;
 use App\Http\Controllers\Web\Tenant\ContractInvoiceController as TenantContractInvoiceController;
@@ -84,6 +87,7 @@ Route::prefix('tenant')
         Route::get('/contracts/{contract}', [TenantContractController::class, 'show'])->name('contracts.show');
         Route::get('/contracts/{contract}/pdf', [TenantContractController::class, 'download'])->name('contracts.pdf');
         Route::post('/contracts/{contract}/invoices', [TenantContractInvoiceController::class, 'store'])->name('contracts.invoices.store');
+        Route::post('/contracts/{contract}/termination-request', [TenantContractTerminationController::class, 'store'])->name('contracts.termination.store');
         Route::get('/invoices', [TenantInvoiceController::class, 'index'])->name('invoices.index');
         Route::get('/invoices/{invoice}', [TenantInvoiceController::class, 'show'])->name('invoices.show');
         Route::get('/invoices/{invoice}/pdf', [TenantInvoiceController::class, 'pdf'])->name('invoices.pdf');
@@ -117,6 +121,10 @@ Route::prefix('owner')
         Route::get('/room-types/{roomType}/edit', [OwnerRoomTypeController::class, 'edit'])->name('room-types.edit');
         Route::resource('room-types.rooms', OwnerRoomController::class)->shallow();
         Route::resource('contracts', OwnerContractController::class);
+        Route::get('/contract-terminations', [OwnerContractTerminationController::class, 'index'])->name('contract-terminations.index');
+        Route::patch('/contract-terminations/{terminationRequest}', [OwnerContractTerminationController::class, 'update'])->name('contract-terminations.update');
+        Route::get('/wallet', [OwnerWalletController::class, 'index'])->name('wallet.index');
+        Route::post('/wallet/withdraw', [OwnerWalletController::class, 'withdraw'])->name('wallet.withdraw');
         Route::resource('shared-tasks', OwnerSharedTaskController::class);
         Route::get('/manual-payments', [OwnerManualPaymentController::class, 'index'])->name('manual-payments.index');
         Route::patch('/manual-payments/{payment}', [OwnerManualPaymentController::class, 'update'])->name('manual-payments.update');

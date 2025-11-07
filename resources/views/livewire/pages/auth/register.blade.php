@@ -67,11 +67,11 @@ new #[Layout('layouts.guest')] class extends Component
         <div class="mb-3">
             <label class="form-label d-block">Daftar sebagai</label>
             <div class="form-check form-check-inline">
-                <input wire:model="role" class="form-check-input @error('role') is-invalid @enderror" type="radio" id="roleTenant" value="tenant" checked>
+                <input name="role" wire:model="role" class="form-check-input @error('role') is-invalid @enderror" type="radio" id="roleTenant" value="tenant" checked>
                 <label class="form-check-label" for="roleTenant">Tenant (Penyewa)</label>
             </div>
             <div class="form-check form-check-inline">
-                <input wire:model="role" class="form-check-input @error('role') is-invalid @enderror" type="radio" id="roleOwner" value="owner">
+                <input name="role" wire:model="role" class="form-check-input @error('role') is-invalid @enderror" type="radio" id="roleOwner" value="owner">
                 <label class="form-check-label" for="roleOwner">Owner (Pemilik)</label>
             </div>
             @error('role') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror

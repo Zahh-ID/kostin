@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\MidtransService;
+use App\Services\OwnerWalletService;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -11,8 +12,10 @@ class WebhookController extends Controller
 {
     protected $midtrans;
 
-    public function __construct(MidtransService $midtrans)
-    {
+    public function __construct(
+        MidtransService $midtrans,
+        protected OwnerWalletService $walletService
+    ) {
         $this->midtrans = $midtrans;
     }
 
@@ -73,12 +76,8 @@ class WebhookController extends Controller
 
                 // Update invoice
                 $invoice = $payment->invoice;
-                if ($invoice && $invoice->status !== 'paid') {
-                    $invoice->update([
-                        'status' => 'paid',
-                        'paid_at' => now(),
-                    ]);
-                }
+                $invoice?->markAsPaid();
+                $this->walletService->creditFromPayment($payment);
 
                 Log::info('Payment success', [
                     'payment_id' => $payment->id,

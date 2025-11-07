@@ -19,7 +19,16 @@
             <div class="flex items-center justify-between mt-2 mb-4">
                 <div>
                     <h1 class="text-2xl font-semibold mb-1">{{ __('Contract Details') }}</h1>
-                    <p class="text-gray-600 mb-0">{{ __('Contract number #') }}{{ $contract->id }} {{ __('for') }} {{ $contract->room->roomType->property->name ?? '-' }}</p>
+                    <p class="text-gray-600 mb-0">
+                        {{ __('Contract number #') }}{{ $contract->id }} {{ __('for') }} {{ $contract->room->roomType->property->name ?? '-' }}<br>
+                        {{ __('Berakhir pada:') }}
+                        {{ optional($contract->end_date)->translatedFormat('d M Y') ?? __('Tidak ditentukan') }}
+                    </p>
+                    @if (! is_null($daysToEnd) && $daysToEnd <= 30)
+                        <p class="text-red-600 text-sm mt-1">
+                            {{ __('Kontrak akan berakhir dalam :days hari. Segera perpanjang dengan membayar invoice baru.', ['days' => max($daysToEnd, 0)]) }}
+                        </p>
+                    @endif
                 </div>
                 <div class="flex items-center gap-3">
                     <a href="{{ route('tenant.contracts.pdf', $contract) }}" class="bg-white border px-3 py-2 rounded text-sm text-gray-700" target="_blank" rel="noopener">
@@ -95,7 +104,7 @@
                                 @enderror
                             </div>
                             <div class="flex-grow text-sm text-gray-600 md:mt-6">
-                                {{ __('Tagihan dihitung dari harga kontrak saat ini dan mencakup bulan berikutnya secara berurutan.') }}
+                                {{ __('Tagihan dibuat per transaksi dan akan memperpanjang masa sewa sesuai jumlah bulan yang dipilih. Invoice baru hanya dapat dibuat setelah invoice sebelumnya lunas.') }}
                             </div>
                             <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded text-sm h-fit md:mt-6">
                                 {{ __('Buat Invoice') }}
@@ -104,6 +113,36 @@
                     </div>
                 </div>
             @endif
+
+            <div class="bg-white rounded-lg shadow mt-4">
+                <div class="p-4 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div>
+                        <h2 class="text-lg font-semibold mb-0">{{ __('Pengakhiran Kontrak') }}</h2>
+                        <p class="text-gray-600 text-sm mb-0">
+                            {{ __('Ajukan terminasi jika Anda berencana pindah sebelum kontrak berakhir.') }}
+                        </p>
+                    </div>
+                    @if ($contract->status === 'active' && (! $latestTerminationRequest || $latestTerminationRequest->status !== 'pending'))
+                        <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#terminateModal">
+                            {{ __('Ajukan Pengakhiran') }}
+                        </button>
+                    @endif
+                </div>
+                <div class="p-4">
+                    @if ($latestTerminationRequest)
+                        <div class="mb-0">
+                            <p class="mb-1"><strong>{{ __('Tanggal yang diminta:') }}</strong> {{ optional($latestTerminationRequest->requested_end_date)->translatedFormat('d M Y') }}</p>
+                            <p class="mb-1"><strong>{{ __('Status:') }}</strong> {{ ucfirst($latestTerminationRequest->status) }}</p>
+                            <p class="mb-0"><strong>{{ __('Alasan:') }}</strong> {{ $latestTerminationRequest->reason ?: __('Tidak ada alasan tambahan.') }}</p>
+                            @if ($latestTerminationRequest->owner_notes)
+                                <p class="mb-0 mt-2"><strong>{{ __('Catatan pemilik:') }}</strong> {{ $latestTerminationRequest->owner_notes }}</p>
+                            @endif
+                        </div>
+                    @else
+                        <p class="text-muted mb-0">{{ __('Belum ada permintaan pengakhiran untuk kontrak ini.') }}</p>
+                    @endif
+                </div>
+            </div>
 
             <div class="bg-white rounded-lg shadow mt-4">
                 <div class="p-4 border-b">
@@ -167,3 +206,31 @@
         </div>
     </div>
 </x-app-layout>
+
+<div class="modal fade" id="terminateModal" tabindex="-1" aria-labelledby="terminateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('tenant.contracts.termination.store', $contract) }}">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="terminateModalLabel">{{ __('Ajukan Pengakhiran Kontrak') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">{{ __('Tanggal pindah / berhenti') }}</label>
+                        <input type="date" class="form-control" name="requested_end_date" value="{{ old('requested_end_date') }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ __('Alasan (opsional)') }}</label>
+                        <textarea class="form-control" name="reason" rows="3" placeholder="{{ __('Ceritakan alasan pengakhiran') }}">{{ old('reason') }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('Batal') }}</button>
+                    <button type="submit" class="btn btn-danger">{{ __('Kirim Permintaan') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

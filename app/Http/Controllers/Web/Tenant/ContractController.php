@@ -19,18 +19,26 @@ class ContractController extends Controller
         /** @var User $tenant */
         $tenant = $request->user();
 
+        $withHistory = $request->boolean('history');
+
         /** @var LengthAwarePaginator $contracts */
-        $contracts = $tenant->contracts()
+        $query = $tenant->contracts()
             ->with([
                 'room.roomType.property',
                 'invoices' => fn ($query) => $query->latest('due_date')->limit(1),
             ])
-            ->latest('start_date')
-            ->paginate(10)
-            ->withQueryString();
+            ->orderByDesc('status')
+            ->latest('start_date');
+
+        if (! $withHistory) {
+            $query->where('status', 'active');
+        }
+
+        $contracts = $query->paginate(10)->withQueryString();
 
         return view('tenant.contracts.index', [
             'contracts' => $contracts,
+            'withHistory' => $withHistory,
         ]);
     }
 
@@ -43,11 +51,19 @@ class ContractController extends Controller
         $contract->load([
             'room.roomType.property',
             'invoices' => fn ($query) => $query->orderByDesc('due_date'),
+            'terminationRequests' => fn ($query) => $query->latest(),
         ]);
+
+        $nextCoverageStart = $this->determineNextCoverageMonth($contract);
+        $daysToEnd = $contract->end_date
+            ? max(0, Carbon::now()->diffInDays($contract->end_date, false))
+            : null;
 
         return view('tenant.contracts.show', [
             'contract' => $contract,
-            'nextCoverageStart' => $this->determineNextCoverageMonth($contract),
+            'nextCoverageStart' => $nextCoverageStart,
+            'daysToEnd' => $daysToEnd,
+            'latestTerminationRequest' => $contract->terminationRequests->first(),
         ]);
     }
 
