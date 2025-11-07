@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\PropertyController as ApiV1PropertyController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\WebhookController;
 
@@ -27,3 +28,9 @@ Route::middleware([
 
 // Webhook (No Authentication - Verified by signature)
 Route::post('/webhook/midtrans', [WebhookController::class, 'handleNotification']);
+
+Route::prefix('v1')
+    ->middleware('auth')
+    ->group(function (): void {
+        Route::apiResource('properties', ApiV1PropertyController::class);
+    });

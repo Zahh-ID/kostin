@@ -31,7 +31,7 @@ class Payment extends Model
     ];
 
     protected $casts = [
-        'amount' => 'float',
+        'amount' => 'integer',
         'paid_at' => 'datetime',
         'verified_at' => 'datetime',
         'raw_webhook_json' => 'array',
