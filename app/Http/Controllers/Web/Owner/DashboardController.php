@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Owner;
 use App\Http\Controllers\Controller;
 use App\Models\Contract;
 use App\Models\Invoice;
+use App\Models\Payment;
 use App\Models\Room;
 use App\Models\SharedTask;
 use Illuminate\Http\Request;
@@ -47,11 +48,11 @@ class DashboardController extends Controller
             ->with(['property'])
             ->get();
 
-        $monthlyIncome = Invoice::query()
-            ->selectRaw('DATE_FORMAT(paid_at, "%Y-%m") as period, SUM(total) as total')
-            ->where('status', 'paid')
+        $monthlyIncome = Payment::query()
+            ->selectRaw('DATE_FORMAT(paid_at, "%Y-%m") as period, SUM(amount) as total')
+            ->where('status', 'success')
             ->whereNotNull('paid_at')
-            ->whereHas('contract.room.roomType.property', fn ($query) => $query->where('owner_id', $owner->id))
+            ->whereHas('invoice.contract.room.roomType.property', fn ($query) => $query->where('owner_id', $owner->id))
             ->where('paid_at', '>=', Carbon::now()->subMonths(5)->startOfMonth())
             ->groupBy('period')
             ->pluck('total', 'period');

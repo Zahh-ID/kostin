@@ -16,6 +16,11 @@ class Invoice extends Model
         'contract_id',
         'period_month',
         'period_year',
+        'months_count',
+        'coverage_start_month',
+        'coverage_start_year',
+        'coverage_end_month',
+        'coverage_end_year',
         'due_date',
         'amount',
         'late_fee',
@@ -28,6 +33,7 @@ class Invoice extends Model
     protected $casts = [
         'due_date' => 'date',
         'qris_payload' => 'array',
+        'months_count' => 'integer',
     ];
 
     public function contract(): BelongsTo

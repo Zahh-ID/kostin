@@ -25,6 +25,8 @@ class PaymentFactory extends Factory
         return [
             'invoice_id' => Invoice::factory(),
             'submitted_by' => $isManual ? User::factory()->tenant() : null,
+            'user_id' => User::factory()->tenant(),
+            'order_id' => Str::uuid()->toString(),
             'midtrans_order_id' => $paymentType === 'qris' ? Str::uuid()->toString() : null,
             'payment_type' => $paymentType,
             'manual_method' => $isManual ? fake()->randomElement(['BCA', 'Mandiri', 'BNI', 'Cash']) : null,

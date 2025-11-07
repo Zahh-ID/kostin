@@ -45,7 +45,7 @@
             <div class="bg-white rounded-lg shadow mt-4">
                 <div class="p-4 border-b flex justify-between items-center">
                     <h2 class="text-lg font-semibold mb-0">{{ __('Rooms in this Type') }}</h2>
-                    <a href="{{ route('owner.room-types.rooms.create', $roomType) }}" class="bg-blue-500 text-white px-4 py-2 rounded">{{ __('Add Room') }}</a>
+                    <a href="{{ route('owner.rooms.create', ['property_id' => $roomType->property_id, 'room_type_id' => $roomType->id]) }}" class="bg-blue-500 text-white px-4 py-2 rounded">{{ __('Add Room') }}</a>
                 </div>
                 <div class="p-4">
                     <div class="overflow-x-auto">
@@ -79,7 +79,7 @@
                                             {{ $room->custom_price ? 'Rp'.number_format($room->custom_price, 0, ',', '.') : __('Follow base price') }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <a href="{{ route('owner.rooms.edit', $room) }}" class="text-indigo-600 hover:text-indigo-900">{{ __('Edit') }}</a>
+                                            <a href="{{ route('owner.rooms.edit', ['room' => $room, 'property_id' => $roomType->property_id]) }}" class="text-indigo-600 hover:text-indigo-900">{{ __('Edit') }}</a>
                                         </td>
                                     </tr>
                                 @empty

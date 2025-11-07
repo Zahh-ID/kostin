@@ -1,6 +1,28 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $qrisPayload = $invoice->qris_payload ?? [];
+    $hasQrisPayload = is_array($qrisPayload) && ! empty($qrisPayload);
+    $qrActions = collect(data_get($qrisPayload, 'actions', []));
+    if ($qrActions->isEmpty()) {
+        $qrActions = collect(data_get($qrisPayload, 'raw_response.actions', []));
+    }
+    $qrString = data_get($qrisPayload, 'qr_string')
+        ?? data_get($qrisPayload, 'raw_response.qr_string');
+    $qrImageUrl = data_get($qrisPayload, 'qr_image_url')
+        ?? data_get($qrisPayload, 'qris_string')
+        ?? $qrActions->firstWhere('name', 'generate-qr-code')['url']
+        ?? $qrActions->first()['url']
+        ?? null;
+    if (! $qrImageUrl && $qrString) {
+        $qrImageUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=320x320&data='
+            . urlencode($qrString);
+    }
+    $expiryTime = data_get($qrisPayload, 'expiry_time') ?? data_get($qrisPayload, 'expires_at');
+    $transactionStatus = data_get($qrisPayload, 'transaction_status', 'pending');
+    $expiryCarbon = $expiryTime ? \Illuminate\Support\Carbon::make($expiryTime) : null;
+@endphp
 <div class="container py-4">
     <a href="{{ route('tenant.invoices.index') }}" class="text-decoration-none small text-muted">&larr; {{ __('Kembali ke daftar tagihan') }}</a>
 
@@ -24,7 +46,12 @@
                 default => 'warning',
             };
         @endphp
-        <span class="badge bg-{{ $statusClass }} text-uppercase">{{ str_replace('_', ' ', $invoice->status) }}</span>
+        <div class="d-flex gap-2 align-items-center">
+            <a href="{{ route('tenant.invoices.pdf', $invoice) }}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">
+                {{ __('Unduh PDF') }}
+            </a>
+            <span class="badge bg-{{ $statusClass }} text-uppercase">{{ str_replace('_', ' ', $invoice->status) }}</span>
+        </div>
     </div>
 
     <div class="row g-4">
@@ -43,6 +70,17 @@
                         <dd class="col-sm-7">Rp{{ number_format($invoice->late_fee ?? 0, 0, ',', '.') }}</dd>
                         <dt class="col-sm-5 text-muted">{{ __('Total') }}</dt>
                         <dd class="col-sm-7 fw-semibold">Rp{{ number_format($invoice->total ?? 0, 0, ',', '.') }}</dd>
+                        <dt class="col-sm-5 text-muted">{{ __('Periode Dicakup') }}</dt>
+                        <dd class="col-sm-7">
+                            {{ $invoice->months_count ?? 1 }} {{ __('bulan') }}
+                            @if ($invoice->coverage_start_month && $invoice->coverage_end_month)
+                                <div class="text-muted">
+                                    {{ \Illuminate\Support\Carbon::create($invoice->coverage_start_year, $invoice->coverage_start_month, 1)->translatedFormat('M Y') }}
+                                    -
+                                    {{ \Illuminate\Support\Carbon::create($invoice->coverage_end_year, $invoice->coverage_end_month, 1)->translatedFormat('M Y') }}
+                                </div>
+                            @endif
+                        </dd>
                         <dt class="col-sm-5 text-muted">{{ __('Status') }}</dt>
                         <dd class="col-sm-7 text-capitalize">{{ str_replace('_', ' ', $invoice->status) }}</dd>
                     </dl>
@@ -105,54 +143,16 @@
                     </ul>
                     <div class="tab-content" id="paymentTabsContent">
                         <div class="tab-pane fade show active" id="qris-pane" role="tabpanel" aria-labelledby="qris-tab">
-                            @if ($invoice->status !== 'paid')
-                                @php
-                                    $qrisPayload = $invoice->qris_payload ?? [];
-                                    $qrActions = collect(data_get($qrisPayload, 'actions', []));
-                                    $qrImageUrl = $qrActions->firstWhere('name', 'generate-qr-code')['url'] ?? $qrActions->first()['url'] ?? null;
-                                    $qrString = data_get($qrisPayload, 'qr_string');
-                                    $expiryTime = data_get($qrisPayload, 'expiry_time') ?? data_get($qrisPayload, 'expires_at');
-                                    $transactionStatus = data_get($qrisPayload, 'transaction_status', 'pending');
-                                @endphp
-                                @if ($qrisPayload)
-                                    <p class="text-muted small">{{ __('Pindai kode di bawah dengan aplikasi bank/e-wallet Anda. Pastikan nominal sesuai dengan tagihan.') }}</p>
-                                    <div class="border rounded p-3 text-center bg-light">
-                                        @if ($qrImageUrl)
-                                            <img src="{{ $qrImageUrl }}" alt="{{ __('Kode QRIS Midtrans') }}" class="img-fluid mx-auto d-block" style="max-width: 260px;">
-                                        @elseif ($qrString)
-                                            <pre class="bg-white border rounded p-2 small text-wrap">{{ $qrString }}</pre>
-                                        @else
-                                            <span class="text-muted small">{{ __('Payload QRIS belum lengkap. Mohon refresh kode pembayaran.') }}</span>
-                                        @endif
-                                    </div>
-                                    @php
-                                        $expiryCarbon = $expiryTime ? \Illuminate\Support\Carbon::make($expiryTime) : null;
-                                    @endphp
-                                    <dl class="row small text-muted mt-3 mb-0">
-                                        <dt class="col-5">{{ __('Order ID') }}</dt>
-                                        <dd class="col-7">{{ data_get($qrisPayload, 'order_id', $invoice->external_order_id ?? '—') }}</dd>
-                                        <dt class="col-5">{{ __('Status') }}</dt>
-                                        <dd class="col-7 text-capitalize">{{ str_replace('_', ' ', $transactionStatus) }}</dd>
-                                        @if ($expiryCarbon)
-                                            <dt class="col-5">{{ __('Berlaku hingga') }}</dt>
-                                            <dd class="col-7">
-                                                {{ $expiryCarbon->timezone(config('app.timezone'))->format('d M Y H:i') }}
-                                            </dd>
-                                        @endif
-                                    </dl>
-                                    <form action="{{ route('tenant.invoices.pay', $invoice) }}" method="post" class="mt-3">
-                                        @csrf
-                                        <button class="btn btn-outline-primary w-100" type="submit">{{ __('Perbarui QRIS') }}</button>
-                                    </form>
-                                @else
-                                    <p class="text-muted small">{{ __('Kami akan membuat QRIS resmi Midtrans untuk pembayaran Anda.') }}</p>
-                                    <form action="{{ route('tenant.invoices.pay', $invoice) }}" method="post">
-                                        @csrf
-                                        <button class="btn btn-primary w-100" type="submit">{{ __('Buat QRIS Sekarang') }}</button>
-                                    </form>
-                                @endif
-                            @else
+                            @if ($invoice->status === 'paid')
                                 <div class="alert alert-success mb-0">{{ __('Tagihan ini telah lunas. Terima kasih!') }}</div>
+                            @else
+                                <p class="text-muted small">{{ __('Klik tombol berikut untuk mendapatkan kode QRIS resmi Midtrans dan melakukan pembayaran.') }}</p>
+                                <form action="{{ route('tenant.invoices.pay', $invoice) }}" method="post" class="js-qris-generate-form">
+                                    @csrf
+                                    <button class="btn btn-primary w-100" type="submit" data-loading-text="{{ __('Memproses...') }}">
+                                        {{ __('Bayar via QRIS') }}
+                                    </button>
+                                </form>
                             @endif
                         </div>
                         <div class="tab-pane fade" id="manual-pane" role="tabpanel" aria-labelledby="manual-tab">
@@ -232,4 +232,91 @@
         </div>
     </div>
 </div>
+
+@if ($hasQrisPayload)
+    <div class="modal fade" id="qrisPaymentModal" tabindex="-1" aria-labelledby="qrisPaymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrisPaymentModalLabel">{{ __('Pembayaran QRIS') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Tutup') }}"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">
+                        {{ __('Tunjukkan atau pindai kode berikut menggunakan aplikasi bank atau e-wallet Anda. Pastikan nominal pembayaran sesuai dengan tagihan.') }}
+                    </p>
+                    <div class="border rounded p-3 text-center bg-light">
+                        @if ($qrImageUrl)
+                            <img src="{{ $qrImageUrl }}" alt="{{ __('Kode QRIS Midtrans') }}" class="img-fluid mx-auto d-block" style="max-width: 260px;">
+                        @elseif ($qrString)
+                            <pre class="bg-white border rounded p-2 small text-wrap">{{ $qrString }}</pre>
+                        @else
+                            <span class="text-muted small">{{ __('Payload QRIS belum lengkap. Mohon refresh kode pembayaran.') }}</span>
+                        @endif
+                    </div>
+                    <dl class="row small text-muted mt-3 mb-0">
+                        <dt class="col-5">{{ __('Order ID') }}</dt>
+                        <dd class="col-7">{{ data_get($qrisPayload, 'order_id', $invoice->external_order_id ?? '—') }}</dd>
+                        <dt class="col-5">{{ __('Status') }}</dt>
+                        <dd class="col-7 text-capitalize">{{ str_replace('_', ' ', $transactionStatus) }}</dd>
+                        @if ($expiryCarbon)
+                            <dt class="col-5">{{ __('Berlaku hingga') }}</dt>
+                            <dd class="col-7">{{ $expiryCarbon->timezone(config('app.timezone'))->format('d M Y H:i') }}</dd>
+                        @endif
+                    </dl>
+                </div>
+                <div class="modal-footer d-flex justify-content-between flex-wrap gap-2">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('Tutup') }}</button>
+                    <form action="{{ route('tenant.invoices.check-status', $invoice) }}" method="post">
+                        @csrf
+                        <button class="btn btn-primary" type="submit">{{ __('Cek Status Pembayaran') }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const shouldShowModal = @json(session('show_qris_modal', false));
+            if (shouldShowModal) {
+                const modalElement = document.getElementById('qrisPaymentModal');
+                if (modalElement) {
+                    const showModal = () => {
+                        const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+                        modalInstance.show();
+                    };
+
+                    if (window.bootstrap && window.bootstrap.Modal) {
+                        showModal();
+                    } else {
+                        const observer = new MutationObserver(() => {
+                            if (window.bootstrap && window.bootstrap.Modal) {
+                                observer.disconnect();
+                                showModal();
+                            }
+                        });
+                        observer.observe(window.document.body, { childList: true, subtree: true });
+                        setTimeout(() => observer.disconnect(), 5000);
+                    }
+                }
+            }
+
+            document.querySelectorAll('.js-qris-generate-form').forEach((form) => {
+                form.addEventListener('submit', () => {
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    if (!submitButton) {
+                        return;
+                    }
+
+                    submitButton.disabled = true;
+                    const loadingText = submitButton.dataset.loadingText || '{{ __('Memproses...') }}';
+                    submitButton.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>${loadingText}`;
+                });
+            });
+        });
+    </script>
+@endpush

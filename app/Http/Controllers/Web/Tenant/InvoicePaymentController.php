@@ -26,17 +26,18 @@ class InvoicePaymentController extends Controller
         abort_if(optional($invoice->contract)->tenant_id !== $tenant->id, 403, 'Invoice tidak ditemukan.');
 
         if ($invoice->status === 'paid') {
-            return $this->respond($request, [
+            return $this->respond($request, $invoice, [
                 'message' => 'Invoice sudah lunas.',
                 'status' => 'paid',
             ], 422);
         }
 
         if ($this->hasActiveQrisPayload($invoice)) {
-            return $this->respond($request, [
+            return $this->respond($request, $invoice, [
                 'message' => 'QRIS masih aktif.',
                 'status' => 'pending',
                 'payload' => $invoice->qris_payload,
+                'show_qris_modal' => true,
             ]);
         }
 
@@ -63,15 +64,37 @@ class InvoicePaymentController extends Controller
         }
 
         DB::transaction(function () use ($invoice, $response, $amount, $tenant, $orderId): void {
-            Payment::create([
-                'invoice_id' => $invoice->id,
-                'submitted_by' => $tenant->id,
-                'midtrans_order_id' => $response['order_id'] ?? $orderId,
-                'payment_type' => 'qris',
-                'amount' => $this->normalizeGrossAmount($response['gross_amount'] ?? $amount),
-                'status' => 'pending',
-                'raw_webhook_json' => $response,
-            ]);
+            $payment = $invoice->payments()
+                ->where('payment_type', 'qris')
+                ->where('status', 'pending')
+                ->latest()
+                ->first();
+
+            $payloadAmount = $this->normalizeGrossAmount($response['gross_amount'] ?? $amount);
+
+            if ($payment) {
+                $payment->update([
+                    'submitted_by' => $tenant->id,
+                    'user_id' => $tenant->id,
+                    'midtrans_order_id' => $response['order_id'] ?? $orderId,
+                    'order_id' => $response['order_id'] ?? $orderId,
+                    'amount' => $payloadAmount,
+                    'status' => 'pending',
+                    'raw_webhook_json' => $response,
+                    'paid_at' => null,
+                ]);
+            } else {
+                $invoice->payments()->create([
+                    'submitted_by' => $tenant->id,
+                    'user_id' => $tenant->id,
+                    'midtrans_order_id' => $response['order_id'] ?? $orderId,
+                    'order_id' => $response['order_id'] ?? $orderId,
+                    'payment_type' => 'qris',
+                    'amount' => $payloadAmount,
+                    'status' => 'pending',
+                    'raw_webhook_json' => $response,
+                ]);
+            }
 
             $invoice->update([
                 'external_order_id' => $response['order_id'] ?? $orderId,
@@ -84,22 +107,31 @@ class InvoicePaymentController extends Controller
             'order_id' => $response['order_id'] ?? $orderId,
         ]);
 
-        return $this->respond($request, [
+        return $this->respond($request, $invoice, [
             'message' => 'QRIS siap digunakan.',
             'status' => 'pending',
             'payload' => $response,
+            'show_qris_modal' => true,
         ]);
     }
 
-    private function respond(Request $request, array $data, int $status = 200)
+    private function respond(Request $request, Invoice $invoice, array $data, int $status = 200)
     {
         if ($request->wantsJson()) {
             return response()->json($data, $status);
         }
 
+        $flash = [
+            'status' => $data['message'] ?? 'Permintaan diproses.',
+        ];
+
+        if (! empty($data['show_qris_modal'])) {
+            $flash['show_qris_modal'] = true;
+        }
+
         return redirect()
-            ->back()
-            ->with('status', $data['message'] ?? 'Permintaan diproses.');
+            ->route('tenant.invoices.show', $invoice)
+            ->with($flash);
     }
 
     private function hasActiveQrisPayload(Invoice $invoice): bool

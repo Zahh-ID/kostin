@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ManualPaymentController extends Controller
 {
@@ -53,6 +54,8 @@ class ManualPaymentController extends Controller
                 Payment::create([
                     'invoice_id' => $invoice->id,
                     'submitted_by' => $tenant->id,
+                    'user_id' => $tenant->id,
+                    'order_id' => sprintf('MANUAL-%d-%s', $invoice->id, Str::orderedUuid()),
                     'payment_type' => 'manual_bank_transfer',
                     'manual_method' => $paymentAccount->method,
                     'proof_path' => $storedPath,

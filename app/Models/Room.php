@@ -17,10 +17,13 @@ class Room extends Model
         'custom_price',
         'status',
         'facilities_override_json',
+        'description',
+        'photos_json',
     ];
 
     protected $casts = [
         'facilities_override_json' => 'array',
+        'photos_json' => 'array',
     ];
 
     public function roomType(): BelongsTo

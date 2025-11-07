@@ -86,7 +86,9 @@ class PaymentController extends Controller
 
         $payment = Payment::create([
             'invoice_id' => $invoice->id,
+            'user_id' => $invoice->contract->tenant_id,
             'midtrans_order_id' => $response['order_id'] ?? $orderId,
+            'order_id' => $response['order_id'] ?? $orderId,
             'payment_type' => 'qris',
             'amount' => $amount,
             'status' => 'pending',

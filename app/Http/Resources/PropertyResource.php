@@ -11,6 +11,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @OA\Schema(
  *     schema="PropertyResource",
  *     type="object",
+ *
  *     @OA\Property(property="id", type="integer"),
  *     @OA\Property(property="owner", ref="#/components/schemas/UserResource"),
  *     @OA\Property(property="name", type="string"),
@@ -20,6 +21,9 @@ use Illuminate\Http\Resources\Json\JsonResource;
  *     @OA\Property(property="rules_text", type="string", nullable=true),
  *     @OA\Property(property="photos", type="array", @OA\Items(type="string")),
  *     @OA\Property(property="status", type="string", enum={"draft","pending","approved","rejected"}),
+ *     @OA\Property(property="moderation_notes", type="string", nullable=true),
+ *     @OA\Property(property="moderated_by", type="integer", nullable=true),
+ *     @OA\Property(property="moderated_at", type="string", format="date-time", nullable=true),
  *     @OA\Property(property="created_at", type="string", format="date-time", nullable=true),
  *     @OA\Property(property="updated_at", type="string", format="date-time", nullable=true),
  *     @OA\Property(property="room_types", type="array", @OA\Items(ref="#/components/schemas/RoomTypeResource"))
@@ -39,6 +43,9 @@ class PropertyResource extends JsonResource
             'rules_text' => $this->rules_text,
             'photos' => $this->photos,
             'status' => $this->status,
+            'moderation_notes' => $this->moderation_notes,
+            'moderated_by' => $this->moderated_by,
+            'moderated_at' => $this->moderated_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
             'room_types' => RoomTypeResource::collection($this->whenLoaded('roomTypes')),

@@ -7,6 +7,7 @@ use App\Models\Contract;
 use App\Models\Invoice;
 use App\Models\Property;
 use App\Models\Room;
+use App\Models\User;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;

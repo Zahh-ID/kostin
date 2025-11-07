@@ -1,59 +1,170 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Add Room') }}
-        </h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <a href="{{ route('owner.rooms.index') }}" class="text-sm text-gray-600">&larr; {{ __('Cancel') }}</a>
-            <h1 class="text-2xl font-semibold mt-2 mb-4">{{ __('Add Room') }}</h1>
+@section('content')
+<div class="container py-4">
+    <a href="{{ route('owner.rooms.index', ['property_id' => $selectedProperty->id]) }}" class="text-decoration-none small text-muted">&larr; {{ __('Kembali') }}</a>
+    <h1 class="h4 fw-semibold mt-2 mb-4">{{ __('Tambah Kamar Baru') }}</h1>
 
-            <div class="bg-white rounded-lg shadow p-6">
-                <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4" role="alert">
-                    <p>{{ __('This form needs to be connected to a storage endpoint before it can be used.') }}</p>
-                </div>
-                <form class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700">{{ __('Select Room Type') }}</label>
-                        <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                            @forelse ($properties as $property)
-                                <optgroup label="{{ $property->name }}">
-                                    @foreach ($property->roomTypes as $roomType)
-                                        <option value="{{ $roomType->id }}">{{ $roomType->name }}</option>
-                                    @endforeach
-                                </optgroup>
-                            @empty
-                                <option value="">{{ __('No room types yet') }}</option>
-                            @endforelse
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">{{ __('Room Code') }}</label>
-                        <input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="{{ __('e.g., 101') }}">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">{{ __('Status') }}</label>
-                        <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                            <option value="available">{{ __('Available') }}</option>
-                            <option value="occupied">{{ __('Occupied') }}</option>
-                            <option value="maintenance">{{ __('Maintenance') }}</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">{{ __('Custom Price') }}</label>
-                        <input type="number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="{{ __('Optional') }}">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700">{{ __('Additional Facilities (JSON)') }}</label>
-                        <textarea class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" rows="3" placeholder='["Air panas","Tempat tidur tambahan"]'></textarea>
-                    </div>
-                    <div class="md:col-span-2 flex justify-end">
-                        <button class="bg-blue-500 text-white px-4 py-2 rounded" type="button" disabled>{{ __('Save') }}</button>
-                    </div>
-                </form>
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="mb-4">
+                <p class="text-muted small mb-1">{{ __('Properti') }}</p>
+                <h2 class="h6 mb-0">{{ $selectedProperty->name }}</h2>
+                <p class="text-muted small mb-0">{{ $selectedProperty->address }}</p>
             </div>
+
+            <form method="POST"
+                  action="{{ route('owner.room-types.rooms.store', $defaultRoomType) }}"
+                  class="row g-4"
+                  enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="room_type_id" value="{{ $defaultRoomType->id }}">
+
+                <div class="col-md-4">
+                    <label class="form-label">{{ __('Kode Kamar') }}</label>
+                    <input type="text"
+                           class="form-control @error('room_code') is-invalid @enderror"
+                           name="room_code"
+                           value="{{ old('room_code') }}"
+                           placeholder="{{ __('Contoh: A-01') }}"
+                           required>
+                    @error('room_code')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">{{ __('Status Kamar') }}</label>
+                    <select class="form-select @error('status') is-invalid @enderror" name="status" required>
+                        @foreach (['available' => __('Tersedia'), 'occupied' => __('Terisi'), 'maintenance' => __('Perbaikan')] as $value => $label)
+                            <option value="{{ $value }}" @selected(old('status', 'available') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('status')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">{{ __('Harga / Bulan (Rp)') }}</label>
+                    <input type="number"
+                           class="form-control @error('custom_price') is-invalid @enderror"
+                           name="custom_price"
+                           value="{{ old('custom_price') }}"
+                           placeholder="{{ __('Wajib diisi') }}"
+                           required>
+                    <div class="form-text">{{ __('Gunakan angka 0 jika harga mengikuti kesepakatan lain.') }}</div>
+                    @error('custom_price')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">{{ __('Deskripsi Kamar') }}</label>
+                    <textarea class="form-control @error('description') is-invalid @enderror"
+                              name="description"
+                              rows="4"
+                              placeholder="{{ __('Tuliskan detail ukuran kamar, fasilitas unik, arah matahari, dll.') }}"
+                              required>{{ old('description') }}</textarea>
+                    @error('description')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">{{ __('Foto Kamar') }}</label>
+                    <div class="form-text">{{ __('Unggah minimal 1 foto. Format JPG/PNG, maks 5MB per file.') }}</div>
+                    <input type="file"
+                           class="form-control @error('photos') is-invalid @enderror @error('photos.*') is-invalid @enderror"
+                           name="photos[]"
+                           accept="image/*"
+                           multiple
+                           required>
+                    @error('photos')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                    @error('photos.*')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">{{ __('Fasilitas Tambahan') }}</label>
+                    <div class="form-text">{{ __('Centang fasilitas ekstra atau tambahkan item baru sesuai kondisi kamar.') }}</div>
+                    @php
+                        $facilityOptions = [
+                            'AC', 'Wi-Fi', 'Air Panas', 'Lemari', 'Meja Belajar', 'Kamar Mandi Dalam',
+                            'Televisi', 'Kasur King', 'Balkon', 'Dapur Bersama', 'Laundry', 'Parkir Motor',
+                            'Parkir Mobil', 'Kulkas', 'Dispenser', 'Ruang Tamu', 'Cleaning Service', 'Keamanan 24 Jam'
+                        ];
+                    @endphp
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-2 mt-2">
+                        @foreach ($facilityOptions as $facility)
+                            <div class="col">
+                                <div class="form-check">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           id="facility_{{ \Illuminate\Support\Str::slug($facility) }}"
+                                           name="facilities_override[]"
+                                           value="{{ $facility }}"
+                                           @checked(in_array($facility, old('facilities_override', []), true))>
+                                    <label class="form-check-label" for="facility_{{ \Illuminate\Support\Str::slug($facility) }}">
+                                        {{ $facility }}
+                                    </label>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="mt-3" id="custom-facility-wrapper">
+                        <label class="form-label">{{ __('Fasilitas Lainnya') }}</label>
+                        <div class="d-flex flex-column gap-2" id="custom-facility-list">
+                            @php
+                                $customFacilities = collect(old('facilities_override', []))
+                                    ->reject(fn ($facility) => in_array($facility, $facilityOptions, true))
+                                    ->values();
+                            @endphp
+                            @forelse ($customFacilities as $facility)
+                                <input type="text" name="facilities_override[]" class="form-control" value="{{ $facility }}">
+                            @empty
+                                <input type="text" name="facilities_override[]" class="form-control" placeholder="{{ __('Contoh: View taman') }}">
+                            @endforelse
+                        </div>
+                        <button type="button" class="btn btn-link px-0 mt-2" id="add-facility-row">
+                            + {{ __('Tambah Fasilitas Lain') }}
+                        </button>
+                    </div>
+                    @error('facilities_override')
+                        <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="col-12 d-flex justify-content-end">
+                    <button class="btn btn-primary" type="submit">
+                        {{ __('Simpan Kamar') }}
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-</x-app-layout>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const addFacilityBtn = document.getElementById('add-facility-row');
+        const customFacilityList = document.getElementById('custom-facility-list');
+
+        if (addFacilityBtn && customFacilityList) {
+            addFacilityBtn.addEventListener('click', () => {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.name = 'facilities_override[]';
+                input.className = 'form-control';
+                input.placeholder = '{{ __('Contoh: View kolam renang') }}';
+                customFacilityList.appendChild(input);
+            });
+        }
+    });
+</script>
+@endpush

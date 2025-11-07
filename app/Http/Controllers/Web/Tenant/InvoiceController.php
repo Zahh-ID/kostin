@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\PaymentAccount;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class InvoiceController extends Controller
@@ -49,6 +51,27 @@ class InvoiceController extends Controller
             'invoice' => $invoice,
             'paymentAccounts' => $paymentAccounts,
         ]);
+    }
+
+    public function pdf(Request $request, Invoice $invoice): Response
+    {
+        /** @var User $tenant */
+        $tenant = $request->user();
+        $this->ensureTenantOwnsInvoice($tenant, $invoice);
+
+        $invoice->load([
+            'contract.room.roomType.property.owner',
+            'contract.tenant',
+            'payments' => fn ($query) => $query->latest(),
+        ]);
+
+        $pdf = Pdf::loadView('tenant.invoices.pdf', [
+            'invoice' => $invoice,
+            'tenant' => $tenant,
+            'property' => $invoice->contract?->room?->roomType?->property,
+        ])->setPaper('a4');
+
+        return $pdf->download("invoice-{$invoice->id}.pdf");
     }
 
     private function ensureTenantOwnsInvoice(User $tenant, Invoice $invoice): void

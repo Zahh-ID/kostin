@@ -113,6 +113,9 @@ class DatabaseSeeder extends Seeder
                 'https://via.placeholder.com/960x640.png?text=Kamar+Standard',
             ],
             'status' => 'approved',
+            'moderated_by' => $admin->id,
+            'moderated_at' => $now->copy()->subDays(3),
+            'moderation_notes' => 'Properti lulus pemeriksaan kualitas awal.',
         ]);
 
         $standardType = RoomType::factory()->create([
@@ -139,14 +142,22 @@ class DatabaseSeeder extends Seeder
             'room_type_id' => $standardType->id,
             'room_code' => '101',
             'status' => 'occupied',
-            'custom_price' => null,
+            'custom_price' => 1500000,
+            'description' => 'Kamar standar dengan jendela lebar menghadap taman.',
+            'photos_json' => [
+                'https://via.placeholder.com/960x640.png?text=Kamar+101',
+            ],
         ]);
 
         Room::factory()->create([
             'room_type_id' => $standardType->id,
             'room_code' => '102',
             'status' => 'available',
-            'custom_price' => null,
+            'custom_price' => 1500000,
+            'description' => 'Unit menghadap timur dengan cahaya pagi, cocok untuk pekerja remote.',
+            'photos_json' => [
+                'https://via.placeholder.com/960x640.png?text=Kamar+102',
+            ],
         ]);
 
         Room::factory()->create([
@@ -154,6 +165,10 @@ class DatabaseSeeder extends Seeder
             'room_code' => '203',
             'status' => 'available',
             'custom_price' => 1950000,
+            'description' => 'Kamar deluxe dengan balkon pribadi dan kamar mandi dalam.',
+            'photos_json' => [
+                'https://via.placeholder.com/960x640.png?text=Kamar+203',
+            ],
         ]);
 
         $contractHarmoni = Contract::factory()->create([
@@ -169,11 +184,19 @@ class DatabaseSeeder extends Seeder
             'status' => 'active',
         ]);
 
+        $openStart = $now->copy()->startOfMonth();
+        $overdueStart = $now->copy()->subMonth()->startOfMonth();
+
         $openInvoice = Invoice::factory()->create([
             'contract_id' => $contractHarmoni->id,
-            'period_month' => $now->month,
-            'period_year' => $now->year,
-            'due_date' => $now->copy()->startOfMonth()->day($contractHarmoni->billing_day),
+            'period_month' => $openStart->month,
+            'period_year' => $openStart->year,
+            'months_count' => 1,
+            'coverage_start_month' => $openStart->month,
+            'coverage_start_year' => $openStart->year,
+            'coverage_end_month' => $openStart->month,
+            'coverage_end_year' => $openStart->year,
+            'due_date' => $openStart->copy()->day($contractHarmoni->billing_day),
             'amount' => 1500000,
             'late_fee' => 0,
             'total' => 1500000,
@@ -183,9 +206,14 @@ class DatabaseSeeder extends Seeder
 
         $overdueInvoice = Invoice::factory()->create([
             'contract_id' => $contractHarmoni->id,
-            'period_month' => $now->copy()->subMonth()->month,
-            'period_year' => $now->copy()->subMonth()->year,
-            'due_date' => $now->copy()->subMonth()->startOfMonth()->day($contractHarmoni->billing_day),
+            'period_month' => $overdueStart->month,
+            'period_year' => $overdueStart->year,
+            'months_count' => 1,
+            'coverage_start_month' => $overdueStart->month,
+            'coverage_start_year' => $overdueStart->year,
+            'coverage_end_month' => $overdueStart->month,
+            'coverage_end_year' => $overdueStart->year,
+            'due_date' => $overdueStart->copy()->day($contractHarmoni->billing_day),
             'amount' => 1500000,
             'late_fee' => 50000,
             'total' => 1550000,
@@ -199,15 +227,16 @@ class DatabaseSeeder extends Seeder
                 'payment_type' => 'qris',
             ],
             [
+                'user_id' => $primaryTenant->id,
                 'submitted_by' => null,
-                'midtrans_order_id' => 'ORDER-'.$overdueInvoice->id,
+                'order_id' => 'ORDER-'.$overdueInvoice->id,
                 'manual_method' => null,
                 'proof_path' => null,
                 'proof_filename' => null,
                 'notes' => null,
                 'amount' => $overdueInvoice->total,
                 'status' => 'success',
-                'paid_at' => $now->copy()->subDays(3),
+                'settlement_time' => $now->copy()->subDays(3),
                 'verified_by' => $admin->id,
                 'verified_at' => $now->copy()->subDays(3)->addHour(),
                 'rejection_reason' => null,
@@ -224,15 +253,16 @@ class DatabaseSeeder extends Seeder
                 'payment_type' => 'manual_bank_transfer',
             ],
             [
+                'user_id' => $primaryTenant->id,
                 'submitted_by' => $primaryTenant->id,
-                'midtrans_order_id' => null,
+                'order_id' => 'MANUAL-'.$openInvoice->id,
                 'manual_method' => 'BCA',
                 'proof_path' => 'manual-payments/'.$openInvoice->id.'-bukti.jpg',
                 'proof_filename' => 'bukti-transfer-november.jpg',
                 'notes' => 'Transfer manual melalui BCA Mobile pada '.$now->copy()->subDay()->format('d M Y H:i'),
                 'amount' => $openInvoice->total,
                 'status' => 'waiting_verification',
-                'paid_at' => null,
+                'settlement_time' => null,
                 'verified_by' => null,
                 'verified_at' => null,
                 'rejection_reason' => null,
@@ -274,6 +304,9 @@ class DatabaseSeeder extends Seeder
             'photos' => [
                 'https://via.placeholder.com/960x640.png?text=Kost+Sunrise',
             ],
+            'moderated_by' => null,
+            'moderated_at' => null,
+            'moderation_notes' => null,
         ]);
 
         // Secondary owner property with paid invoices
@@ -288,6 +321,9 @@ class DatabaseSeeder extends Seeder
                 'https://via.placeholder.com/960x640.png?text=Sky+Residence',
             ],
             'status' => 'approved',
+            'moderated_by' => $admin->id,
+            'moderated_at' => $now->copy()->subDays(5),
+            'moderation_notes' => 'Disetujui oleh admin untuk tayang publik.',
         ]);
 
         $suiteType = RoomType::factory()->create([
@@ -546,15 +582,16 @@ class DatabaseSeeder extends Seeder
                 'payment_type' => 'qris',
             ],
             [
+                'user_id' => $secondaryTenant->id,
                 'submitted_by' => null,
-                'midtrans_order_id' => 'ORDER-'.$paidInvoice->id,
+                'order_id' => 'ORDER-'.$paidInvoice->id,
                 'manual_method' => null,
                 'proof_path' => null,
                 'proof_filename' => null,
                 'notes' => null,
                 'amount' => 2300000,
                 'status' => 'success',
-                'paid_at' => $now->copy()->startOfMonth()->day($contractSky->billing_day)->addHours(2),
+                'settlement_time' => $now->copy()->startOfMonth()->day($contractSky->billing_day)->addHours(2),
                 'verified_by' => $admin->id,
                 'verified_at' => $now->copy()->startOfMonth()->day($contractSky->billing_day)->addHours(3),
                 'rejection_reason' => null,

@@ -1,10 +1,20 @@
 # Project Kanban – KostIn (Laravel + Blade)
 
 ## Backlog
+- [ ] Reconcile platform documentation with current Laravel + MySQL stack (replace Supabase/React references)
+- [ ] Produce Laravel-centric architecture guide (controllers, views, models, schema)
+- [ ] Audit feature parity vs. Supabase spec (payments, chat, ticketing, dashboards) and capture gaps
+- [ ] Refine admin/owner/tenant dashboards to ensure charts and analytics reflect available MySQL data
+- [ ] Harden migrations for SQLite-friendly test runs (manual payment + Midtrans columns)
+- [ ] QA tenant ↔ owner rental application flow end-to-end (validation, terms agreement, approvals)
+- [ ] Formalize QA plan covering Midtrans QRIS + manual payments, moderation, chat, ticketing
 
 ## In Progress
 
 ## Done
+- [x] Bootstrap owner room listing/detail UI and wire it to the shared layout
+- [x] Implement owner room creation/editing with validation, facilities override, and room-type scoped routing
+- [x] Enable owner property publishing workflow with admin moderation review UI
 - [x] Add automated Pest coverage for payments, ticketing, and chat modules
 - [x] Relationalise database schema, factories, and seeders (wishlist, tickets, manual payments, etc.)
 - [x] Rebuild authentication (email + Google OAuth) and role-aware scaffolding

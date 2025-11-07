@@ -256,9 +256,13 @@
 </x-app-layout>
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" integrity="sha384-lcVYgnlV8PXkqsGg4uWclqkv0I2mxZEs8NVzssnQy9X9iSvbOfMu8MLzumoyrm21" crossorigin="anonymous"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        const initAdminDashboardCharts = () => {
+            if (typeof window.Chart === 'undefined') {
+                console.warn('Chart.js tidak tersedia. Pastikan aset Vite telah dikompilasi.');
+                return;
+            }
+
             const revenueCtx = document.getElementById('admin-revenue-trend');
             const revenueLabels = @json($revenueTrend['labels']);
             const revenueData = @json($revenueTrend['data']);
@@ -386,6 +390,19 @@
                     },
                 });
             }
-        });
+        };
+        const bootCharts = () => {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initAdminDashboardCharts, { once: true });
+            } else {
+                initAdminDashboardCharts();
+            }
+        };
+
+        if (typeof window.Chart === 'undefined') {
+            window.addEventListener('chart:ready', bootCharts, { once: true });
+        } else {
+            bootCharts();
+        }
     </script>
 @endpush

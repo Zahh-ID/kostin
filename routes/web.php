@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\Admin\ModerationController as AdminModerationContro
 use App\Http\Controllers\Web\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Web\Admin\TicketController as AdminTicketController;
 use App\Http\Controllers\Web\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Web\Admin\WebhookSimulatorController as AdminWebhookSimulatorController;
 use App\Http\Controllers\Web\ChatController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\Owner\ContractController as OwnerContractController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\Web\Owner\RoomController as OwnerRoomController;
 use App\Http\Controllers\Web\Owner\RoomTypeController as OwnerRoomTypeController;
 use App\Http\Controllers\Web\Owner\SharedTaskController as OwnerSharedTaskController;
 use App\Http\Controllers\Web\Owner\TicketController as OwnerTicketController;
+use App\Http\Controllers\Web\Owner\ApplicationController as OwnerApplicationController;
 use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\Public\PropertyController as PublicPropertyController;
 use App\Http\Controllers\Web\Public\PublicPageController;
@@ -24,7 +26,10 @@ use App\Http\Controllers\Web\Settings\NotificationController;
 use App\Http\Controllers\Web\Tenant\ContractController as TenantContractController;
 use App\Http\Controllers\Web\Tenant\DashboardController as TenantDashboardController;
 use App\Http\Controllers\Web\Tenant\InvoiceController as TenantInvoiceController;
+use App\Http\Controllers\Web\Tenant\ContractInvoiceController as TenantContractInvoiceController;
 use App\Http\Controllers\Web\Tenant\InvoicePaymentController;
+use App\Http\Controllers\Web\Tenant\InvoicePaymentStatusController;
+use App\Http\Controllers\Web\Tenant\ApplicationController as TenantApplicationController;
 use App\Http\Controllers\Web\Tenant\ManualPaymentController as TenantManualPaymentController;
 use App\Http\Controllers\Web\Tenant\SavedSearchController as TenantSavedSearchController;
 use App\Http\Controllers\Web\Tenant\TicketController as TenantTicketController;
@@ -77,9 +82,13 @@ Route::prefix('tenant')
         Route::get('/', TenantDashboardController::class)->name('dashboard');
         Route::get('/contracts', [TenantContractController::class, 'index'])->name('contracts.index');
         Route::get('/contracts/{contract}', [TenantContractController::class, 'show'])->name('contracts.show');
+        Route::get('/contracts/{contract}/pdf', [TenantContractController::class, 'download'])->name('contracts.pdf');
+        Route::post('/contracts/{contract}/invoices', [TenantContractInvoiceController::class, 'store'])->name('contracts.invoices.store');
         Route::get('/invoices', [TenantInvoiceController::class, 'index'])->name('invoices.index');
         Route::get('/invoices/{invoice}', [TenantInvoiceController::class, 'show'])->name('invoices.show');
+        Route::get('/invoices/{invoice}/pdf', [TenantInvoiceController::class, 'pdf'])->name('invoices.pdf');
         Route::post('/invoices/{invoice}/pay', InvoicePaymentController::class)->name('invoices.pay');
+        Route::post('/invoices/{invoice}/check-status', InvoicePaymentStatusController::class)->name('invoices.check-status');
         Route::post('/invoices/{invoice}/manual-payment', [TenantManualPaymentController::class, 'store'])->name('invoices.manual-payment.store');
         Route::get('/wishlist', [TenantWishlistController::class, 'index'])->name('wishlist.index');
         Route::delete('/wishlist/{wishlistItem}', [TenantWishlistController::class, 'destroy'])->name('wishlist.destroy');
@@ -87,6 +96,7 @@ Route::prefix('tenant')
         Route::get('/saved-searches/{savedSearch}/apply', [TenantSavedSearchController::class, 'apply'])->name('saved-searches.apply');
         Route::delete('/saved-searches/{savedSearch}', [TenantSavedSearchController::class, 'destroy'])->name('saved-searches.destroy');
         Route::resource('tickets', TenantTicketController::class)->only(['index', 'create', 'store', 'show']);
+        Route::resource('applications', TenantApplicationController::class)->only(['index', 'create', 'store', 'show']);
     });
 
 // D. Owner
@@ -95,14 +105,23 @@ Route::prefix('owner')
     ->middleware(['auth', 'role:owner'])
     ->group(function () {
         Route::get('/', OwnerDashboardController::class)->name('dashboard');
+        Route::post('/properties/{property}/submit', [OwnerPropertyController::class, 'submit'])->name('properties.submit');
+        Route::post('/properties/{property}/withdraw', [OwnerPropertyController::class, 'withdraw'])->name('properties.withdraw');
         Route::resource('properties', OwnerPropertyController::class);
-        Route::resource('properties.room-types', OwnerRoomTypeController::class)->shallow();
+        Route::post('/properties/{property}/room-types', [OwnerRoomTypeController::class, 'store'])->name('properties.room-types.store');
+        Route::get('/rooms', [OwnerRoomController::class, 'index'])->name('rooms.index');
+        Route::get('/rooms/create', [OwnerRoomController::class, 'create'])->name('rooms.create');
+        Route::get('/room-types', [OwnerRoomTypeController::class, 'index'])->name('room-types.index');
+        Route::get('/room-types/create', [OwnerRoomTypeController::class, 'create'])->name('room-types.create');
+        Route::get('/room-types/{roomType}', [OwnerRoomTypeController::class, 'show'])->name('room-types.show');
+        Route::get('/room-types/{roomType}/edit', [OwnerRoomTypeController::class, 'edit'])->name('room-types.edit');
         Route::resource('room-types.rooms', OwnerRoomController::class)->shallow();
         Route::resource('contracts', OwnerContractController::class);
         Route::resource('shared-tasks', OwnerSharedTaskController::class);
         Route::get('/manual-payments', [OwnerManualPaymentController::class, 'index'])->name('manual-payments.index');
         Route::patch('/manual-payments/{payment}', [OwnerManualPaymentController::class, 'update'])->name('manual-payments.update');
         Route::resource('tickets', OwnerTicketController::class)->only(['index', 'show', 'update']);
+        Route::resource('applications', OwnerApplicationController::class)->only(['index', 'show', 'update']);
     });
 
 // E. Admin
@@ -112,11 +131,14 @@ Route::prefix('admin')
     ->group(function () {
         Route::get('/', AdminDashboardController::class)->name('dashboard');
         Route::get('/moderations', [AdminModerationController::class, 'index'])->name('moderations.index');
-        Route::post('/properties/{property}/approve', [AdminModerationController::class, 'approve'])->name('properties.approve');
-        Route::post('/properties/{property}/reject', [AdminModerationController::class, 'reject'])->name('properties.reject');
+        Route::get('/moderations/{property}', [AdminModerationController::class, 'show'])->name('moderations.show');
+        Route::post('/moderations/{property}/approve', [AdminModerationController::class, 'approve'])->name('moderations.approve');
+        Route::post('/moderations/{property}/reject', [AdminModerationController::class, 'reject'])->name('moderations.reject');
         Route::resource('users', AdminUserController::class);
         Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings');
         Route::resource('tickets', AdminTicketController::class)->only(['index', 'show', 'update']);
+        Route::get('/webhook/midtrans', [AdminWebhookSimulatorController::class, 'index'])->name('webhook.midtrans.form');
+        Route::post('/webhook/midtrans/simulate', [AdminWebhookSimulatorController::class, 'store'])->name('webhook.midtrans.simulate');
     });
 
 // F. System & Callback

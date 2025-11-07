@@ -26,18 +26,62 @@ class ModerationController extends Controller
         ]);
     }
 
-    public function approve(Property $property): RedirectResponse
+    public function show(Property $property): View
     {
-        $property->update(['status' => 'approved']);
+        abort_unless($property->status === 'pending', 404);
+
+        $property->load([
+            'owner:id,name,email,phone',
+            'roomTypes.rooms',
+        ]);
+
+        return view('admin.moderations.show', [
+            'property' => $property,
+        ]);
+    }
+
+    public function approve(Request $request, Property $property): RedirectResponse
+    {
+        if ($property->status !== 'pending') {
+            return back()->with('status', __('Properti tidak berada dalam antrian moderasi.'));
+        }
+
+        $validated = $request->validate([
+            'moderation_notes' => ['nullable', 'string'],
+        ]);
+
+        $property->update([
+            'status' => 'approved',
+            'moderation_notes' => $validated['moderation_notes'] ?? null,
+            'moderated_by' => $request->user()->id,
+            'moderated_at' => now(),
+        ]);
+
+        $this->recordAudit('property.moderation.approved', 'property', $property->id, $validated);
 
         return redirect()
             ->route('admin.moderations.index')
             ->with('status', "Properti {$property->name} telah disetujui.");
     }
 
-    public function reject(Property $property): RedirectResponse
+    public function reject(Request $request, Property $property): RedirectResponse
     {
-        $property->update(['status' => 'rejected']);
+        if ($property->status !== 'pending') {
+            return back()->with('status', __('Properti tidak berada dalam antrian moderasi.'));
+        }
+
+        $validated = $request->validate([
+            'moderation_notes' => ['required', 'string'],
+        ]);
+
+        $property->update([
+            'status' => 'rejected',
+            'moderation_notes' => $validated['moderation_notes'],
+            'moderated_by' => $request->user()->id,
+            'moderated_at' => now(),
+        ]);
+
+        $this->recordAudit('property.moderation.rejected', 'property', $property->id, $validated);
 
         return redirect()
             ->route('admin.moderations.index')

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Contract;
 use App\Models\Invoice;
+use App\Models\Payment;
 use App\Models\Property;
 use App\Models\Ticket;
 use App\Models\User;
@@ -57,9 +58,9 @@ class DashboardController extends Controller
             'data' => $monthlyBuckets->map(fn (array $bucket) => (int) $registrationCounts->get($bucket['key'], 0)),
         ];
 
-        $revenueBuckets = Invoice::query()
-            ->selectRaw('DATE_FORMAT(paid_at, "%Y-%m") as period, SUM(total) as total')
-            ->where('status', 'paid')
+        $revenueBuckets = Payment::query()
+            ->selectRaw('DATE_FORMAT(paid_at, "%Y-%m") as period, SUM(amount) as total')
+            ->where('status', 'success')
             ->whereNotNull('paid_at')
             ->where('paid_at', '>=', Carbon::now()->subMonths(5)->startOfMonth())
             ->groupBy('period')

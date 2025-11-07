@@ -13,6 +13,8 @@ class Payment extends Model
     protected $fillable = [
         'invoice_id',
         'submitted_by',
+        'user_id',
+        'order_id',
         'midtrans_order_id',
         'payment_type',
         'manual_method',
@@ -29,11 +31,15 @@ class Payment extends Model
     ];
 
     protected $casts = [
+        'amount' => 'decimal:2',
         'paid_at' => 'datetime',
         'verified_at' => 'datetime',
         'raw_webhook_json' => 'array',
     ];
 
+    /**
+     * Relationships
+     */
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
@@ -47,5 +53,34 @@ class Payment extends Model
     public function verifier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    /**
+     * Scopes
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopeSuccess($query)
+    {
+        return $query->where('status', 'success');
+    }
+
+    /**
+     * Check if payment is successful
+     */
+    public function isSuccess()
+    {
+        return $this->status === 'success';
+    }
+
+    /**
+     * Check if payment is pending
+     */
+    public function isPending()
+    {
+        return $this->status === 'pending';
     }
 }

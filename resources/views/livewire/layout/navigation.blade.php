@@ -90,16 +90,13 @@ new class extends Component
             [
                 'label' => __('Dashboard'),
                 'route' => 'dashboard',
-                'roles' => ['tenant', 'owner', 'admin'],
-            ],
-            [
-                'label' => __('Profile'),
-                'route' => 'profile.edit',
+                'icon' => 'bi-house-door',
                 'roles' => ['tenant', 'owner', 'admin'],
             ],
             [
                 'label' => __('Chat'),
                 'route' => 'chat.index',
+                'icon' => 'bi-chat',
                 'roles' => ['tenant', 'owner', 'admin'],
             ],
         ];
@@ -109,27 +106,29 @@ new class extends Component
     {
         return match ($this->user?->role) {
             User::ROLE_TENANT => [
-                ['label' => __('Tenant Dashboard'), 'route' => 'tenant.dashboard'],
-                ['label' => __('Kontrak'), 'route' => 'tenant.contracts.index'],
-                ['label' => __('Tagihan'), 'route' => 'tenant.invoices.index'],
-                ['label' => __('Wishlist'), 'route' => 'tenant.wishlist.index'],
-                ['label' => __('Pencarian Tersimpan'), 'route' => 'tenant.saved-searches.index'],
-                ['label' => __('Tiket'), 'route' => 'tenant.tickets.index'],
+                ['label' => __('Tenant Dashboard'), 'route' => 'tenant.dashboard', 'icon' => 'bi-speedometer2'],
+                ['label' => __('Kontrak'), 'route' => 'tenant.contracts.index', 'icon' => 'bi-file-earmark-text'],
+                ['label' => __('Tagihan'), 'route' => 'tenant.invoices.index', 'icon' => 'bi-receipt'],
+                ['label' => __('Pengajuan Kontrak'), 'route' => 'tenant.applications.index', 'icon' => 'bi-clipboard-check'],
+                ['label' => __('Wishlist'), 'route' => 'tenant.wishlist.index', 'icon' => 'bi-heart'],
+                ['label' => __('Pencarian Tersimpan'), 'route' => 'tenant.saved-searches.index', 'icon' => 'bi-search-heart'],
+                ['label' => __('Tiket'), 'route' => 'tenant.tickets.index', 'icon' => 'bi-ticket'],
             ],
             User::ROLE_OWNER => [
-                ['label' => __('Owner Dashboard'), 'route' => 'owner.dashboard'],
-                ['label' => __('Properti'), 'route' => 'owner.properties.index'],
-                ['label' => __('Kontrak'), 'route' => 'owner.contracts.index'],
-                ['label' => __('Tugas Bersama'), 'route' => 'owner.shared-tasks.index'],
-                ['label' => __('Pembayaran Manual'), 'route' => 'owner.manual-payments.index'],
-                ['label' => __('Tiket'), 'route' => 'owner.tickets.index'],
+                ['label' => __('Owner Dashboard'), 'route' => 'owner.dashboard', 'icon' => 'bi-speedometer2'],
+                ['label' => __('Properti'), 'route' => 'owner.properties.index', 'icon' => 'bi-building'],
+                ['label' => __('Kontrak'), 'route' => 'owner.contracts.index', 'icon' => 'bi-file-earmark-text'],
+                ['label' => __('Pengajuan Tenant'), 'route' => 'owner.applications.index', 'icon' => 'bi-clipboard-data'],
+                ['label' => __('Tugas Bersama'), 'route' => 'owner.shared-tasks.index', 'icon' => 'bi-list-check'],
+                ['label' => __('Pembayaran Manual'), 'route' => 'owner.manual-payments.index', 'icon' => 'bi-wallet2'],
+                ['label' => __('Tiket'), 'route' => 'owner.tickets.index', 'icon' => 'bi-ticket'],
             ],
             User::ROLE_ADMIN => [
-                ['label' => __('Admin Dashboard'), 'route' => 'admin.dashboard'],
-                ['label' => __('Ticketing'), 'route' => 'admin.tickets.index'],
-                ['label' => __('Moderasi Properti'), 'route' => 'admin.moderations.index'],
-                ['label' => __('Pengguna'), 'route' => 'admin.users.index'],
-                ['label' => __('Pengaturan'), 'route' => 'admin.settings'],
+                ['label' => __('Admin Dashboard'), 'route' => 'admin.dashboard', 'icon' => 'bi-speedometer2'],
+                ['label' => __('Ticketing'), 'route' => 'admin.tickets.index', 'icon' => 'bi-ticket'],
+                ['label' => __('Moderasi Properti'), 'route' => 'admin.moderations.index', 'icon' => 'bi-patch-check'],
+                ['label' => __('Pengguna'), 'route' => 'admin.users.index', 'icon' => 'bi-people'],
+                ['label' => __('Pengaturan'), 'route' => 'admin.settings', 'icon' => 'bi-gear'],
             ],
             default => [],
         };
@@ -141,17 +140,14 @@ new class extends Component
             [
                 'label' => __('Notifikasi'),
                 'route' => 'settings.notifications',
+                'icon' => 'bi-bell',
                 'roles' => ['tenant', 'owner', 'admin'],
             ],
             [
                 'label' => __('List Properti Baru'),
                 'route' => 'owner.properties.create',
+                'icon' => 'bi-plus-circle',
                 'roles' => ['owner'],
-            ],
-            [
-                'label' => __('Keluar'),
-                'action' => 'logout',
-                'roles' => ['tenant', 'owner', 'admin'],
             ],
         ];
     }
@@ -167,39 +163,49 @@ new class extends Component
     }
 }; ?>
 
-<div class="p-3">
-    <div class="text-muted text-uppercase small mb-2">{{ __('Navigasi Utama') }}</div>
-    <div class="nav nav-pills flex-column mb-3">
+<div class="d-flex flex-column flex-shrink-0 p-3 bg-light">
+    <div class="d-flex align-items-center justify-content-between">
+        <a href="{{ route('dashboard') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none">
+            <span class="fs-4">KostIn</span>
+        </a>
+        <button id="sidebar-toggler" class="btn">
+            <i class="bi bi-list"></i>
+        </button>
+    </div>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
         @foreach ($this->primaryNav() as $item)
             @if ((! isset($item['roles']) || in_array($user?->role, $item['roles'] ?? [], true)) && $this->routeExists($item['route'] ?? null))
-                <a class="nav-link d-flex justify-content-between align-items-center @if ($this->isActive($item['route'])) active @endif" href="{{ route($item['route']) }}">
-                    <span>{{ $item['label'] }}</span>
-                    @if (($badges[$item['route']] ?? 0) > 0)
-                        <span class="badge bg-primary rounded-pill">{{ $badges[$item['route']] }}</span>
-                    @endif
-                </a>
-            @endif
-        @endforeach
-    </div>
-
-    @if (! empty($this->roleNav()))
-        <div class="text-muted text-uppercase small mb-2">{{ __('Menu :role', ['role' => ucfirst($user?->role ?? '')]) }}</div>
-        <div class="nav nav-pills flex-column mb-3">
-            @foreach ($this->roleNav() as $item)
-                @if ($this->routeExists($item['route'] ?? null))
-                    <a class="nav-link d-flex justify-content-between align-items-center @if ($this->isActive($item['route'])) active @endif" href="{{ route($item['route']) }}">
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center @if ($this->isActive($item['route'])) active @else link-dark @endif" href="{{ route($item['route']) }}">
+                        <i class="bi {{ $item['icon'] }} me-2"></i>
                         <span>{{ $item['label'] }}</span>
                         @if (($badges[$item['route']] ?? 0) > 0)
-                            <span class="badge bg-primary rounded-pill">{{ $badges[$item['route']] }}</span>
+                            <span class="badge bg-primary rounded-pill ms-auto">{{ $badges[$item['route']] }}</span>
                         @endif
                     </a>
+                </li>
+            @endif
+        @endforeach
+
+        @if (! empty($this->roleNav()))
+            <hr>
+            @foreach ($this->roleNav() as $item)
+                @if ($this->routeExists($item['route'] ?? null))
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center @if ($this->isActive($item['route'])) active @else link-dark @endif" href="{{ route($item['route']) }}">
+                            <i class="bi {{ $item['icon'] }} me-2"></i>
+                            <span>{{ $item['label'] }}</span>
+                            @if (($badges[$item['route']] ?? 0) > 0)
+                                <span class="badge bg-primary rounded-pill ms-auto">{{ $badges[$item['route']] }}</span>
+                            @endif
+                        </a>
+                    </li>
                 @endif
             @endforeach
-        </div>
-    @endif
+        @endif
 
-    <div class="text-muted text-uppercase small mb-2">{{ __('Lainnya') }}</div>
-    <div class="nav nav-pills flex-column">
+        <hr>
         @foreach ($this->supportNav() as $item)
             @php
                 $roles = $item['roles'] ?? null;
@@ -207,25 +213,34 @@ new class extends Component
             @endphp
             @if ($shouldShow)
                 @if (isset($item['route']) && $this->routeExists($item['route']))
-                    <a class="nav-link d-flex justify-content-between align-items-center @if ($this->isActive($item['route'])) active @endif" href="{{ route($item['route']) }}">
-                        <span>{{ $item['label'] }}</span>
-                        @if (($badges[$item['route']] ?? 0) > 0)
-                            <span class="badge bg-primary rounded-pill">{{ $badges[$item['route']] }}</span>
-                        @endif
-                    </a>
-                @elseif (isset($item['action']) && $item['action'] === 'logout')
-                    <form method="POST" action="{{ route('logout') }}" class="w-100">
-                        @csrf
-                        <button type="submit" class="nav-link text-start border-0 bg-transparent w-100">
-                            {{ $item['label'] }}
-                        </button>
-                    </form>
-                @elseif (isset($item['action']))
-                    <button type="button" class="nav-link text-start" wire:click="{{ $item['action'] }}">
-                        {{ $item['label'] }}
-                    </button>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center @if ($this->isActive($item['route'])) active @else link-dark @endif" href="{{ route($item['route']) }}">
+                            <i class="bi {{ $item['icon'] }} me-2"></i>
+                            <span>{{ $item['label'] }}</span>
+                            @if (($badges[$item['route']] ?? 0) > 0)
+                                <span class="badge bg-primary rounded-pill ms-auto">{{ $badges[$item['route']] }}</span>
+                            @endif
+                        </a>
+                    </li>
                 @endif
             @endif
         @endforeach
+    </ul>
+    <hr>
+    <div class="dropdown user-dropdown" wire:ignore>
+        <a href="#" class="d-flex align-items-center link-dark text-decoration-none dropdown-toggle" id="dropdownUser2" data-bs-toggle="dropdown" aria-expanded="false">
+            <img src="{{ $user?->avatar_url ?? 'https://www.gravatar.com/avatar/' . md5(strtolower(trim($user?->email ?? 'guest@example.com'))) }}" alt="" width="32" height="32" class="rounded-circle me-2">
+            <strong>{{ $user?->name ?? __('Pengguna') }}</strong>
+        </a>
+        <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser2" style="z-index: 1050;">
+            <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Profile</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="dropdown-item">Sign out</button>
+                </form>
+            </li>
+        </ul>
     </div>
 </div>

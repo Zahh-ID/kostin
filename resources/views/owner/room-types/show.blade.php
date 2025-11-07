@@ -39,7 +39,7 @@
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
                     <h2 class="h6 fw-semibold mb-0">Unit Kamar</h2>
-                    <a href="{{ route('owner.rooms.create') }}" class="btn btn-outline-primary btn-sm">Tambah Kamar</a>
+                    <a href="{{ route('owner.rooms.create', ['property_id' => $roomType->property_id, 'room_type_id' => $roomType->id]) }}" class="btn btn-outline-primary btn-sm">Tambah Kamar</a>
                 </div>
                 <div class="card-body">
                     <div class="row g-2">

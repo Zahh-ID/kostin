@@ -24,6 +24,9 @@ class PropertyFactory extends Factory
             'rules_text' => fake()->paragraph(),
             'photos' => [fake()->imageUrl()],
             'status' => fake()->randomElement(['draft', 'pending', 'approved', 'rejected']),
+            'moderation_notes' => null,
+            'moderated_by' => null,
+            'moderated_at' => null,
         ];
     }
 }

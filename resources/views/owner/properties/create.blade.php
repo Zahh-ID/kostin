@@ -1,53 +1,136 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="h4 text-dark mb-0">
             {{ __('Add New Property') }}
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <a href="{{ route('owner.properties.index') }}" class="text-sm text-gray-600">&larr; {{ __('Cancel') }}</a>
-            <h1 class="text-2xl font-semibold mt-2 mb-4">{{ __('Add New Property') }}</h1>
+    <div class="container-fluid py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-8">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <a href="{{ route('owner.properties.index') }}" class="btn btn-link px-0">
+                        &larr; {{ __('Back to property list') }}
+                    </a>
+                </div>
 
-            <div class="bg-white rounded-lg shadow">
-                <div class="p-4">
-                    <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4" role="alert">
-                        <p>{{ __('This form is a placeholder. Connect it to the store controller to save the actual data.') }}</p>
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="alert alert-info d-flex align-items-start">
+                            <i data-feather="info" class="me-2"></i>
+                            <div>
+                                <strong>{{ __('Draft first, publish later') }}</strong>
+                                <p class="mb-0 small text-muted">
+                                    {{ __('Lengkapi informasi dasar properti. Setelah disimpan sebagai draft, ajukan moderasi agar tim admin dapat memverifikasi dan menayangkannya.') }}
+                                </p>
+                            </div>
+                        </div>
+
+                        @if ($errors->any())
+                            <div class="alert alert-danger">
+                                <strong>{{ __('Periksa kembali data kamu:') }}</strong>
+                                <ul class="mb-0 mt-2 ps-3">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        <form method="POST" action="{{ route('owner.properties.store') }}" class="row g-4">
+                            @csrf
+
+                            <div class="col-12">
+                                <label for="name" class="form-label">{{ __('Property Name') }}</label>
+                                <input
+                                    id="name"
+                                    name="name"
+                                    type="text"
+                                    value="{{ old('name') }}"
+                                    class="form-control @error('name') is-invalid @enderror"
+                                    placeholder="{{ __('Contoh: Kost Harmoni Timoho') }}"
+                                    required
+                                >
+                                <div class="form-text text-muted">
+                                    {{ __('Gunakan nama yang mudah dikenali tenant.') }}
+                                </div>
+                                @error('name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-12">
+                                <label for="address" class="form-label">{{ __('Address') }}</label>
+                                <textarea
+                                    id="address"
+                                    name="address"
+                                    rows="3"
+                                    class="form-control @error('address') is-invalid @enderror"
+                                    placeholder="{{ __('Alamat lengkap beserta patokan atau area sekitar') }}"
+                                    required
+                                >{{ old('address') }}</textarea>
+                                @error('address')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="lat" class="form-label">{{ __('Latitude (optional)') }}</label>
+                                <input
+                                    id="lat"
+                                    name="lat"
+                                    type="text"
+                                    value="{{ old('lat') }}"
+                                    class="form-control @error('lat') is-invalid @enderror"
+                                    placeholder="-6.200000"
+                                >
+                                <div class="form-text text-muted">
+                                    {{ __('Isi jika ingin menampilkan pin peta yang lebih presisi.') }}
+                                </div>
+                                @error('lat')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="lng" class="form-label">{{ __('Longitude (optional)') }}</label>
+                                <input
+                                    id="lng"
+                                    name="lng"
+                                    type="text"
+                                    value="{{ old('lng') }}"
+                                    class="form-control @error('lng') is-invalid @enderror"
+                                    placeholder="106.816666"
+                                >
+                                @error('lng')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-12">
+                                <label for="rules_text" class="form-label">{{ __('House Rules (optional)') }}</label>
+                                <textarea
+                                    id="rules_text"
+                                    name="rules_text"
+                                    rows="4"
+                                    class="form-control @error('rules_text') is-invalid @enderror"
+                                    placeholder="{{ __('Contoh: Tidak boleh merokok di kamar, jam tamu hingga pukul 22.00.') }}"
+                                >{{ old('rules_text') }}</textarea>
+                                @error('rules_text')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-12 d-flex justify-content-end gap-2">
+                                <a href="{{ route('owner.properties.index') }}" class="btn btn-outline-secondary">
+                                    {{ __('Cancel') }}
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    {{ __('Save Draft') }}
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                    <form class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">{{ __('Property Name') }}</label>
-                            <input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="{{ __('Example: Harmony Kost') }}">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">{{ __('Status') }}</label>
-                            <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                @foreach ($statuses as $status)
-                                    <option value="{{ $status }}">{{ ucfirst($status) }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700">{{ __('Address') }}</label>
-                            <textarea class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" rows="2" placeholder="{{ __('Full address') }}"></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">{{ __('Latitude') }}</label>
-                            <input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="-6.200000">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">{{ __('Longitude') }}</label>
-                            <input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="106.816666">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700">{{ __('Rules') }}</label>
-                            <textarea class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" rows="4" placeholder="{{ __('Write down the rules or provisions of the kost') }}"></textarea>
-                        </div>
-                        <div class="md:col-span-2 flex justify-end">
-                            <button class="bg-blue-500 text-white px-4 py-2 rounded" type="button" disabled>{{ __('Save (coming soon)') }}</button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>

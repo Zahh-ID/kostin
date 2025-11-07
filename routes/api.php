@@ -1,37 +1,29 @@
 <?php
 
-use App\Http\Controllers\Api\V1\AuthController;
-use App\Http\Controllers\Api\V1\ContractController;
-use App\Http\Controllers\Api\V1\InvoiceController;
-use App\Http\Controllers\Api\V1\PaymentController;
-use App\Http\Controllers\Api\V1\PropertyController;
-use App\Http\Controllers\Api\V1\RoomController;
-use App\Http\Controllers\Api\V1\RoomTypeController;
-use App\Http\Controllers\Api\V1\SharedTaskController;
-use App\Http\Controllers\Api\V1\SharedTaskLogController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\WebhookController;
 
-Route::prefix('v1')->group(function (): void {
-    Route::post('auth/login', [AuthController::class, 'login']);
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+*/
 
-    Route::middleware('auth')->group(function (): void {
-        Route::post('auth/logout', [AuthController::class, 'logout']);
-        Route::get('auth/me', [AuthController::class, 'me']);
+// Payment Routes (Authenticated)
+Route::middleware([
+    'auth:sanctum',
+])->group(function () {
+    // Create Payment
+    Route::post('/payment/create-qris', [PaymentController::class, 'createQrisPayment']);
+    Route::post('/payment/create-bank-transfer', [PaymentController::class, 'createBankTransferPayment']);
+    Route::post('/payment/create-gopay', [PaymentController::class, 'createGopayPayment']);
 
-        Route::apiResource('properties', PropertyController::class);
+    // Check Payment Status
+    Route::get('/payment/{orderId}/status', [PaymentController::class, 'getPaymentStatus']);
 
-        Route::apiResource('room-types', RoomTypeController::class);
-        Route::apiResource('rooms', RoomController::class);
-
-        Route::apiResource('contracts', ContractController::class);
-
-        Route::apiResource('invoices', InvoiceController::class)->only(['index', 'show', 'update']);
-        Route::post('invoices/{invoice}/mark-paid', [InvoiceController::class, 'markPaid']);
-
-        Route::apiResource('payments', PaymentController::class)->only(['index', 'store']);
-        Route::post('payments/midtrans/webhook', [PaymentController::class, 'webhook'])->withoutMiddleware('auth');
-
-        Route::apiResource('shared-tasks', SharedTaskController::class);
-        Route::apiResource('shared-task-logs', SharedTaskLogController::class)->only(['index', 'store']);
-    });
+    // Cancel Payment
+    Route::post('/payment/{orderId}/cancel', [PaymentController::class, 'cancelPayment']);
 });
+
+// Webhook (No Authentication - Verified by signature)
+Route::post('/webhook/midtrans', [WebhookController::class, 'handleNotification']);

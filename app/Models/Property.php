@@ -21,17 +21,26 @@ class Property extends Model
         'rules_text',
         'photos',
         'status',
+        'moderation_notes',
+        'moderated_by',
+        'moderated_at',
     ];
 
     protected $casts = [
         'photos' => 'array',
         'lat' => 'decimal:7',
         'lng' => 'decimal:7',
+        'moderated_at' => 'datetime',
     ];
 
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function moderator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'moderated_by');
     }
 
     public function roomTypes(): HasMany

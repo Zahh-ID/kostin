@@ -15,12 +15,18 @@ class RoomFactory extends Factory
 
     public function definition(): array
     {
+        $price = fake()->numberBetween(800000, 2500000);
+
         return [
             'room_type_id' => RoomType::factory(),
             'room_code' => (string) fake()->unique()->numerify('10#'),
-            'custom_price' => null,
+            'custom_price' => $price,
             'status' => fake()->randomElement(['available', 'occupied', 'maintenance']),
             'facilities_override_json' => null,
+            'description' => fake()->sentences(3, true),
+            'photos_json' => [
+                'https://via.placeholder.com/960x640.png?text=Kamar+'.fake()->unique()->numerify('###'),
+            ],
         ];
     }
 }

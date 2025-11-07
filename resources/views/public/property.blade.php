@@ -45,7 +45,13 @@
                         </div>
                         <div class="d-grid gap-2">
                             @auth
-                                <a href="{{ route('tenant.dashboard') }}" class="btn btn-primary">{{ __('Buka Portal Tenant') }}</a>
+                                @if (auth()->user()->role === \App\Models\User::ROLE_TENANT)
+                                    <a href="{{ route('tenant.applications.create', ['property_id' => $property->id]) }}" class="btn btn-primary">
+                                        {{ __('Ajukan Kontrak di Properti Ini') }}
+                                    </a>
+                                @else
+                                    <a href="{{ route('tenant.dashboard') }}" class="btn btn-primary">{{ __('Buka Portal') }}</a>
+                                @endif
                                 <a href="{{ route('contact') }}" class="btn btn-outline-primary">{{ __('Hubungi Pemilik') }}</a>
                             @else
                                 <a href="{{ route('login') }}" class="btn btn-primary">{{ __('Masuk untuk mengajukan sewa') }}</a>
