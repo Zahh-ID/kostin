@@ -7,6 +7,23 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-success text-white">Daftar</div>
                 <div class="card-body">
+                    @if (session('error'))
+                        <div class="alert alert-danger" role="alert">
+                            {{ session('error') }}
+                        </div>
+                    @endif
+
+                    @if ($errors->any())
+                        <div class="alert alert-warning" role="alert">
+                            <strong>Ups!</strong> Ada beberapa data yang perlu diperiksa kembali.
+                            <ul class="mb-0 mt-2 ps-3">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     <a href="{{ route('auth.redirect') }}" class="btn btn-danger w-100 mb-3">Daftar dengan Google</a>
                     <hr>
                     <form method="POST" action="{{ route('register') }}">

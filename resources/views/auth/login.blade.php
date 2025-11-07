@@ -7,6 +7,23 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">Masuk</div>
                 <div class="card-body">
+                    @if (session('error'))
+                        <div class="alert alert-danger" role="alert">
+                            {{ session('error') }}
+                        </div>
+                    @endif
+
+                    @if ($errors->any())
+                        <div class="alert alert-warning" role="alert">
+                            <strong>Ups!</strong> Terjadi kesalahan saat memproses data kamu.
+                            <ul class="mb-0 mt-2 ps-3">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     <a href="{{ route('auth.redirect') }}" class="btn btn-danger w-100 mb-3">Masuk dengan Google</a>
                     <hr>
                     <form method="POST" action="{{ route('login') }}">
