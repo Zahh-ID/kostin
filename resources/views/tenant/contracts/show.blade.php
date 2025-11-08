@@ -121,9 +121,18 @@
                         <p class="text-gray-600 text-sm mb-0">
                             {{ __('Ajukan terminasi jika Anda berencana pindah sebelum kontrak berakhir.') }}
                         </p>
+                        @if ($terminationBlockedReason)
+                            <p class="mt-2 text-sm text-warning mb-0">
+                                {{ $terminationBlockedReason }}
+                            </p>
+                        @endif
                     </div>
-                    @if ($contract->status === 'active' && (! $latestTerminationRequest || $latestTerminationRequest->status !== 'pending'))
+                    @if ($canRequestTermination && (! $latestTerminationRequest || $latestTerminationRequest->status !== 'pending'))
                         <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#terminateModal">
+                            {{ __('Ajukan Pengakhiran') }}
+                        </button>
+                    @elseif (! $canRequestTermination)
+                        <button class="btn btn-outline-secondary btn-sm" disabled>
                             {{ __('Ajukan Pengakhiran') }}
                         </button>
                     @endif

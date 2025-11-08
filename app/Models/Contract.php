@@ -79,6 +79,33 @@ class Contract extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function outstandingInvoices(): HasMany
+    {
+        return $this->invoices()->whereIn('status', Invoice::OUTSTANDING_STATUSES);
+    }
+
+    public function hasOutstandingInvoices(): bool
+    {
+        if ($this->relationLoaded('invoices')) {
+            return $this->invoices->contains(function (Invoice $invoice) {
+                return in_array($invoice->status, Invoice::OUTSTANDING_STATUSES, true);
+            });
+        }
+
+        return $this->outstandingInvoices()->exists();
+    }
+
+    public function outstandingInvoicesCount(): int
+    {
+        if ($this->relationLoaded('invoices')) {
+            return $this->invoices->filter(function (Invoice $invoice) {
+                return in_array($invoice->status, Invoice::OUTSTANDING_STATUSES, true);
+            })->count();
+        }
+
+        return $this->outstandingInvoices()->count();
+    }
+
     public function terminationRequests(): HasMany
     {
         return $this->hasMany(ContractTerminationRequest::class);

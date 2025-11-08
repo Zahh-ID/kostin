@@ -12,6 +12,18 @@ class Invoice extends Model
 {
     use HasFactory;
 
+    public const STATUS_UNPAID = 'unpaid';
+    public const STATUS_PAID = 'paid';
+    public const STATUS_OVERDUE = 'overdue';
+    public const STATUS_CANCELED = 'canceled';
+    public const STATUS_PENDING_VERIFICATION = 'pending_verification';
+
+    public const OUTSTANDING_STATUSES = [
+        self::STATUS_UNPAID,
+        self::STATUS_OVERDUE,
+        self::STATUS_PENDING_VERIFICATION,
+    ];
+
     protected $fillable = [
         'contract_id',
         'period_month',
@@ -46,6 +58,11 @@ class Invoice extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function scopeOutstanding($query)
+    {
+        return $query->whereIn('status', self::OUTSTANDING_STATUSES);
     }
 
     public function scopeCurrentPeriod($query)

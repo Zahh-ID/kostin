@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Tenant;
 use App\Http\Controllers\Controller;
 use App\Models\Contract;
 use App\Models\User;
+use App\Services\ContractBillingService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
@@ -14,6 +15,11 @@ use Illuminate\View\View;
 
 class ContractController extends Controller
 {
+    public function __construct(
+        private readonly ContractBillingService $contractBillingService,
+    ) {
+    }
+
     public function index(Request $request): View
     {
         /** @var User $tenant */
@@ -54,16 +60,29 @@ class ContractController extends Controller
             'terminationRequests' => fn ($query) => $query->latest(),
         ]);
 
-        $nextCoverageStart = $this->determineNextCoverageMonth($contract);
+        $nextCoverageStart = $this->contractBillingService->determineNextCoverageStart($contract);
         $daysToEnd = $contract->end_date
             ? max(0, Carbon::now()->diffInDays($contract->end_date, false))
             : null;
+        $outstandingInvoicesCount = $contract->outstandingInvoicesCount();
+        $terminationBlockedReason = null;
+
+        if ($contract->status !== 'active') {
+            $terminationBlockedReason = __('Kontrak tidak aktif.');
+        } elseif ($outstandingInvoicesCount > 0) {
+            $terminationBlockedReason = __('Selesaikan :count tagihan aktif sebelum mengajukan pengakhiran.', [
+                'count' => $outstandingInvoicesCount,
+            ]);
+        }
 
         return view('tenant.contracts.show', [
             'contract' => $contract,
             'nextCoverageStart' => $nextCoverageStart,
             'daysToEnd' => $daysToEnd,
             'latestTerminationRequest' => $contract->terminationRequests->first(),
+            'canRequestTermination' => $terminationBlockedReason === null,
+            'terminationBlockedReason' => $terminationBlockedReason,
+            'outstandingInvoicesCount' => $outstandingInvoicesCount,
         ]);
     }
 
@@ -94,29 +113,4 @@ class ContractController extends Controller
         abort_if($contract->tenant_id !== $tenant->id, 403, 'Kontrak tidak ditemukan untuk akun ini.');
     }
 
-    private function determineNextCoverageMonth(Contract $contract): Carbon
-    {
-        $lastInvoice = $contract->invoices()
-            ->orderByDesc('coverage_end_year')
-            ->orderByDesc('coverage_end_month')
-            ->orderByDesc('period_year')
-            ->orderByDesc('period_month')
-            ->orderByDesc('id')
-            ->first();
-
-        if ($lastInvoice) {
-            $lastYear = $lastInvoice->coverage_end_year ?? $lastInvoice->period_year;
-            $lastMonth = $lastInvoice->coverage_end_month ?? $lastInvoice->period_month;
-
-            if ($lastYear && $lastMonth) {
-                return Carbon::create($lastYear, $lastMonth, 1)->startOfMonth()->addMonth();
-            }
-        }
-
-        if ($contract->start_date) {
-            return $contract->start_date->copy()->startOfMonth();
-        }
-
-        return Carbon::now()->startOfMonth();
-    }
 }

@@ -4,12 +4,18 @@ namespace App\Http\Controllers\Web\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContractTerminationRequest;
+use App\Services\ContractBillingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ContractTerminationController extends Controller
 {
+    public function __construct(
+        private readonly ContractBillingService $contractBillingService,
+    ) {
+    }
+
     public function index(Request $request): View
     {
         $ownerId = $request->user()->id;
@@ -41,10 +47,17 @@ class ContractTerminationController extends Controller
         }
 
         if ($data['action'] === 'approve') {
-            $terminationRequest->contract->update([
-                'status' => 'ended',
-                'end_date' => $terminationRequest->requested_end_date,
-            ]);
+            $contract = $terminationRequest->contract;
+
+            if ($contract) {
+                $contract->update([
+                    'status' => 'ended',
+                    'end_date' => $terminationRequest->requested_end_date,
+                ]);
+
+                $this->contractBillingService->cancelOutstandingInvoices($contract);
+            }
+
             $terminationRequest->status = 'approved';
         } else {
             $terminationRequest->status = 'rejected';

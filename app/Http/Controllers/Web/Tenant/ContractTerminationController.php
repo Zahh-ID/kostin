@@ -15,6 +15,14 @@ class ContractTerminationController extends Controller
         $tenant = $request->user();
         abort_if($contract->tenant_id !== $tenant->id, 403);
 
+        if ($contract->status !== 'active') {
+            return back()->with('status', __('Kontrak ini belum aktif atau sudah berakhir.'));
+        }
+
+        if ($contract->hasOutstandingInvoices()) {
+            return back()->with('status', __('Selesaikan seluruh tagihan yang masih aktif sebelum mengajukan pengakhiran.'));
+        }
+
         $validated = $request->validate([
             'requested_end_date' => ['required', 'date', 'after_or_equal:today'],
             'reason' => ['nullable', 'string', 'max:2000'],

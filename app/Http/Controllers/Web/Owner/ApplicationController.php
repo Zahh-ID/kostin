@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Contract;
 use App\Models\RentalApplication;
 use App\Models\Room;
+use App\Services\ContractBillingService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,11 @@ use Illuminate\View\View;
 
 class ApplicationController extends Controller
 {
+    public function __construct(
+        private readonly ContractBillingService $contractBillingService,
+    ) {
+    }
+
     public function index(Request $request): View
     {
         $ownerId = $request->user()->id;
@@ -78,7 +84,7 @@ class ApplicationController extends Controller
                 ->addMonthsNoOverflow((int) $data['duration_months'])
                 ->subDay();
 
-            Contract::create([
+            $contract = Contract::create([
                 'tenant_id' => $application->tenant_id,
                 'room_id' => $room->id,
                 'start_date' => $data['start_date'],
@@ -97,6 +103,8 @@ class ApplicationController extends Controller
                 'owner_notes' => $data['owner_notes'] ?? null,
                 'approved_at' => now(),
             ]);
+
+            $this->contractBillingService->ensureInitialInvoice($contract);
 
             return redirect()
                 ->route('owner.applications.show', $application)
