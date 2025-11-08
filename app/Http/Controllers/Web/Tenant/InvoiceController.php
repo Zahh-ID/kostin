@@ -22,7 +22,7 @@ class InvoiceController extends Controller
 
         /** @var LengthAwarePaginator $invoices */
         $invoices = $tenant->invoices()
-            ->where('status', '!=', Invoice::STATUS_CANCELED)
+            ->where('invoices.status', '!=', Invoice::STATUS_CANCELED)
             ->with([
                 'contract.room.roomType.property',
                 'payments' => fn ($query) => $query->latest()->limit(3),
