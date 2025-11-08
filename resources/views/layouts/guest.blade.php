@@ -1,3 +1,4 @@
+@isset($slot)
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
@@ -33,3 +34,6 @@
         @stack('scripts')
     </body>
 </html>
+@else
+{!! view('layouts.app', get_defined_vars())->render() !!}
+@endisset
