@@ -63,10 +63,8 @@ Route::post('/webhook/midtrans', [WebhookController::class, 'handleNotification'
 
 Route::prefix('v1')
     ->group(function (): void {
-        Route::middleware('web')->group(function (): void {
-            Route::post('/auth/login', [AuthController::class, 'login']);
-            Route::post('/auth/register', [AuthController::class, 'register']);
-        });
+        Route::post('/auth/login', [AuthController::class, 'login']);
+        Route::post('/auth/register', [AuthController::class, 'register']);
 
         Route::get('/stats', StatsController::class);
         Route::get('/stats', StatsController::class);
