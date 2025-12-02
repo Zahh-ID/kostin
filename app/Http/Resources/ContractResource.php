@@ -50,8 +50,8 @@ class ContractResource extends JsonResource
             'activated_at' => $this->activated_at?->toIso8601String(),
             'terminated_at' => $this->terminated_at?->toIso8601String(),
             'termination_reason' => $this->termination_reason,
-            'start_date' => $this->start_date?->toDateString(),
-            'end_date' => $this->end_date?->toDateString(),
+            'start_date' => $this->start_date?->format('Y-m-d'),
+            'end_date' => $this->end_date?->format('Y-m-d'),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

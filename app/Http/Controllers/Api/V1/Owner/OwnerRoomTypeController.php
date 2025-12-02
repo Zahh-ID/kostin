@@ -47,7 +47,7 @@ class OwnerRoomTypeController extends Controller
 
         return (new OwnerRoomTypeResource($roomType))
             ->response()
-            ->setStatusCode(Response::HTTP_CREATED);
+            ->setStatusCode(201);
     }
 
     public function show(RoomType $roomType)

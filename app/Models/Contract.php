@@ -9,6 +9,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @property \Illuminate\Support\Carbon|null $start_date
+ * @property \Illuminate\Support\Carbon|null $end_date
+ * @property \Illuminate\Support\Carbon|null $submitted_at
+ * @property \Illuminate\Support\Carbon|null $activated_at
+ * @property \Illuminate\Support\Carbon|null $terminated_at
+ */
 class Contract extends Model
 {
     use HasFactory;
@@ -59,7 +66,7 @@ class Contract extends Model
                 return;
             }
 
-            if (! $contract->tenant_id) {
+            if (!$contract->tenant_id) {
                 return;
             }
 
@@ -68,7 +75,7 @@ class Contract extends Model
                 ->where('status', self::STATUS_ACTIVE)
                 ->first();
 
-            if (! $activeContract) {
+            if (!$activeContract) {
                 return;
             }
 
@@ -82,7 +89,7 @@ class Contract extends Model
             $activeContract->terminated_at = now();
 
             $cutoff = Carbon::parse($contract->start_date)->subDay();
-            if (! $activeContract->end_date || $activeContract->end_date->gt($cutoff)) {
+            if (!$activeContract->end_date || $activeContract->end_date->gt($cutoff)) {
                 $activeContract->end_date = $cutoff;
             }
 
@@ -150,7 +157,7 @@ class Contract extends Model
 
     public function deactivateOtherContracts(): void
     {
-        if (! $this->tenant_id) {
+        if (!$this->tenant_id) {
             return;
         }
 
@@ -164,7 +171,7 @@ class Contract extends Model
             ->each(function (Contract $activeContract) use ($cutoff): void {
                 $activeContract->status = self::STATUS_TERMINATED;
                 $activeContract->terminated_at = now();
-                if (! $activeContract->end_date || $activeContract->end_date->gt($cutoff)) {
+                if (!$activeContract->end_date || $activeContract->end_date->gt($cutoff)) {
                     $activeContract->end_date = $cutoff;
                 }
                 $activeContract->save();
