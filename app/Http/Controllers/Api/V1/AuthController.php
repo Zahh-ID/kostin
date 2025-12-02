@@ -98,9 +98,12 @@ class AuthController extends Controller
             ], Response::HTTP_FORBIDDEN);
         }
 
-        $request->session()->regenerate();
+        $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(new UserResource($user));
+        return response()->json([
+            'user' => new UserResource($user),
+            'token' => $token,
+        ]);
     }
 
     /**
@@ -113,9 +116,8 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // Revoke the token that was used to authenticate the current request
+        $request->user()->currentAccessToken()->delete();
 
         return response()->json([], Response::HTTP_NO_CONTENT);
     }

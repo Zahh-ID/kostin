@@ -2,34 +2,43 @@ import axios from 'axios';
 
 export const api = axios.create({
   baseURL: (import.meta.env.VITE_API_BASE_URL || '') + '/api',
-  withCredentials: true,
   headers: {
     Accept: 'application/json',
   },
-  xsrfCookieName: 'XSRF-TOKEN',
-  xsrfHeaderName: 'X-XSRF-TOKEN',
 });
 
-export const ensureCsrfCookie = () => axios.get(
-  (import.meta.env.VITE_API_BASE_URL || '') + '/sanctum/csrf-cookie',
-  { withCredentials: true }
-);
+// Add a request interceptor to inject the token
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 export const login = async (payload) => {
-  await ensureCsrfCookie();
   const response = await api.post('/v1/auth/login', payload);
+  const { token, user } = response.data;
 
-  return response.data;
+  localStorage.setItem('auth_token', token);
+  return { user }; // Return user to match previous API contract
 };
 
 export const register = async (payload) => {
-  await ensureCsrfCookie();
   const response = await api.post('/v1/auth/register', payload);
-
+  // Note: Register usually logs in automatically in Laravel, but if we want token we might need to adjust backend register too.
+  // For now, let's assume register just creates user and they need to login, or backend returns token.
+  // If backend register doesn't return token, user needs to login.
   return response.data;
 };
 
-export const logout = () => api.post('/v1/auth/logout');
+export const logout = async () => {
+  try {
+    await api.post('/v1/auth/logout');
+  } finally {
+    localStorage.removeItem('auth_token');
+  }
+};
 
 export const currentUser = async () => {
   try {
@@ -71,7 +80,7 @@ export const fetchTenantTicket = async (id) => {
 };
 
 export const createTenantTicket = async (payload) => {
-  await ensureCsrfCookie();
+
   const response = await api.post('/v1/tenant/tickets', payload);
 
   return response.data?.data ?? response.data;
@@ -120,42 +129,42 @@ export const fetchOwnerProperties = async () => {
 };
 
 export const createOwnerProperty = async (payload) => {
-  await ensureCsrfCookie();
+
   const response = await api.post('/v1/owner/properties', payload);
 
   return response.data;
 };
 
 export const updateOwnerProperty = async (id, payload) => {
-  await ensureCsrfCookie();
+
   const response = await api.put(`/v1/owner/properties/${id}`, payload);
 
   return response.data;
 };
 
 export const submitOwnerProperty = async (id) => {
-  await ensureCsrfCookie();
+
   const response = await api.post(`/v1/owner/properties/${id}/submit`);
 
   return response.data;
 };
 
 export const withdrawOwnerProperty = async (id) => {
-  await ensureCsrfCookie();
+
   const response = await api.post(`/v1/owner/properties/${id}/withdraw`);
 
   return response.data;
 };
 
 export const deleteOwnerProperty = async (id) => {
-  await ensureCsrfCookie();
+
   const response = await api.delete(`/v1/owner/properties/${id}`);
 
   return response.data;
 };
 
 export const uploadOwnerPropertyPhoto = async (id, file) => {
-  await ensureCsrfCookie();
+
   const formData = new FormData();
   formData.append('photo', file);
 
@@ -187,14 +196,14 @@ export const fetchOwnerTickets = async () => {
 };
 
 export const updateOwnerTicket = async (ticketId, payload) => {
-  await ensureCsrfCookie();
+
   const response = await api.put(`/v1/owner/tickets/${ticketId}`, payload);
 
   return response.data?.data ?? response.data;
 };
 
 export const createOwnerRoom = async (payload) => {
-  await ensureCsrfCookie();
+
   const response = await api.post('/v1/owner/rooms', payload);
 
   return response.data;
@@ -206,37 +215,37 @@ export const fetchPropertyRooms = async (propertyId) => {
 };
 
 export const createPropertyRoomsBulk = async (propertyId, payload) => {
-  await ensureCsrfCookie();
+
   const response = await api.post(`/v1/owner/properties/${propertyId}/rooms/bulk`, payload);
   return response.data;
 };
 
 export const updateOwnerRoom = async (id, payload) => {
-  await ensureCsrfCookie();
+
   const response = await api.put(`/v1/owner/rooms/${id}`, payload);
   return response.data;
 };
 
 export const deleteOwnerRoom = async (id) => {
-  await ensureCsrfCookie();
+
   const response = await api.delete(`/v1/owner/rooms/${id}`);
   return response.data;
 };
 
 export const createOwnerRoomType = async (payload) => {
-  await ensureCsrfCookie();
+
   const response = await api.post('/v1/owner/room-types', payload);
   return response.data;
 };
 
 export const updateOwnerRoomType = async (id, payload) => {
-  await ensureCsrfCookie();
+
   const response = await api.put(`/v1/owner/room-types/${id}`, payload);
   return response.data;
 };
 
 export const deleteOwnerRoomType = async (id) => {
-  await ensureCsrfCookie();
+
   const response = await api.delete(`/v1/owner/room-types/${id}`);
   return response.data;
 };
@@ -271,21 +280,21 @@ export const fetchAdminUsers = async () => {
 };
 
 export const approveAdminModeration = async (propertyId, payload = {}) => {
-  await ensureCsrfCookie();
+
   const response = await api.post(`/v1/admin/moderations/${propertyId}/approve`, payload);
 
   return response.data;
 };
 
 export const rejectAdminModeration = async (propertyId, payload) => {
-  await ensureCsrfCookie();
+
   const response = await api.post(`/v1/admin/moderations/${propertyId}/reject`, payload);
 
   return response.data;
 };
 
 export const updateAdminTicket = async (ticketId, payload) => {
-  await ensureCsrfCookie();
+
   const response = await api.put(`/v1/admin/tickets/${ticketId}`, payload);
 
   return response.data;
@@ -319,28 +328,28 @@ export const fetchTenantProperty = async (id) => {
 };
 
 export const submitRentalApplication = async (payload) => {
-  await ensureCsrfCookie();
+
   const response = await api.post('/v1/tenant/applications', payload);
 
   return response.data;
 };
 
 export const initiateInvoicePayment = async (invoiceId) => {
-  await ensureCsrfCookie();
+
   const response = await api.post(`/v1/tenant/invoices/${invoiceId}/pay`);
 
   return response.data;
 };
 
 export const checkInvoicePaymentStatus = async (invoiceId) => {
-  await ensureCsrfCookie();
+
   const response = await api.post(`/v1/tenant/invoices/${invoiceId}/status`);
 
   return response.data;
 };
 
 export const submitManualPayment = async (invoiceId, formData) => {
-  await ensureCsrfCookie();
+
   const response = await api.post(`/v1/tenant/invoices/${invoiceId}/manual-payment`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
@@ -372,55 +381,55 @@ export const fetchOwnerWallet = async () => {
 };
 
 export const withdrawOwnerWallet = async (payload) => {
-  await ensureCsrfCookie();
+
   const response = await api.post('/v1/owner/wallet/withdraw', payload);
   return response.data;
 };
 
 export const approveOwnerApplication = async (id) => {
-  await ensureCsrfCookie();
+
   const response = await api.post(`/v1/owner/applications/${id}/approve`);
   return response.data;
 };
 
 export const rejectOwnerApplication = async (id) => {
-  await ensureCsrfCookie();
+
   const response = await api.post(`/v1/owner/applications/${id}/reject`);
   return response.data;
 };
 
 export const approveOwnerPayment = async (id) => {
-  await ensureCsrfCookie();
+
   const response = await api.post(`/v1/owner/manual-payments/${id}/approve`);
   return response.data;
 };
 
 export const rejectOwnerPayment = async (id) => {
-  await ensureCsrfCookie();
+
   const response = await api.post(`/v1/owner/manual-payments/${id}/reject`);
   return response.data;
 };
 
 export const terminateOwnerContract = async (id, reason) => {
-  await ensureCsrfCookie();
+
   const response = await api.post(`/v1/owner/contracts/${id}/terminate`, { reason });
   return response.data;
 };
 
 export const requestContractTermination = async (id, payload) => {
-  await ensureCsrfCookie();
+
   const response = await api.post(`/v1/tenant/contracts/${id}/terminate`, payload);
   return response.data;
 };
 
 export const suspendAdminUser = async (userId) => {
-  await ensureCsrfCookie();
+
   const response = await api.post(`/v1/admin/users/${userId}/suspend`);
   return response.data;
 };
 
 export const activateAdminUser = async (userId) => {
-  await ensureCsrfCookie();
+
   const response = await api.post(`/v1/admin/users/${userId}/activate`);
   return response.data;
 };
