@@ -12,7 +12,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: SSH_HOST   # <- sesuaikan dengan nama Environment tempat kamu simpan secrets
+    environment: production   # <- sesuaikan dengan nama Environment tempat kamu simpan secrets
 
     steps:
       - name: Checkout
@@ -31,10 +31,15 @@ jobs:
           key: npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: npm-
 
-      - name: Install & Build
+      - name: Install & Build Frontend
+        env:
+          # Pastikan variable ini ada di Secrets atau ganti dengan URL API produksi Anda
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'https://api.kostin.local' }}
         run: |
+          cd frontend
           npm ci --ignore-scripts
           npm run build
+          cd ..
 
       # Muat private key dari Secrets
       - name: Add SSH key
