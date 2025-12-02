@@ -69,7 +69,7 @@ const TenantDashboard = () => {
           </div>
 
           <div className="flex gap-4">
-            <a href="/tenant/search" className="group flex items-center gap-3 px-6 py-4 rounded-2xl bg-surface border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all duration-300">
+            <a href="/search" className="group flex items-center gap-3 px-6 py-4 rounded-2xl bg-surface border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all duration-300">
               <FiSearch className="text-xl text-text-secondary group-hover:text-white transition-colors" />
               <span className="font-medium text-text-secondary group-hover:text-white transition-colors">Find Kost</span>
             </a>
@@ -159,7 +159,7 @@ const TenantDashboard = () => {
                     </div>
                     <h3 className="text-3xl font-display font-bold text-white mb-2 leading-tight">{properties[0].name}</h3>
                     <p className="text-text-secondary mb-6 line-clamp-2">{properties[0].address}</p>
-                    <a href="/tenant/search" className="btn primary w-full justify-center rounded-xl py-4 font-bold">
+                    <a href="/search" className="btn primary w-full justify-center rounded-xl py-4 font-bold">
                       View Details
                     </a>
                   </div>
