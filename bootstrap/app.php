@@ -27,8 +27,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
         ]);
 
-        $middleware->prependToGroup('api', EnsureFrontendRequestsAreStateful::class);
-
+        // $middleware->prependToGroup('api', EnsureFrontendRequestsAreStateful::class);
+    
         $middleware->validateCsrfTokens(except: [
             '/webhook/midtrans',
         ]);
