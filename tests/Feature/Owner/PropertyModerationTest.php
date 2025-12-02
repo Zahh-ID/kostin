@@ -10,7 +10,7 @@ uses(RefreshDatabase::class);
 it('allows owner to create a draft property', function (): void {
     $owner = User::factory()->owner()->create();
 
-    $response = $this->actingAs($owner)->post(route('owner.properties.store'), [
+    $response = $this->actingAs($owner, 'sanctum')->postJson('/api/v1/owner/properties', [
         'name' => 'Kost Pelangi',
         'address' => 'Jl. Pelangi No. 1',
         'lat' => -6.2001,
@@ -18,11 +18,8 @@ it('allows owner to create a draft property', function (): void {
         'rules_text' => 'Tidak diperbolehkan merokok.',
     ]);
 
+    $response->assertCreated();
     $property = Property::where('owner_id', $owner->id)->first();
-
-    expect($property)->not->toBeNull();
-
-    $response->assertRedirect(route('owner.properties.show', $property));
 
     expect($property->status)->toBe('draft')
         ->and($property->moderated_by)->toBeNull()
@@ -37,9 +34,8 @@ it('allows owner to submit a property for moderation', function (): void {
         'status' => 'draft',
     ]);
 
-    $response = $this->actingAs($owner)->post(route('owner.properties.submit', $property));
-
-    $response->assertRedirect();
+    $response = $this->actingAs($owner, 'sanctum')->postJson("/api/v1/owner/properties/{$property->id}/submit");
+    $response->assertOk();
 
     $property->refresh();
 
@@ -56,9 +52,8 @@ it('allows owner to withdraw a pending property back to draft', function (): voi
         'status' => 'pending',
     ]);
 
-    $response = $this->actingAs($owner)->post(route('owner.properties.withdraw', $property));
-
-    $response->assertRedirect();
+    $response = $this->actingAs($owner, 'sanctum')->postJson("/api/v1/owner/properties/{$property->id}/withdraw");
+    $response->assertOk();
 
     $property->refresh();
 
@@ -77,9 +72,8 @@ it('retains moderation context when unpublishing an approved property', function
         'moderation_notes' => 'Approved during initial launch.',
     ]);
 
-    $response = $this->actingAs($owner)->post(route('owner.properties.withdraw', $property));
-
-    $response->assertRedirect();
+    $response = $this->actingAs($owner, 'sanctum')->postJson("/api/v1/owner/properties/{$property->id}/withdraw");
+    $response->assertOk();
 
     $property->refresh();
 
@@ -100,13 +94,13 @@ it('allows admin to approve a property with optional notes', function (): void {
     $now = Carbon::parse('2024-11-05 08:00:00');
     Carbon::setTestNow($now);
 
-    $response = $this->actingAs($admin)->post(route('admin.moderations.approve', $property), [
+    $response = $this->actingAs($admin, 'sanctum')->postJson("/api/v1/admin/moderations/{$property->id}/approve", [
         'moderation_notes' => 'Semua informasi telah divalidasi.',
     ]);
 
     Carbon::setTestNow();
 
-    $response->assertRedirect(route('admin.moderations.index'));
+    $response->assertOk();
 
     $property->refresh();
 
@@ -125,11 +119,11 @@ it('requires rejection notes when admin rejects a property', function (): void {
         'status' => 'pending',
     ]);
 
-    $response = $this->actingAs($admin)->post(route('admin.moderations.reject', $property), [
+    $response = $this->actingAs($admin, 'sanctum')->postJson("/api/v1/admin/moderations/{$property->id}/reject", [
         'moderation_notes' => 'Mohon lengkapi foto kamar dan fasilitas.',
     ]);
 
-    $response->assertRedirect(route('admin.moderations.index'));
+    $response->assertOk();
 
     $property->refresh();
 
@@ -148,14 +142,12 @@ it('does not allow rejection without notes', function (): void {
         'status' => 'pending',
     ]);
 
-    $response = $this->from(route('admin.moderations.show', $property))
-        ->actingAs($admin)
-        ->post(route('admin.moderations.reject', $property), [
+    $response = $this->actingAs($admin, 'sanctum')
+        ->postJson("/api/v1/admin/moderations/{$property->id}/reject", [
             'moderation_notes' => '',
         ]);
 
-    $response->assertRedirect(route('admin.moderations.show', $property));
-    $response->assertSessionHasErrors('moderation_notes');
+    $response->assertUnprocessable();
 
     $property->refresh();
 

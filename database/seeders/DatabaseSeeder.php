@@ -12,7 +12,6 @@ use App\Models\PaymentAccount;
 use App\Models\Property;
 use App\Models\Room;
 use App\Models\RoomType;
-use App\Models\SavedSearch;
 use App\Models\SharedTask;
 use App\Models\SharedTaskLog;
 use App\Models\Ticket;
@@ -24,6 +23,8 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 class DatabaseSeeder extends Seeder
 {
@@ -34,14 +35,52 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        Storage::disk('public')->makeDirectory('seed/properties');
+        Storage::disk('public')->makeDirectory('seed/rooms');
+
         $password = Hash::make('password');
         $now = Carbon::now();
+        $exteriorPool = [
+            'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1470246973918-29a93221c455?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1468476584508-3e602efe6edd?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1501045661006-fcebe0257c3f?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1508854401524-49fcb50b0a46?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1430285561322-7808604715df?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1465805139202-a644e217f00a?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1501183638710-841dd1904471?auto=format&fit=crop&w=1400&q=80',
+        ];
+        $roomPool = [
+            'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1505693415763-3ed5e04ba4cd?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1484156818044-c040038b0710?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1505692794403-34d4982c9803?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1444418776043-4c46d1cd7e1d?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1505692069463-7e3409e70f0b?auto=format&fit=crop&w=1400&q=80',
+            'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80&sat=-80',
+            'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80&blur=70',
+        ];
+        $exteriorCursor = 0;
+        $roomCursor = 0;
 
-        $admin = $this->createOrUpdateUser([
-            'name' => 'Administrator',
-            'email' => 'admin@example.com',
-            'phone' => '081200000000',
-        ], User::ROLE_ADMIN, $password);
+        $admins = collect([
+            ['name' => 'Administrator', 'email' => 'admin@example.com', 'phone' => '081200000000'],
+            ['name' => 'Ops Admin', 'email' => 'admin2@example.com', 'phone' => '081277788899'],
+            ['name' => 'Support Admin', 'email' => 'admin3@example.com', 'phone' => '081211122233'],
+        ])->map(fn (array $data) => $this->createOrUpdateUser($data, User::ROLE_ADMIN, $password));
+
+        $admin = $admins->first();
+        $adminOps = $admins->get(1) ?? $admin;
+        $adminSupport = $admins->get(2) ?? $admin;
 
         $owners = collect([
             ['name' => 'Property Owner', 'email' => 'owner@example.com', 'phone' => '081234567890'],
@@ -101,6 +140,9 @@ class DatabaseSeeder extends Seeder
         });
 
         // Approved property with active contract & invoices
+        $harmoniPhotos = $this->samplePhotos($exteriorPool, $exteriorCursor, 3, 'seed/properties', 'kost-harmoni');
+        $harmoniRoomPhotos = $this->samplePhotos($roomPool, $roomCursor, 2, 'seed/rooms', 'kost-harmoni-room');
+
         $kostHarmoni = Property::factory()->create([
             'owner_id' => $primaryOwner->id,
             'name' => 'Kost Harmoni',
@@ -108,12 +150,9 @@ class DatabaseSeeder extends Seeder
             'lat' => -7.7911234,
             'lng' => 110.3654321,
             'rules_text' => "Tidak boleh merokok di dalam kamar.\nTamu lawan jenis hingga pukul 22.00.",
-            'photos' => [
-                'https://via.placeholder.com/960x640.png?text=Kost+Harmoni+Exterior',
-                'https://via.placeholder.com/960x640.png?text=Kamar+Standard',
-            ],
+            'photos' => $harmoniPhotos,
             'status' => 'approved',
-            'moderated_by' => $admin->id,
+            'moderated_by' => $adminOps->id,
             'moderated_at' => $now->copy()->subDays(3),
             'moderation_notes' => 'Properti lulus pemeriksaan kualitas awal.',
         ]);
@@ -144,9 +183,7 @@ class DatabaseSeeder extends Seeder
             'status' => 'occupied',
             'custom_price' => 1500000,
             'description' => 'Kamar standar dengan jendela lebar menghadap taman.',
-            'photos_json' => [
-                'https://via.placeholder.com/960x640.png?text=Kamar+101',
-            ],
+            'photos_json' => $harmoniRoomPhotos,
         ]);
 
         Room::factory()->create([
@@ -155,9 +192,7 @@ class DatabaseSeeder extends Seeder
             'status' => 'available',
             'custom_price' => 1500000,
             'description' => 'Unit menghadap timur dengan cahaya pagi, cocok untuk pekerja remote.',
-            'photos_json' => [
-                'https://via.placeholder.com/960x640.png?text=Kamar+102',
-            ],
+            'photos_json' => $this->samplePhotos($roomPool, $roomCursor, 2, 'seed/rooms', 'kost-harmoni-room-102'),
         ]);
 
         Room::factory()->create([
@@ -166,9 +201,7 @@ class DatabaseSeeder extends Seeder
             'status' => 'available',
             'custom_price' => 1950000,
             'description' => 'Kamar deluxe dengan balkon pribadi dan kamar mandi dalam.',
-            'photos_json' => [
-                'https://via.placeholder.com/960x640.png?text=Kamar+203',
-            ],
+            'photos_json' => $this->samplePhotos($roomPool, $roomCursor, 2, 'seed/rooms', 'kost-harmoni-room-203'),
         ]);
 
         $contractHarmoni = Contract::factory()->create([
@@ -181,7 +214,9 @@ class DatabaseSeeder extends Seeder
             'deposit_amount' => 500000,
             'grace_days' => 3,
             'late_fee_per_day' => 25000,
-            'status' => 'active',
+            'status' => Contract::STATUS_ACTIVE,
+            'submitted_at' => $now->copy()->subMonths(1)->startOfMonth()->subDay(),
+            'activated_at' => $now->copy()->subMonths(1)->startOfMonth(),
         ]);
 
         $openStart = $now->copy()->startOfMonth();
@@ -283,7 +318,7 @@ class DatabaseSeeder extends Seeder
             'shared_task_id' => $cleanTask->id,
             'completed_by' => $primaryTenant->id,
             'run_at' => $now->copy()->subDays(5),
-            'photo_url' => 'https://via.placeholder.com/400x280.png?text=Tugas+Koridor',
+            'photo_url' => $this->samplePhotos($exteriorPool, $exteriorCursor, 1, 'seed/properties', 'task-log-clean')[0] ?? null,
             'note' => 'Koridor sudah dipel dan lampu diganti.',
         ]);
 
@@ -301,15 +336,16 @@ class DatabaseSeeder extends Seeder
             'name' => 'Kost Sunrise',
             'address' => 'Jl. Kenanga No. 3, Sleman',
             'status' => 'pending',
-            'photos' => [
-                'https://via.placeholder.com/960x640.png?text=Kost+Sunrise',
-            ],
+            'photos' => $this->samplePhotos($exteriorPool, $exteriorCursor, 2, 'seed/properties', 'kost-sunrise'),
             'moderated_by' => null,
             'moderated_at' => null,
             'moderation_notes' => null,
         ]);
 
         // Secondary owner property with paid invoices
+        $skyResidencePhotos = $this->samplePhotos($exteriorPool, $exteriorCursor, 3, 'seed/properties', 'sky-residence');
+        $skyRoomPhotos = $this->samplePhotos($roomPool, $roomCursor, 2, 'seed/rooms', 'sky-suite');
+
         $skyResidence = Property::factory()->create([
             'owner_id' => $secondaryOwner->id,
             'name' => 'Sky Residence',
@@ -317,14 +353,112 @@ class DatabaseSeeder extends Seeder
             'lat' => -6.9054321,
             'lng' => 107.6131234,
             'rules_text' => 'Tamu wajib lapor resepsionis. Dilarang membawa hewan peliharaan.',
-            'photos' => [
-                'https://via.placeholder.com/960x640.png?text=Sky+Residence',
-            ],
+            'photos' => $skyResidencePhotos,
             'status' => 'approved',
-            'moderated_by' => $admin->id,
+            'moderated_by' => $adminSupport->id,
             'moderated_at' => $now->copy()->subDays(5),
             'moderation_notes' => 'Disetujui oleh admin untuk tayang publik.',
         ]);
+
+        $extraProperties = [
+            [
+                'owner' => $primaryOwner,
+                'name' => 'Kost Taman Kota',
+                'address' => 'Jl. Taman Kota No. 5, Jakarta Barat',
+                'lat' => -6.179,
+                'lng' => 106.79,
+                'rules_text' => 'Tidak boleh merokok, parkir motor tersedia.',
+                'photos' => [
+                    ...$this->samplePhotos($exteriorPool, $exteriorCursor, 3, 'seed/properties', 'taman-kota'),
+                ],
+                'types' => [
+                    [
+                        'name' => 'Studio City View',
+                        'area' => 16,
+                        'price' => 1750000,
+                        'deposit' => 600000,
+                        'facilities' => ['wifi' => true, 'ac' => true, 'parking' => true],
+                        'rooms' => [
+                            [
+                                'code' => 'A01',
+                                'status' => 'available',
+                                'price' => 1750000,
+                                'desc' => 'Studio menghadap kota dengan balkon kecil.',
+                                'photo' => $this->samplePhotos($roomPool, $roomCursor, 1, 'seed/rooms', 'taman-kota-room-a01')[0] ?? null,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'owner' => $secondaryOwner,
+                'name' => 'Coastal Kost',
+                'address' => 'Jl. Parangtritis No. 21, Bantul',
+                'lat' => -8.017,
+                'lng' => 110.321,
+                'rules_text' => 'Boleh hewan kecil, jam malam 23:00.',
+                'photos' => [
+                    ...$this->samplePhotos($exteriorPool, $exteriorCursor, 2, 'seed/properties', 'coastal-kost'),
+                ],
+                'types' => [
+                    [
+                        'name' => 'Beach Single',
+                        'area' => 15,
+                        'price' => 1400000,
+                        'deposit' => 400000,
+                        'facilities' => ['wifi' => true, 'fan' => true, 'laundry' => true],
+                        'rooms' => [
+                            [
+                                'code' => 'B12',
+                                'status' => 'available',
+                                'price' => 1400000,
+                                'desc' => 'Dekat pantai, ventilasi silang, kamar mandi luar.',
+                                'photo' => $this->samplePhotos($roomPool, $roomCursor, 1, 'seed/rooms', 'coastal-kost-room-b12')[0] ?? null,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        foreach ($extraProperties as $propertyData) {
+            $property = Property::factory()->create([
+                'owner_id' => $propertyData['owner']->id,
+                'name' => $propertyData['name'],
+                'address' => $propertyData['address'],
+                'lat' => $propertyData['lat'],
+                'lng' => $propertyData['lng'],
+                'rules_text' => $propertyData['rules_text'],
+                'photos' => $propertyData['photos'],
+                'status' => 'approved',
+                'moderated_by' => $adminOps->id,
+                'moderated_at' => $now->copy()->subDays(2),
+                'moderation_notes' => 'Contoh properti disetujui otomatis oleh seeder.',
+            ]);
+
+            foreach ($propertyData['types'] as $typeData) {
+                $roomType = RoomType::factory()->create([
+                    'property_id' => $property->id,
+                    'name' => $typeData['name'],
+                    'area_m2' => $typeData['area'],
+                    'bathroom_type' => 'outside',
+                    'base_price' => $typeData['price'],
+                    'deposit' => $typeData['deposit'],
+                    'facilities_json' => $typeData['facilities'],
+                ]);
+
+                foreach ($typeData['rooms'] as $roomData) {
+                    Room::factory()->create([
+                        'room_type_id' => $roomType->id,
+                        'room_code' => $roomData['code'],
+                        'status' => $roomData['status'],
+                        'custom_price' => $roomData['price'],
+                        'description' => $roomData['desc'],
+                        'photos_json' => [$roomData['photo']],
+                    ]);
+                }
+            }
+        }
 
         $suiteType = RoomType::factory()->create([
             'property_id' => $skyResidence->id,
@@ -336,18 +470,22 @@ class DatabaseSeeder extends Seeder
             'facilities_json' => ['wifi' => true, 'ac' => true, 'water_heater' => true, 'laundry' => true],
         ]);
 
+        $skySuitePhotos = $this->samplePhotos($roomPool, $roomCursor, 2, 'seed/rooms', 'sky-suite-rooms');
+
         $roomS301 = Room::factory()->create([
             'room_type_id' => $suiteType->id,
             'room_code' => '301',
             'status' => 'occupied',
             'custom_price' => 2300000,
+            'photos_json' => $skySuitePhotos,
         ]);
 
         Room::factory()->create([
             'room_type_id' => $suiteType->id,
             'room_code' => '302',
-            'status' => 'available',
+            'status' => 'occupied',
             'custom_price' => null,
+            'photos_json' => $this->samplePhotos($roomPool, $roomCursor, 1, 'seed/rooms', 'sky-suite-302'),
         ]);
 
         WishlistItem::firstOrCreate(
@@ -371,51 +509,13 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        SavedSearch::updateOrCreate(
-            [
-                'user_id' => $primaryTenant->id,
-                'name' => 'Kos Dekat Kampus',
-            ],
-            [
-                'filters' => [
-                    'search' => 'kampus',
-                    'city' => 'Bogor',
-                    'type' => 'campur',
-                    'minPrice' => 1000000,
-                    'maxPrice' => 2000000,
-                    'facilities' => ['wifi', 'ac', 'laundry'],
-                ],
-                'notification_enabled' => true,
-                'last_notified_at' => $now->copy()->subDays(2),
-            ]
-        );
-
-        SavedSearch::updateOrCreate(
-            [
-                'user_id' => $secondaryTenant->id,
-                'name' => 'Kos Eksklusif Bandung',
-            ],
-            [
-                'filters' => [
-                    'search' => 'eksklusif',
-                    'city' => 'Bandung',
-                    'type' => 'putra',
-                    'minPrice' => 1500000,
-                    'maxPrice' => 3000000,
-                    'facilities' => ['wifi', 'ac', 'water_heater'],
-                ],
-                'notification_enabled' => false,
-                'last_notified_at' => null,
-            ]
-        );
-
         $paymentTicket = Ticket::updateOrCreate(
             [
                 'ticket_code' => 'TCK-PAY-001',
             ],
             [
                 'reporter_id' => $primaryTenant->id,
-                'assignee_id' => $admin->id,
+                'assignee_id' => $adminSupport->id,
                 'subject' => 'Verifikasi pembayaran kos bulan November',
                 'description' => 'Halo admin, saya sudah transfer melalui BCA dan mengunggah bukti pembayaran.',
                 'category' => 'payment',
@@ -444,7 +544,7 @@ class DatabaseSeeder extends Seeder
         TicketComment::firstOrCreate(
             [
                 'ticket_id' => $paymentTicket->id,
-                'user_id' => $admin->id,
+                'user_id' => $adminSupport->id,
                 'body' => 'Terima kasih, kami sedang memverifikasi bukti pembayaran Anda.',
             ],
             [
@@ -471,7 +571,7 @@ class DatabaseSeeder extends Seeder
                 'event_type' => 'status_changed',
             ],
             [
-                'user_id' => $admin->id,
+                'user_id' => $adminOps->id,
                 'payload' => [
                     'from' => Ticket::STATUS_OPEN,
                     'to' => Ticket::STATUS_IN_REVIEW,
@@ -508,7 +608,7 @@ class DatabaseSeeder extends Seeder
                 'body' => 'Teknisi telah membersihkan filter AC dan menambah freon. Silakan cek kembali ya.',
             ],
             [
-                'attachments' => ['https://via.placeholder.com/640x360.png?text=Service+AC'],
+                'attachments' => ['https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80'],
             ]
         );
 
@@ -549,7 +649,9 @@ class DatabaseSeeder extends Seeder
             'deposit_amount' => 1000000,
             'grace_days' => 2,
             'late_fee_per_day' => 35000,
-            'status' => 'active',
+            'status' => Contract::STATUS_ACTIVE,
+            'submitted_at' => $now->copy()->startOfMonth()->subDay(),
+            'activated_at' => $now->copy()->startOfMonth(),
         ]);
 
         $paidInvoice = Invoice::factory()->create([
@@ -592,7 +694,7 @@ class DatabaseSeeder extends Seeder
                 'amount' => 2300000,
                 'status' => 'success',
                 'settlement_time' => $now->copy()->startOfMonth()->day($contractSky->billing_day)->addHours(2),
-                'verified_by' => $admin->id,
+                'verified_by' => $adminSupport->id,
                 'verified_at' => $now->copy()->startOfMonth()->day($contractSky->billing_day)->addHours(3),
                 'rejection_reason' => null,
                 'raw_webhook_json' => [
@@ -601,6 +703,116 @@ class DatabaseSeeder extends Seeder
                 ],
             ]
         );
+
+        $longstayCount = 12;
+        $longstayBillingBase = 12;
+
+        for ($i = 1; $i <= $longstayCount; $i++) {
+            $longStayTenant = $this->createOrUpdateUser(
+                [
+                    'name' => 'Longstay Tenant '.$i,
+                    'email' => "tenant-yearly{$i}@example.com",
+                    'phone' => '08139'.str_pad((string) $i, 6, '0', STR_PAD_LEFT),
+                ],
+                User::ROLE_TENANT,
+                $password
+            );
+
+            $roomLongStay = Room::query()
+                ->where('status', 'available')
+                ->inRandomOrder()
+                ->first();
+
+            if (! $roomLongStay) {
+                $roomTypeFallback = RoomType::query()->first();
+                if (! $roomTypeFallback) {
+                    continue;
+                }
+
+                $roomLongStay = Room::factory()->create([
+                    'room_type_id' => $roomTypeFallback->id,
+                    'room_code' => 'L'.$i,
+                    'status' => 'available',
+                    'custom_price' => $roomTypeFallback->base_price,
+                ]);
+            }
+
+            $roomLongStay->update(['status' => 'occupied']);
+            $roomLongStay->load('roomType');
+
+            $startLongStay = $now->copy()->subYear()->startOfMonth();
+            $billingDay = $longstayBillingBase + ($i % 4);
+            $monthlyPrice = $roomLongStay->custom_price ?? $roomLongStay->roomType?->base_price ?? 2000000;
+
+            $longStayContract = Contract::updateOrCreate(
+                [
+                    'tenant_id' => $longStayTenant->id,
+                    'room_id' => $roomLongStay->id,
+                ],
+                [
+                    'start_date' => $startLongStay,
+                    'end_date' => null,
+                    'price_per_month' => $monthlyPrice,
+                    'billing_day' => $billingDay,
+                    'deposit_amount' => 1000000,
+                    'grace_days' => 2,
+                    'late_fee_per_day' => 25000,
+                    'status' => Contract::STATUS_ACTIVE,
+                    'submitted_at' => $startLongStay->copy()->subDay(),
+                    'activated_at' => $startLongStay,
+                ]
+            );
+
+            for ($monthIndex = 0; $monthIndex < 12; $monthIndex++) {
+                $period = $startLongStay->copy()->addMonths($monthIndex);
+                $isPast = $period->lessThan($now->copy()->startOfMonth());
+                $invoice = Invoice::updateOrCreate(
+                    [
+                        'contract_id' => $longStayContract->id,
+                        'period_month' => $period->month,
+                        'period_year' => $period->year,
+                    ],
+                    [
+                        'months_count' => 1,
+                        'coverage_start_month' => $period->month,
+                        'coverage_start_year' => $period->year,
+                        'coverage_end_month' => $period->month,
+                        'coverage_end_year' => $period->year,
+                        'due_date' => $period->copy()->day($billingDay),
+                        'amount' => $monthlyPrice,
+                        'late_fee' => 0,
+                        'total' => $monthlyPrice,
+                        'status' => $isPast ? 'paid' : 'unpaid',
+                        'qris_payload' => null,
+                    ]
+                );
+
+                if ($isPast) {
+                    Payment::updateOrCreate(
+                        [
+                            'invoice_id' => $invoice->id,
+                            'payment_type' => 'qris',
+                        ],
+                        [
+                            'user_id' => $longStayTenant->id,
+                            'submitted_by' => $longStayTenant->id,
+                            'order_id' => 'LONG-'.$invoice->id,
+                            'manual_method' => null,
+                            'proof_path' => null,
+                            'proof_filename' => null,
+                            'notes' => 'Pembayaran rutin tenant tahunan',
+                            'amount' => $invoice->total,
+                            'status' => 'success',
+                            'settlement_time' => $period->copy()->day($billingDay)->addDays(1),
+                            'verified_by' => $adminSupport->id ?? $admin->id,
+                            'verified_at' => $period->copy()->day($billingDay)->addDays(2),
+                            'rejection_reason' => null,
+                            'raw_webhook_json' => ['signature_key' => 'demo-longstay'],
+                        ]
+                    );
+                }
+            }
+        }
 
         $maintenanceTask = SharedTask::factory()->create([
             'property_id' => $skyResidence->id,
@@ -615,13 +827,13 @@ class DatabaseSeeder extends Seeder
             'shared_task_id' => $maintenanceTask->id,
             'completed_by' => $secondaryOwner->id,
             'run_at' => $now->copy()->subDays(10),
-            'photo_url' => 'https://via.placeholder.com/400x280.png?text=Service+AC',
+            'photo_url' => 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80',
             'note' => 'Filter AC kamar 301 dibersihkan, tidak perlu penggantian.',
         ]);
 
         $chatParticipants = $owners->pluck('id')
             ->merge($tenants->pluck('id'))
-            ->push($admin->id)
+            ->merge($admins->pluck('id'))
             ->unique();
 
         $globalConversation = Conversation::updateOrCreate(
@@ -637,6 +849,7 @@ class DatabaseSeeder extends Seeder
 
         $seedMessages = [
             ['user_id' => $admin->id, 'body' => 'Selamat datang di forum KostIn. Gunakan ruang ini untuk koordinasi harian.'],
+            ['user_id' => $adminSupport->id, 'body' => 'Support siap membantu tiket pembayaran & chat.'],
             ['user_id' => $owners->first()->id, 'body' => 'Terima kasih! Kami siap menerima masukan tenant agar layanan makin nyaman.'],
             ['user_id' => $tenants->first()->id, 'body' => 'Halo semuanya, izin bertanya soal jadwal pembersihan koridor minggu ini?'],
             ['user_id' => $secondaryOwner->id, 'body' => 'Koridor akan dibersihkan besok pagi pukul 09.00, seperti biasa.'],
@@ -690,5 +903,32 @@ class DatabaseSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function samplePhotos(array $pool, int &$cursor, int $count, string $dir, string $prefix): array
+    {
+        return collect(range(1, $count))->map(function (int $i) use (&$cursor, $pool, $dir, $prefix): ?string {
+            $url = $pool[$cursor % count($pool)];
+            $cursor++;
+
+            return $this->downloadAndStore($url, $dir, "{$prefix}-{$i}");
+        })->filter()->values()->all();
+    }
+
+    private function downloadAndStore(string $url, string $dir, string $name): ?string
+    {
+        $response = Http::timeout(10)->get($url);
+
+        if (! $response->successful()) {
+            return null;
+        }
+
+        $path = "{$dir}/{$name}.jpg";
+        Storage::disk('public')->put($path, $response->body());
+
+        return Storage::disk('public')->url($path);
     }
 }

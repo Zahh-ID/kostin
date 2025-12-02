@@ -20,7 +20,7 @@ class WebhookSimulatorController extends Controller
     {
         $payments = Payment::query()
             ->with(['invoice.contract.tenant'])
-            ->whereNotNull('midtrans_order_id')
+            ->whereNotNull('order_id')
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -59,6 +59,7 @@ class WebhookSimulatorController extends Controller
             'sha512',
             $payload['order_id'].$payload['status_code'].$payload['gross_amount'].config('midtrans.server_key')
         );
+        $payload['force_success'] = true;
 
         $webhookRequest = Request::create(
             '/webhook/midtrans',

@@ -48,6 +48,11 @@ class Property extends Model
         return $this->hasMany(RoomType::class);
     }
 
+    public function rooms(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    {
+        return $this->hasManyThrough(Room::class, RoomType::class);
+    }
+
     public function sharedTasks(): HasMany
     {
         return $this->hasMany(SharedTask::class);

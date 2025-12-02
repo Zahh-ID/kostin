@@ -72,7 +72,6 @@ Admin:   admin@demo.com   | Password: demo123
 └── Shared Pages
     ├── ProfilePage
     ├── WishlistPage
-    ├── SavedSearchesPage
     ├── ChatPage
     └── TicketingPage
 ```
@@ -960,60 +959,10 @@ Admin:   admin@demo.com   | Password: demo123
 
 ---
 
-#### 10. SavedSearchesPage (`/saved-searches`)
-**Layout:**
-```
-┌─────────────────────────────────────┐
-│ Navbar                              │
-├─────────────────────────────────────┤
-│ Pencarian Tersimpan                 │
-│ Simpan filter & dapatkan notifikasi │
-├─────────────────────────────────────┤
-│ SAVED SEARCHES LIST                 │
-│ ┌─────────────────────────────────┐ │
-│ │ "Kos Dekat IPB"       [🔔 Aktif]│ │
-│ │ 🔧 Kota: Bogor • Harga: < 2M    │ │
-│ │ Dibuat 5 Nov 2024               │ │
-│ │ [🔍 Terapkan] [🗑]              │ │
-│ └─────────────────────────────────┘ │
-└─────────────────────────────────────┘
-```
+#### 10. (Removed) SavedSearchesPage (`/saved-searches`)
+Fitur pencarian tersimpan telah dihapus; halaman, route, dan tabel `saved_searches` sudah tidak tersedia.
 
-**Saved Search Item:**
-- Nama custom untuk search
-- Badge "Notifikasi Aktif" (hijau) jika enabled
-- Filter summary (icon Filter)
-- Created date
-- Actions:
-  - Button "Terapkan" → Navigate to browse with filters
-  - Button Delete (trash icon)
-
-**Filter Summary Format:**
-- Kota: {city}
-- Tipe: {type}
-- Harga: Rp {min} - Rp {max}
-- Fasilitas: {count} dipilih
-
-**Empty State:**
-```
-┌─────────────────────────────────┐
-│         💾                      │
-│ Belum ada pencarian tersimpan   │
-│                                 │
-│ Simpan filter pencarian Anda    │
-│                                 │
-│ [🔍 Mulai Cari Kos]             │
-└─────────────────────────────────┘
-```
-
-**Fitur:**
-- ✅ Save search filters from BrowseKost
-- ✅ Apply saved search (restore filters)
-- ✅ Delete saved search
-- ✅ Optional notification toggle
-- ✅ Backend integration
-
----
+----
 
 #### 11. ChatPage (`/chat`)
 **Layout:**

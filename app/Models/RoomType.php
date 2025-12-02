@@ -19,6 +19,7 @@ class RoomType extends Model
         'base_price',
         'deposit',
         'facilities_json',
+        'description',
     ];
 
     protected $casts = [

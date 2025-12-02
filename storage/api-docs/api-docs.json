@@ -12,6 +12,68 @@
         }
     ],
     "paths": {
+        "/api/v1/auth/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Register a user",
+                "operationId": "b9e746d77661fb8df55d0ac63e1ece77",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "role"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "minLength": 8
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "enum": [
+                                            "tenant",
+                                            "owner",
+                                            "admin"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Registered user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResource"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
         "/api/v1/auth/login": {
             "post": {
                 "tags": [
@@ -778,6 +840,66 @@
                     }
                 }
             }
+        },
+        "/api/v1/stats": {
+            "get": {
+                "tags": [
+                    "Stats"
+                ],
+                "summary": "Get aggregated dashboard stats",
+                "operationId": "4f3aabc4dffacacb531bb14e4d8b29e9",
+                "responses": {
+                    "200": {
+                        "description": "Aggregated stats",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "payments": {
+                                            "properties": {
+                                                "success_rate": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                },
+                                                "success_count": {
+                                                    "type": "integer"
+                                                },
+                                                "total_count": {
+                                                    "type": "integer"
+                                                },
+                                                "qris_count": {
+                                                    "type": "integer"
+                                                },
+                                                "manual_count": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "contracts": {
+                                            "properties": {
+                                                "active_count": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "tickets": {
+                                            "properties": {
+                                                "live_count": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -811,10 +933,33 @@
                     "status": {
                         "type": "string",
                         "enum": [
+                            "draft",
+                            "submitted",
                             "active",
-                            "ended",
-                            "canceled"
+                            "pending_renewal",
+                            "terminated",
+                            "canceled",
+                            "expired"
                         ]
+                    },
+                    "submitted_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "activated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "terminated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "termination_reason": {
+                        "type": "string",
+                        "nullable": true
                     },
                     "start_date": {
                         "type": "string",
@@ -999,6 +1144,19 @@
                             "approved",
                             "rejected"
                         ]
+                    },
+                    "moderation_notes": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "moderated_by": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "moderated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
                     },
                     "created_at": {
                         "type": "string",
@@ -1268,6 +1426,10 @@
         {
             "name": "Shared Task Logs",
             "description": "Logs for shared tasks"
+        },
+        {
+            "name": "Stats",
+            "description": "Aggregated public stats for dashboards"
         }
     ]
 }

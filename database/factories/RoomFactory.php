@@ -19,13 +19,13 @@ class RoomFactory extends Factory
 
         return [
             'room_type_id' => RoomType::factory(),
-            'room_code' => (string) fake()->unique()->numerify('10#'),
+            'room_code' => 'RM-'.fake()->numerify('###').fake()->randomLetter(),
             'custom_price' => $price,
             'status' => fake()->randomElement(['available', 'occupied', 'maintenance']),
             'facilities_override_json' => null,
             'description' => fake()->sentences(3, true),
             'photos_json' => [
-                'https://via.placeholder.com/960x640.png?text=Kamar+'.fake()->unique()->numerify('###'),
+                'https://via.placeholder.com/960x640.png?text=Kamar+'.fake()->numerify('###'),
             ],
         ];
     }

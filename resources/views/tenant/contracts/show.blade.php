@@ -1,215 +1,214 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Contract Details') }}
-        </h2>
+        <div>
+            <h2 class="h4 mb-0 text-dark">{{ __('Detail Kontrak #'.$contract->id) }}</h2>
+            <small class="text-muted">{{ $contract->room->roomType->property->name ?? '-' }}</small>
+        </div>
+        <div class="d-flex gap-2 flex-wrap justify-content-end">
+            @if ($primaryInvoice)
+                <a href="{{ route('tenant.invoices.show', $primaryInvoice) }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-credit-card me-1"></i>{{ __('Bayar Tagihan') }}
+                </a>
+            @endif
+            <a href="{{ route('tenant.contracts.pdf', $contract) }}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">
+                <i class="bi bi-file-earmark-arrow-down me-1"></i>{{ __('Unduh PDF') }}
+            </a>
+            <a href="{{ route('tenant.contracts.index') }}" class="btn btn-sm btn-light">
+                <i class="bi bi-arrow-left me-1"></i>{{ __('Kembali') }}
+            </a>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <a href="{{ route('tenant.contracts.index') }}" class="text-sm text-gray-600">&larr; {{ __('Back to contract list') }}</a>
-            @php
-                $nextCoverageLabel = optional($nextCoverageStart)->translatedFormat('F Y');
-            @endphp
-            @if ($errors->any())
-                <div class="mt-3 mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                    {{ $errors->first() }}
-                </div>
-            @endif
-            <div class="flex items-center justify-between mt-2 mb-4">
+    @php
+        $nextCoverageLabel = optional($nextCoverageStart)->translatedFormat('F Y');
+        $statusMap = [
+            'draft' => 'secondary',
+            'submitted' => 'info',
+            'active' => 'success',
+            'pending_renewal' => 'warning',
+            'terminated' => 'danger',
+            'canceled' => 'dark',
+            'expired' => 'secondary',
+        ];
+        $badge = $statusMap[$contract->status] ?? 'primary';
+    @endphp
+
+    <div class="container-fluid">
+        @if ($errors->any())
+            <div class="alert alert-danger mb-3">{{ $errors->first() }}</div>
+        @endif
+
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body d-flex flex-wrap justify-content-between align-items-start gap-3">
                 <div>
-                    <h1 class="text-2xl font-semibold mb-1">{{ __('Contract Details') }}</h1>
-                    <p class="text-gray-600 mb-0">
-                        {{ __('Contract number #') }}{{ $contract->id }} {{ __('for') }} {{ $contract->room->roomType->property->name ?? '-' }}<br>
-                        {{ __('Berakhir pada:') }}
-                        {{ optional($contract->end_date)->translatedFormat('d M Y') ?? __('Tidak ditentukan') }}
-                    </p>
-                    @if (! is_null($daysToEnd) && $daysToEnd <= 30)
-                        <p class="text-red-600 text-sm mt-1">
-                            {{ __('Kontrak akan berakhir dalam :days hari. Segera perpanjang dengan membayar invoice baru.', ['days' => max($daysToEnd, 0)]) }}
-                        </p>
-                    @endif
-                </div>
-                <div class="flex items-center gap-3">
-                    <a href="{{ route('tenant.contracts.pdf', $contract) }}" class="bg-white border px-3 py-2 rounded text-sm text-gray-700" target="_blank" rel="noopener">
-                        {{ __('Unduh PDF') }}
-                    </a>
-                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 uppercase">{{ $contract->status }}</span>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div class="bg-white rounded-lg shadow h-full">
-                    <div class="p-4 border-b">
-                        <h2 class="text-lg font-semibold mb-0">{{ __('Property Information') }}</h2>
-                    </div>
-                    <div class="p-4">
-                        <p class="font-semibold mb-1">{{ $contract->room->roomType->property->name ?? '-' }}</p>
-                        <p class="text-gray-600 text-sm mb-3">{{ $contract->room->roomType->property->address ?? '-' }}</p>
-                        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                            <dt class="text-gray-500">{{ __('Room') }}</dt>
-                            <dd class="text-gray-900">{{ $contract->room->room_code ?? '-' }}</dd>
-                            <dt class="text-gray-500">{{ __('Type') }}</dt>
-                            <dd class="text-gray-900">{{ $contract->room->roomType->name ?? '-' }}</dd>
-                            <dt class="text-gray-500">{{ __('Price/month') }}</dt>
-                            <dd class="text-gray-900">Rp{{ number_format($contract->price_per_month ?? 0, 0, ',', '.') }}</dd>
-                            <dt class="text-gray-500">{{ __('Deposit') }}</dt>
-                            <dd class="text-gray-900">Rp{{ number_format($contract->deposit_amount ?? 0, 0, ',', '.') }}</dd>
-                        </dl>
-                    </div>
-                </div>
-                <div class="bg-white rounded-lg shadow h-full">
-                    <div class="p-4 border-b">
-                        <h2 class="text-lg font-semibold mb-0">{{ __('Contract Terms') }}</h2>
-                    </div>
-                    <div class="p-4">
-                        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                            <dt class="text-gray-500">{{ __('Start Date') }}</dt>
-                            <dd class="text-gray-900">{{ optional($contract->start_date)->format('d M Y') }}</dd>
-                            <dt class="text-gray-500">{{ __('End Date') }}</dt>
-                            <dd class="text-gray-900">{{ optional($contract->end_date)->format('d M Y') ?? __('Ongoing') }}</dd>
-                            <dt class="text-gray-500">{{ __('Due Date') }}</dt>
-                            <dd class="text-gray-900">{{ __('Date') }} {{ $contract->billing_day }}</dd>
-                            <dt class="text-gray-500">{{ __('Grace Days') }}</dt>
-                            <dd class="text-gray-900">{{ $contract->grace_days }} {{ __('days') }}</dd>
-                            <dt class="text-gray-500">{{ __('Late Fee') }}</dt>
-                            <dd class="text-gray-900">Rp{{ number_format($contract->late_fee_per_day ?? 0, 0, ',', '.') }}/{{ __('day') }}</dd>
-                        </dl>
-                    </div>
-                </div>
-            </div>
-
-            @if ($contract->status === 'active')
-                <div class="bg-white rounded-lg shadow mt-4">
-                    <div class="p-4 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                        <div>
-                            <h2 class="text-lg font-semibold mb-0">{{ __('Buat Invoice Pembayaran') }}</h2>
-                            <p class="text-gray-600 text-sm mb-0">
-                                {{ __('Periode berikutnya: :period', ['period' => $nextCoverageLabel ?? __('-')]) }}
-                            </p>
-                        </div>
-                    </div>
-                    <div class="p-4">
-                        <form method="POST" action="{{ route('tenant.contracts.invoices.store', $contract) }}" class="flex flex-col gap-3 md:flex-row md:items-end">
-                            @csrf
-                            <div class="flex flex-column gap-2">
-                                <label class="text-sm text-gray-600">{{ __('Jumlah Bulan') }}</label>
-                                <select name="months_count" class="border rounded px-3 py-2 text-sm">
-                                    @foreach (range(1, 12) as $monthOption)
-                                        <option value="{{ $monthOption }}" @selected(old('months_count', 1) == $monthOption)>{{ $monthOption }} {{ __('bulan') }}</option>
-                                    @endforeach
-                                </select>
-                                @error('months_count')
-                                    <div class="text-red-500 text-xs">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="flex-grow text-sm text-gray-600 md:mt-6">
-                                {{ __('Tagihan dibuat per transaksi dan akan memperpanjang masa sewa sesuai jumlah bulan yang dipilih. Invoice baru hanya dapat dibuat setelah invoice sebelumnya lunas.') }}
-                            </div>
-                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded text-sm h-fit md:mt-6">
-                                {{ __('Buat Invoice') }}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            @endif
-
-            <div class="bg-white rounded-lg shadow mt-4">
-                <div class="p-4 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                    <div>
-                        <h2 class="text-lg font-semibold mb-0">{{ __('Pengakhiran Kontrak') }}</h2>
-                        <p class="text-gray-600 text-sm mb-0">
-                            {{ __('Ajukan terminasi jika Anda berencana pindah sebelum kontrak berakhir.') }}
-                        </p>
-                        @if ($terminationBlockedReason)
-                            <p class="mt-2 text-sm text-warning mb-0">
-                                {{ $terminationBlockedReason }}
-                            </p>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge bg-{{ $badge }} text-uppercase">{{ $contract->status }}</span>
+                        @if (! is_null($daysToEnd) && $daysToEnd <= 30)
+                            <span class="badge bg-warning text-dark">{{ __('Berakhir :days hari lagi', ['days' => max($daysToEnd, 0)]) }}</span>
                         @endif
                     </div>
-                    @if ($canRequestTermination && (! $latestTerminationRequest || $latestTerminationRequest->status !== 'pending'))
-                        <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#terminateModal">
-                            {{ __('Ajukan Pengakhiran') }}
-                        </button>
-                    @elseif (! $canRequestTermination)
-                        <button class="btn btn-outline-secondary btn-sm" disabled>
-                            {{ __('Ajukan Pengakhiran') }}
-                        </button>
-                    @endif
+                    <div class="fw-semibold">{{ $contract->room->roomType->property->name ?? '-' }}</div>
+                    <div class="text-muted small">{{ $contract->room->roomType->property->address ?? '-' }}</div>
+                    <div class="text-muted small mt-1">
+                        {{ __('Periode:') }} {{ optional($contract->start_date)->format('d M Y') }} - {{ optional($contract->end_date)->format('d M Y') ?? __('Berjalan') }}
+                    </div>
                 </div>
-                <div class="p-4">
-                    @if ($latestTerminationRequest)
-                        <div class="mb-0">
-                            <p class="mb-1"><strong>{{ __('Tanggal yang diminta:') }}</strong> {{ optional($latestTerminationRequest->requested_end_date)->translatedFormat('d M Y') }}</p>
-                            <p class="mb-1"><strong>{{ __('Status:') }}</strong> {{ ucfirst($latestTerminationRequest->status) }}</p>
-                            <p class="mb-0"><strong>{{ __('Alasan:') }}</strong> {{ $latestTerminationRequest->reason ?: __('Tidak ada alasan tambahan.') }}</p>
-                            @if ($latestTerminationRequest->owner_notes)
-                                <p class="mb-0 mt-2"><strong>{{ __('Catatan pemilik:') }}</strong> {{ $latestTerminationRequest->owner_notes }}</p>
-                            @endif
-                        </div>
-                    @else
-                        <p class="text-muted mb-0">{{ __('Belum ada permintaan pengakhiran untuk kontrak ini.') }}</p>
-                    @endif
+                <div class="text-end">
+                    <div class="fw-semibold">{{ __('Kamar') }} {{ $contract->room->room_code ?? '-' }} · {{ $contract->room->roomType->name ?? '-' }}</div>
+                    <div class="text-muted small">{{ __('Harga/bln') }}: Rp{{ number_format($contract->price_per_month ?? 0, 0, ',', '.') }}</div>
+                    <div class="text-muted small">{{ __('Deposit') }}: Rp{{ number_format($contract->deposit_amount ?? 0, 0, ',', '.') }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="mb-0">{{ __('Termin Kontrak') }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-6 text-muted small">{{ __('Tanggal mulai') }}</dt>
+                            <dd class="col-6">{{ optional($contract->start_date)->format('d M Y') }}</dd>
+                            <dt class="col-6 text-muted small">{{ __('Tanggal berakhir') }}</dt>
+                            <dd class="col-6">{{ optional($contract->end_date)->format('d M Y') ?? __('Berjalan') }}</dd>
+                            <dt class="col-6 text-muted small">{{ __('Tanggal jatuh tempo') }}</dt>
+                            <dd class="col-6">{{ __('Tgl') }} {{ $contract->billing_day }}</dd>
+                            <dt class="col-6 text-muted small">{{ __('Grace days') }}</dt>
+                            <dd class="col-6">{{ $contract->grace_days }} {{ __('hari') }}</dd>
+                            <dt class="col-6 text-muted small">{{ __('Denda keterlambatan') }}</dt>
+                            <dd class="col-6">Rp{{ number_format($contract->late_fee_per_day ?? 0, 0, ',', '.') }}/{{ __('hari') }}</dd>
+                        </dl>
+                    </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow mt-4">
-                <div class="p-4 border-b">
-                    <h2 class="text-lg font-semibold mb-0">{{ __('Billing History') }}</h2>
-                </div>
-                <div class="p-4">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        {{ __('Period') }}
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        {{ __('Due Date') }}
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        {{ __('Status') }}
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        {{ __('Total') }}
-                                    </th>
-                                    <th scope="col" class="relative px-6 py-3">
-                                        <span class="sr-only">{{ __('Actions') }}</span>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @forelse ($contract->invoices as $invoice)
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {{ $invoice->months_count ?? 1 }} {{ __('bln') }}<br>
-                                            <span class="text-gray-500 text-xs">
-                                                {{ optional($invoice->coverage_start_month ? \Illuminate\Support\Carbon::create($invoice->coverage_start_year, $invoice->coverage_start_month, 1) : null)?->translatedFormat('M Y') }}
-                                                -
-                                                {{ optional($invoice->coverage_end_month ? \Illuminate\Support\Carbon::create($invoice->coverage_end_year, $invoice->coverage_end_month, 1) : null)?->translatedFormat('M Y') }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ optional($invoice->due_date)->format('d M Y') }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $invoice->status === 'paid' ? 'bg-green-100 text-green-800' : ($invoice->status === 'overdue' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }} capitalize">
-                                                {{ $invoice->status }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Rp{{ number_format($invoice->total ?? 0, 0, ',', '.') }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <a href="{{ route('tenant.invoices.show', $invoice) }}" class="text-indigo-600 hover:text-indigo-900">{{ __('Details') }}</a>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
-                                            {{ __('No invoices for this contract.') }}</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ __('Pembayaran Berikutnya') }}</h5>
+                        <span class="badge bg-light text-dark">{{ $nextCoverageLabel ?? __('-') }}</span>
                     </div>
+                    <div class="card-body">
+                        @if ($contract->status === \App\Models\Contract::STATUS_ACTIVE)
+                            <form method="POST" action="{{ route('tenant.contracts.invoices.store', $contract) }}" class="row g-3 align-items-end">
+                                @csrf
+                                <div class="col-md-4">
+                                    <label class="form-label small text-muted">{{ __('Jumlah Bulan') }}</label>
+                                    <select name="months_count" class="form-select form-select-sm">
+                                        @foreach (range(1, 12) as $monthOption)
+                                            <option value="{{ $monthOption }}" @selected(old('months_count', 1) == $monthOption)>{{ $monthOption }} {{ __('bulan') }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('months_count')
+                                        <div class="text-danger small">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-8 text-muted small">
+                                    {{ __('Invoice baru akan memperpanjang masa sewa sesuai jumlah bulan yang dipilih dan hanya dapat dibuat setelah invoice sebelumnya lunas.') }}
+                                </div>
+                                <div class="col-12 text-end">
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="bi bi-file-earmark-plus me-1"></i>{{ __('Buat Invoice') }}
+                                    </button>
+                                </div>
+                            </form>
+                        @else
+                            <div class="text-muted small mb-0">{{ __('Kontrak tidak aktif. Pembuatan invoice dinonaktifkan.') }}</div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">{{ __('Pengakhiran Kontrak') }}</h5>
+                    <small class="text-muted">{{ __('Ajukan terminasi jika berencana pindah sebelum kontrak berakhir.') }}</small>
+                </div>
+                @if ($canRequestTermination && (! $latestTerminationRequest || $latestTerminationRequest->status !== 'pending'))
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#terminateModal">
+                        <i class="bi bi-flag me-1"></i>{{ __('Ajukan Pengakhiran') }}
+                    </button>
+                @elseif (! $canRequestTermination)
+                    <button class="btn btn-outline-secondary btn-sm" disabled>
+                        {{ __('Ajukan Pengakhiran') }}
+                    </button>
+                @endif
+            </div>
+            <div class="card-body">
+                @if ($terminationBlockedReason)
+                    <div class="alert alert-warning mb-3">{{ $terminationBlockedReason }}</div>
+                @endif
+
+                @if ($latestTerminationRequest)
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>{{ __('Tanggal diminta') }}:</strong> {{ optional($latestTerminationRequest->requested_end_date)->translatedFormat('d M Y') }}</p>
+                            <p class="mb-1"><strong>{{ __('Status') }}:</strong> {{ ucfirst($latestTerminationRequest->status) }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>{{ __('Alasan') }}:</strong> {{ $latestTerminationRequest->reason ?: __('Tidak ada alasan tambahan.') }}</p>
+                            @if ($latestTerminationRequest->owner_notes)
+                                <p class="mb-0"><strong>{{ __('Catatan pemilik') }}:</strong> {{ $latestTerminationRequest->owner_notes }}</p>
+                            @endif
+                        </div>
+                    </div>
+                @else
+                    <p class="text-muted mb-0">{{ __('Belum ada permintaan pengakhiran untuk kontrak ini.') }}</p>
+                @endif
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">{{ __('Riwayat Tagihan') }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>{{ __('Periode') }}</th>
+                                <th>{{ __('Jatuh Tempo') }}</th>
+                                <th>{{ __('Status') }}</th>
+                                <th>{{ __('Total') }}</th>
+                                <th class="text-end">{{ __('Aksi') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($contract->invoices as $invoice)
+                                @php
+                                    $invStatus = $invoice->status;
+                                    $invBadge = $invStatus === 'paid' ? 'success' : ($invStatus === 'overdue' ? 'danger' : 'warning');
+                                @endphp
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">{{ $invoice->months_count ?? 1 }} {{ __('bln') }}</div>
+                                        <div class="text-muted small">
+                                            {{ optional($invoice->coverage_start_month ? \Illuminate\Support\Carbon::create($invoice->coverage_start_year, $invoice->coverage_start_month, 1) : null)?->translatedFormat('M Y') }}
+                                            -
+                                            {{ optional($invoice->coverage_end_month ? \Illuminate\Support\Carbon::create($invoice->coverage_end_year, $invoice->coverage_end_month, 1) : null)?->translatedFormat('M Y') }}
+                                        </div>
+                                    </td>
+                                    <td class="text-muted small">{{ optional($invoice->due_date)->format('d M Y') }}</td>
+                                    <td><span class="badge bg-{{ $invBadge }}">{{ $invoice->status }}</span></td>
+                                    <td>Rp{{ number_format($invoice->total ?? 0, 0, ',', '.') }}</td>
+                                    <td class="text-end">
+                                        <a href="{{ route('tenant.invoices.show', $invoice) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye me-1"></i>{{ __('Detail') }}
+                                        </a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">{{ __('Tidak ada invoice untuk kontrak ini.') }}</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

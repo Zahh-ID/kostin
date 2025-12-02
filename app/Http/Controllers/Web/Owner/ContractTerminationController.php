@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Models\Contract;
 use App\Models\ContractTerminationRequest;
 use App\Services\ContractBillingService;
 use Illuminate\Http\RedirectResponse;
@@ -13,8 +14,7 @@ class ContractTerminationController extends Controller
 {
     public function __construct(
         private readonly ContractBillingService $contractBillingService,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): View
     {
@@ -51,8 +51,10 @@ class ContractTerminationController extends Controller
 
             if ($contract) {
                 $contract->update([
-                    'status' => 'ended',
+                    'status' => Contract::STATUS_TERMINATED,
                     'end_date' => $terminationRequest->requested_end_date,
+                    'terminated_at' => now(),
+                    'termination_reason' => $terminationRequest->reason,
                 ]);
 
                 $this->contractBillingService->cancelOutstandingInvoices($contract);

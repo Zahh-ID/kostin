@@ -75,11 +75,10 @@ it('initiates midtrans qris payment for tenant invoice', function (): void {
             ->andReturn($midtransResponse);
     });
 
-    $response = $this->actingAs($tenant)
-        ->from(route('tenant.invoices.show', $invoice))
-        ->post(route('tenant.invoices.pay', $invoice));
+    $response = $this->actingAs($tenant, 'sanctum')
+        ->postJson("/api/v1/tenant/invoices/{$invoice->id}/pay");
 
-    $response->assertRedirect(route('tenant.invoices.show', $invoice));
+    $response->assertOk()->assertJsonFragment(['status' => 'pending']);
 
     $invoice->refresh();
 

@@ -6,6 +6,7 @@ use App\Providers\AuthServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use L5Swagger\L5SwaggerServiceProvider;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -25,6 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => RoleMiddleware::class,
         ]);
+
+        $middleware->prependToGroup('api', EnsureFrontendRequestsAreStateful::class);
 
         $middleware->validateCsrfTokens(except: [
             '/webhook/midtrans',

@@ -12,9 +12,20 @@
         @stack('styles')
         @livewireStyles
 
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @unless(request()->routeIs('admin.webhook.midtrans.form'))
+            @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @endunless
 
         <style>
+            #sidebar {
+                position: sticky;
+                top: 0;
+                align-self: flex-start;
+                max-height: 100vh;
+                overflow-y: auto;
+                z-index: 1020;
+            }
+
             #sidebar.collapsed {
                 width: 80px;
             }
@@ -37,26 +48,19 @@
             }
         </style>
     </head>
-    <body class="bg-light">
+    <body class="bg-light" wire:navigate>
         <div class="d-flex flex-column min-vh-100">
             <div class="container-fluid flex-grow-1">
-                <div class="row flex-nowrap">
-                    <aside id="sidebar" class="col-12 col-md-4 col-lg-3 col-xxl-2 bg-white border-end p-0 @if(isset($_COOKIE['sidebar_collapsed']) && $_COOKIE['sidebar_collapsed'] == 'true') collapsed @endif">
-                        <!-- layout.navigation -->
-                        <livewire:layout.navigation />
-                    </aside>
+                <main class="py-4 px-3 px-lg-4">
+                    @isset($header)
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+                            {{ $header }}
+                        </div>
+                    @endisset
 
-                    <main class="col py-4 px-3 px-lg-4">
-                        @isset($header)
-                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
-                                {{ $header }}
-                            </div>
-                        @endisset
-
-                        {{ $slot ?? '' }}
-                        @yield('content')
-                    </main>
-                </div>
+                    {{ $slot ?? '' }}
+                    @yield('content')
+                </main>
             </div>
 
             <footer class="bg-white border-top py-3">
@@ -67,6 +71,7 @@
         </div>
 
         @livewireScripts
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
         @stack('scripts')
     </body>
 </html>

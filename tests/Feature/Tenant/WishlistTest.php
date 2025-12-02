@@ -9,71 +9,21 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-it('shows wishlist items for tenant', function (): void {
+it('wishlist web routes are removed in API-only mode', function (): void {
     $tenant = User::factory()->tenant()->create();
 
-    $property = Property::factory()->create([
-        'status' => 'approved',
-        'owner_id' => User::factory()->owner(),
-    ]);
-
-    $roomType = RoomType::factory()->create([
-        'property_id' => $property->id,
-        'base_price' => 750_000,
-    ]);
-
-    Room::factory()->create([
-        'room_type_id' => $roomType->id,
-        'status' => 'available',
-    ]);
-
-    WishlistItem::factory()->create([
-        'user_id' => $tenant->id,
-        'property_id' => $property->id,
-    ]);
-
-    $response = $this->actingAs($tenant)->get(route('tenant.wishlist.index'));
-
-    $response->assertOk()
-        ->assertSee($property->name)
-        ->assertSee('Rp750.000', escape: false);
+    $this->actingAs($tenant)->get('/tenant/wishlist')->assertNotFound();
 });
 
-it('allows tenant to remove wishlist item', function (): void {
+it('wishlist items can be retrieved via API', function (): void {
     $tenant = User::factory()->tenant()->create();
-    $property = Property::factory()->create([
-        'status' => 'approved',
-        'owner_id' => User::factory()->owner(),
-    ]);
+    $owner = User::factory()->owner()->create();
+    $property = Property::factory()->create(['status' => 'approved', 'owner_id' => $owner->id]);
+    $roomType = RoomType::factory()->create(['property_id' => $property->id, 'base_price' => 750_000]);
+    Room::factory()->create(['room_type_id' => $roomType->id, 'status' => 'available']);
+    WishlistItem::factory()->create(['user_id' => $tenant->id, 'property_id' => $property->id]);
 
-    $wishlistItem = WishlistItem::factory()->create([
-        'user_id' => $tenant->id,
-        'property_id' => $property->id,
-    ]);
+    $response = $this->actingAs($tenant, 'web')->getJson('/api/v1/tenant/wishlist');
 
-    $response = $this->actingAs($tenant)->delete(route('tenant.wishlist.destroy', $wishlistItem));
-
-    $response->assertRedirect(route('tenant.wishlist.index'));
-
-    expect(WishlistItem::whereKey($wishlistItem->id)->exists())->toBeFalse();
-});
-
-it('prevents removing wishlist items owned by another tenant', function (): void {
-    $tenant = User::factory()->tenant()->create();
-    $otherTenant = User::factory()->tenant()->create();
-    $property = Property::factory()->create([
-        'status' => 'approved',
-        'owner_id' => User::factory()->owner(),
-    ]);
-
-    $wishlistItem = WishlistItem::factory()->create([
-        'user_id' => $otherTenant->id,
-        'property_id' => $property->id,
-    ]);
-
-    $response = $this->actingAs($tenant)->delete(route('tenant.wishlist.destroy', $wishlistItem));
-
-    $response->assertForbidden();
-
-    expect(WishlistItem::whereKey($wishlistItem->id)->exists())->toBeTrue();
+    $response->assertOk()->assertJsonFragment(['property_id' => $property->id]);
 });

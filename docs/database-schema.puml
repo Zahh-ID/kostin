@@ -1,0 +1,415 @@
+@startuml
+hide circle
+hide stereotypes
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+package "Auth & System" #F9F9F9 {
+  entity users {
+    *id : BIGINT <<PK>>
+    --
+    name : VARCHAR(255)
+    email : VARCHAR(255) <<UNIQUE>>
+    phone : VARCHAR(255)?
+    role : ENUM(admin,owner,tenant)
+    google_id : VARCHAR(255)? <<UNIQUE>>
+    email_verified_at : TIMESTAMP?
+    password : VARCHAR(255)
+    remember_token : VARCHAR(100)?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+
+  entity password_reset_tokens {
+    *email : VARCHAR(255) <<PK>>
+    token : VARCHAR(255)
+    created_at : TIMESTAMP?
+  }
+
+  entity sessions {
+    *id : VARCHAR(255) <<PK>>
+    user_id : BIGINT?
+    ip_address : VARCHAR(45)?
+    user_agent : TEXT?
+    payload : LONGTEXT
+    last_activity : INTEGER
+  }
+
+  entity personal_access_tokens {
+    *id : BIGINT <<PK>>
+    tokenable_type : VARCHAR(255)
+    tokenable_id : BIGINT
+    name : TEXT
+    token : CHAR(64) <<UNIQUE>>
+    abilities : TEXT?
+    last_used_at : TIMESTAMP?
+    expires_at : TIMESTAMP?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+}
+
+package "Property & Inventory" #FFFFF0 {
+  entity properties {
+    *id : BIGINT <<PK>>
+    --
+    owner_id : BIGINT <<FK>>
+    name : VARCHAR(255)
+    address : VARCHAR(255)
+    lat : DECIMAL(10,7)?
+    lng : DECIMAL(10,7)?
+    rules_text : TEXT?
+    photos : JSON?
+    status : ENUM(draft,pending,approved,rejected)
+    moderation_notes : TEXT?
+    moderated_by : BIGINT?
+    moderated_at : TIMESTAMP?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+
+  entity room_types {
+    *id : BIGINT <<PK>>
+    --
+    property_id : BIGINT <<FK>>
+    name : VARCHAR(255)
+    area_m2 : INTEGER?
+    bathroom_type : ENUM(inside,outside)?
+    base_price : INTEGER
+    deposit : INTEGER
+    facilities_json : JSON?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+
+  entity rooms {
+    *id : BIGINT <<PK>>
+    --
+    room_type_id : BIGINT <<FK>>
+    room_code : VARCHAR(255)
+    custom_price : INTEGER?
+    status : ENUM(available,occupied,maintenance)
+    description : TEXT?
+    photos_json : JSON?
+    facilities_override_json : JSON?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+}
+
+package "Leasing & Applications" #F0FFFF {
+  entity rental_applications {
+    *id : BIGINT <<PK>>
+    --
+    tenant_id : BIGINT <<FK>>
+    contact_phone : VARCHAR(255)?
+    contact_email : VARCHAR(255)?
+    property_id : BIGINT <<FK>>
+    room_type_id : BIGINT?
+    room_id : BIGINT?
+    preferred_start_date : DATE?
+    duration_months : INTEGER
+    occupants_count : TINYINT
+    budget_per_month : BIGINT?
+    employment_status : VARCHAR(255)?
+    company_name : VARCHAR(255)?
+    job_title : VARCHAR(255)?
+    monthly_income : BIGINT?
+    has_vehicle : BOOLEAN
+    vehicle_notes : VARCHAR(255)?
+    status : VARCHAR(50)
+    tenant_notes : TEXT?
+    owner_notes : TEXT?
+    approved_at : TIMESTAMP?
+    rejected_at : TIMESTAMP?
+    terms_text : TEXT?
+    terms_accepted_at : TIMESTAMP?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+
+  entity contracts {
+    *id : BIGINT <<PK>>
+    --
+    tenant_id : BIGINT <<FK>>
+    room_id : BIGINT <<FK>>
+    start_date : DATE
+    end_date : DATE?
+    price_per_month : INTEGER
+    billing_day : TINYINT
+    deposit_amount : INTEGER
+    grace_days : TINYINT
+    late_fee_per_day : INTEGER
+    status : ENUM(draft,submitted,active,pending_renewal,terminated,canceled,expired)
+    submitted_at : TIMESTAMP?
+    activated_at : TIMESTAMP?
+    terminated_at : TIMESTAMP?
+    termination_reason : TEXT?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+
+  entity contract_termination_requests {
+    *id : BIGINT <<PK>>
+    --
+    contract_id : BIGINT <<FK>>
+    tenant_id : BIGINT <<FK>>
+    requested_end_date : DATE
+    reason : TEXT?
+    status : ENUM(pending,approved,rejected)
+    owner_notes : TEXT?
+    resolved_at : TIMESTAMP?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+}
+
+package "Billing & Payments" #F0FFF0 {
+  entity invoices {
+    *id : BIGINT <<PK>>
+    --
+    contract_id : BIGINT <<FK>>
+    period_month : SMALLINT
+    period_year : SMALLINT
+    months_count : TINYINT
+    coverage_start_month : TINYINT?
+    coverage_start_year : SMALLINT?
+    coverage_end_month : TINYINT?
+    coverage_end_year : SMALLINT?
+    due_date : DATE
+    expires_at : TIMESTAMP?
+    amount : INTEGER
+    late_fee : INTEGER
+    total : INTEGER
+    status : ENUM(unpaid,paid,overdue,canceled,pending_verification,expired)
+    status_reason : TEXT?
+    primary_payment_id : BIGINT?
+    external_order_id : VARCHAR(255)?
+    qris_payload : JSON?
+    paid_at : TIMESTAMP?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+
+  entity payments {
+    *id : BIGINT <<PK>>
+    --
+    invoice_id : BIGINT <<FK>>
+    submitted_by : BIGINT?
+    user_id : BIGINT?
+    order_id : VARCHAR(255) <<UNIQUE>>
+    midtrans_order_id : VARCHAR(255)?
+    transaction_id : VARCHAR(255)?
+    payment_type : ENUM(qris,manual_bank_transfer,manual_cash)
+    manual_method : VARCHAR(255)?
+    proof_path : VARCHAR(255)?
+    proof_filename : VARCHAR(255)?
+    notes : TEXT?
+    amount : DECIMAL(15,2)
+    status : ENUM(pending,waiting_verification,success,failed,rejected)
+    transaction_status : VARCHAR(255)?
+    qris_string : TEXT?
+    va_numbers : JSON?
+    midtrans_response : JSON?
+    paid_at : TIMESTAMP?
+    verified_by : BIGINT?
+    verified_at : TIMESTAMP?
+    rejection_reason : TEXT?
+    raw_webhook_json : JSON?
+    settlement_time : TIMESTAMP?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+
+  entity payment_accounts {
+    *id : BIGINT <<PK>>
+    method : VARCHAR(255) <<UNIQUE>>
+    account_number : VARCHAR(255)?
+    account_name : VARCHAR(255)?
+    instructions : TEXT?
+    metadata : JSON?
+    is_active : BOOLEAN
+    display_order : INTEGER
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+
+  entity owner_wallets {
+    *id : BIGINT <<PK>>
+    owner_id : BIGINT <<FK>>
+    balance : DECIMAL(15,2)
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+
+  entity owner_wallet_transactions {
+    *id : BIGINT <<PK>>
+    owner_wallet_id : BIGINT <<FK>>
+    payment_id : BIGINT?
+    type : ENUM(credit,debit)
+    amount : DECIMAL(15,2)
+    description : VARCHAR(255)?
+    metadata : JSON?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+}
+
+package "Engagement & Ops" #FFF0F5 {
+  entity wishlist_items {
+    *id : BIGINT <<PK>>
+    user_id : BIGINT <<FK>>
+    property_id : BIGINT <<FK>>
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+
+  entity shared_tasks {
+    *id : BIGINT <<PK>>
+    property_id : BIGINT <<FK>>
+    title : VARCHAR(255)
+    description : TEXT?
+    rrule : VARCHAR(255)?
+    next_run_at : TIMESTAMP?
+    assignee_user_id : BIGINT?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+
+  entity shared_task_logs {
+    *id : BIGINT <<PK>>
+    shared_task_id : BIGINT <<FK>>
+    run_at : TIMESTAMP
+    completed_by : BIGINT?
+    photo_url : VARCHAR(255)?
+    note : TEXT?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+
+  entity audit_logs {
+    *id : BIGINT <<PK>>
+    user_id : BIGINT?
+    action : VARCHAR(255)
+    entity : VARCHAR(255)
+    entity_id : BIGINT
+    meta_json : JSON?
+    created_at : TIMESTAMP
+  }
+}
+
+package "Support" #F5F5FF {
+  entity tickets {
+    *id : BIGINT <<PK>>
+    ticket_code : VARCHAR(255) <<UNIQUE>>
+    reporter_id : BIGINT <<FK>>
+    assignee_id : BIGINT?
+    subject : VARCHAR(255)
+    description : TEXT
+    category : ENUM(technical,payment,content,abuse)
+    priority : ENUM(low,medium,high,urgent)
+    status : ENUM(open,in_review,escalated,resolved,rejected)
+    related_type : VARCHAR(255)?
+    related_id : BIGINT?
+    tags : JSON?
+    sla_minutes : INTEGER?
+    closed_at : TIMESTAMP?
+    escalated_at : TIMESTAMP?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+
+  entity ticket_comments {
+    *id : BIGINT <<PK>>
+    ticket_id : BIGINT <<FK>>
+    user_id : BIGINT <<FK>>
+    body : TEXT
+    attachments : JSON?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+
+  entity ticket_events {
+    *id : BIGINT <<PK>>
+    ticket_id : BIGINT <<FK>>
+    user_id : BIGINT?
+    event_type : ENUM(created,status_changed,comment_added,assigned,escalated,resolved,reopened,rejected)
+    payload : JSON?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+}
+
+package "Chat" #F5FFF5 {
+  entity conversations {
+    *id : BIGINT <<PK>>
+    title : VARCHAR(255)?
+    is_group : BOOLEAN
+    metadata : JSON?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+
+  entity conversation_user {
+    *id : BIGINT <<PK>>
+    conversation_id : BIGINT <<FK>>
+    user_id : BIGINT <<FK>>
+    last_read_at : TIMESTAMP?
+    role : VARCHAR(255)?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+
+  entity messages {
+    *id : BIGINT <<PK>>
+    conversation_id : BIGINT <<FK>>
+    user_id : BIGINT <<FK>>
+    body : TEXT
+    attachments : JSON?
+    read_at : TIMESTAMP?
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+  }
+}
+
+' Core relationships
+users ||--o{ properties : owner_id
+users ||--o{ sessions : user_id
+properties ||--o{ room_types : property_id
+room_types ||--o{ rooms : room_type_id
+rooms ||--o{ contracts : room_id
+users ||--o{ contracts : tenant_id
+contracts ||--o{ invoices : contract_id
+invoices ||--o{ payments : invoice_id
+users ||--o{ payments : submitted_by
+users ||--o{ payments : user_id
+users ||--o{ payments : verified_by
+users ||--|| owner_wallets : owner_id
+owner_wallets ||--o{ owner_wallet_transactions : transactions
+payments ||--|| owner_wallet_transactions : payment_id (unique, nullable)
+contracts ||--o{ contract_termination_requests : term_requests
+users ||--o{ contract_termination_requests : tenant
+users ||--o{ rental_applications : tenant
+properties ||--o{ rental_applications : property
+room_types ||--o{ rental_applications : room_type
+rooms ||--o{ rental_applications : room
+properties ||--o{ shared_tasks : property
+users ||--o{ shared_tasks : assignee
+shared_tasks ||--o{ shared_task_logs : logs
+users ||--o{ shared_task_logs : completed_by
+users ||--o{ wishlist_items : wishlist
+properties ||--o{ wishlist_items : wishlist
+users ||--o{ audit_logs : actor
+users ||--o{ tickets : reporter
+users ||--o{ tickets : assignee
+tickets ||--o{ ticket_comments : comments
+users ||--o{ ticket_comments : author
+tickets ||--o{ ticket_events : events
+users ||--o{ ticket_events : actor
+conversations ||--o{ conversation_user : members
+users ||--o{ conversation_user : membership
+conversations ||--o{ messages : messages
+users ||--o{ messages : sender
+users ||--o{ personal_access_tokens : tokens
+@enduml

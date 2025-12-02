@@ -22,31 +22,31 @@ class PublicPageController extends Controller
 
         return view('public.home', [
             'properties' => $properties,
-        ])->layout('layouts.public');
+        ]);
     }
 
     public function about(): View
     {
-        return view('public.about')->layout('layouts.public');
+        return view('public.about');
     }
 
     public function faq(): View
     {
-        return view('public.faq')->layout('layouts.public');
+        return view('public.faq');
     }
 
     public function privacy(): View
     {
-        return view('public.privacy')->layout('layouts.public');
+        return view('public.privacy');
     }
 
     public function terms(): View
     {
-        return view('public.terms')->layout('layouts.public');
+        return view('public.terms');
     }
 
     public function contact(): View
     {
-        return view('public.contact')->layout('layouts.public');
+        return view('public.contact');
     }
 }

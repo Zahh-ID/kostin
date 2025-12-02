@@ -19,9 +19,25 @@
         $qrImageUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=320x320&data='
             . urlencode($qrString);
     }
-    $expiryTime = data_get($qrisPayload, 'expiry_time') ?? data_get($qrisPayload, 'expires_at');
+    $expiryTime = data_get($qrisPayload, 'expiry_time')
+        ?? data_get($qrisPayload, 'raw_response.expiry_time')
+        ?? data_get($qrisPayload, 'expires_at');
+    if (! $expiryTime && $invoice->expires_at) {
+        $expiryTime = $invoice->expires_at;
+    }
     $transactionStatus = data_get($qrisPayload, 'transaction_status', 'pending');
     $expiryCarbon = $expiryTime ? \Illuminate\Support\Carbon::make($expiryTime) : null;
+    $qrisExpired = $expiryCarbon ? now()->greaterThan($expiryCarbon) : false;
+    $expiryIso = $expiryCarbon ? $expiryCarbon->timezone(config('app.timezone'))->toIso8601String() : '';
+    $allowRegenerate = ! $hasQrisPayload || $qrisExpired || in_array($transactionStatus, ['expire', 'cancel', 'deny'], true);
+    $reason = $invoice->status_reason;
+    $statusClass = match ($invoice->status) {
+        'paid' => 'success',
+        'overdue' => 'danger',
+        'pending_verification' => 'warning',
+        'canceled' => 'secondary',
+        default => 'warning',
+    };
 @endphp
 <div class="container py-4">
     <a href="{{ route('tenant.invoices.index') }}" class="text-decoration-none small text-muted">&larr; {{ __('Kembali ke daftar tagihan') }}</a>
@@ -30,53 +46,72 @@
         <div class="alert alert-info mt-3">{{ session('status') }}</div>
     @endif
 
-    <div class="d-flex justify-content-between align-items-center mt-3 mb-4">
-        <div>
-            <h1 class="h4 fw-semibold mb-1">{{ __('Invoice #:number', ['number' => $invoice->id]) }}</h1>
-            <p class="text-muted mb-0">
-                {{ __('Periode :month/:year', ['month' => $invoice->period_month, 'year' => $invoice->period_year]) }} &middot;
-                {{ $invoice->contract?->room?->roomType?->property?->name }}
-            </p>
-        </div>
-        @php
-            $statusClass = match ($invoice->status) {
-                'paid' => 'success',
-                'overdue' => 'danger',
-                'pending_verification' => 'warning',
-                default => 'warning',
-            };
-        @endphp
-        <div class="d-flex gap-2 align-items-center">
-            @if ($invoice->status === 'paid')
-                <a href="{{ route('tenant.invoices.pdf', $invoice) }}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">
-                    {{ __('Unduh PDF') }}
+    <div class="card border-0 shadow-sm mt-3 mb-4">
+        <div class="card-body d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-{{ $statusClass }} text-uppercase">{{ str_replace('_', ' ', $invoice->status) }}</span>
+                    @if ($reason)
+                        <span class="badge bg-light text-dark">{{ $reason }}</span>
+                    @endif
+                </div>
+                <h1 class="h4 mb-1">{{ __('Invoice #:number', ['number' => $invoice->id]) }}</h1>
+                <p class="text-muted mb-0">
+                    {{ __('Periode :month/:year', ['month' => $invoice->period_month, 'year' => $invoice->period_year]) }} ·
+                    {{ $invoice->contract?->room?->roomType?->property?->name }}
+                </p>
+            </div>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                @if ($invoice->status === 'paid')
+                    <a href="{{ route('tenant.invoices.pdf', $invoice) }}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">
+                        <i class="bi bi-file-earmark-arrow-down me-1"></i>{{ __('Unduh PDF') }}
+                    </a>
+                @endif
+                <form action="{{ route('tenant.invoices.pay', $invoice) }}" method="post" class="d-inline js-disable-on-submit" data-loading-text="{{ __('Mengambil data Midtrans...') }}">
+                    @csrf
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-credit-card me-1"></i>{{ __('Bayar / QRIS') }}
+                    </button>
+                </form>
+                <a href="{{ route('tenant.invoices.index') }}" class="btn btn-light btn-sm">
+                    {{ __('Kembali') }}
                 </a>
-            @endif
-            <span class="badge bg-{{ $statusClass }} text-uppercase">{{ str_replace('_', ' ', $invoice->status) }}</span>
+                <small class="text-muted w-100 mb-0">{{ __('Klik Bayar untuk memuat QRIS terbaru dari Midtrans, lalu panel pembayaran akan muncul otomatis.') }}</small>
+            </div>
+        </div>
+        <div class="card-body border-top d-flex flex-wrap gap-3">
+            <div class="flex-fill">
+                <div class="text-muted small mb-1">{{ __('Jumlah') }}</div>
+                <div class="h5 mb-0">Rp{{ number_format($invoice->total ?? 0, 0, ',', '.') }}</div>
+            </div>
+            <div class="flex-fill">
+                <div class="text-muted small mb-1">{{ __('Jatuh Tempo') }}</div>
+                <div class="fw-semibold">{{ optional($invoice->due_date)->format('d M Y') ?? '—' }}</div>
+            </div>
+            <div class="flex-fill">
+                <div class="text-muted small mb-1">{{ __('Tambah Info') }}</div>
+                <div class="fw-semibold">{{ $invoice->months_count ?? 1 }} {{ __('bulan') }}</div>
+            </div>
         </div>
     </div>
 
-    <div class="row g-4">
+    <div class="row g-3 align-items-stretch">
         <div class="col-lg-7">
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-white">
-                    <h2 class="h6 fw-semibold mb-0">{{ __('Rincian Tagihan') }}</h2>
+            <div class="card border-0 shadow-sm mb-3 h-100">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ __('Ringkasan Tagihan') }}</h5>
+                    <span class="badge bg-light text-dark">{{ __('Invoice Detail') }}</span>
                 </div>
                 <div class="card-body">
-                    @if ($invoice->status !== 'paid')
-                        <div class="alert alert-warning small">
-                            {{ __('PDF invoice akan tersedia setelah pembayaran dinyatakan lunas.') }}
-                        </div>
-                    @endif
                     <dl class="row small mb-0">
-                        <dt class="col-sm-5 text-muted">{{ __('Jatuh Tempo') }}</dt>
-                        <dd class="col-sm-7">{{ optional($invoice->due_date)->format('d M Y') ?? '—' }}</dd>
                         <dt class="col-sm-5 text-muted">{{ __('Nominal') }}</dt>
                         <dd class="col-sm-7">Rp{{ number_format($invoice->amount ?? 0, 0, ',', '.') }}</dd>
                         <dt class="col-sm-5 text-muted">{{ __('Denda') }}</dt>
                         <dd class="col-sm-7">Rp{{ number_format($invoice->late_fee ?? 0, 0, ',', '.') }}</dd>
                         <dt class="col-sm-5 text-muted">{{ __('Total') }}</dt>
                         <dd class="col-sm-7 fw-semibold">Rp{{ number_format($invoice->total ?? 0, 0, ',', '.') }}</dd>
+                        <dt class="col-sm-5 text-muted">{{ __('Status') }}</dt>
+                        <dd class="col-sm-7 text-capitalize">{{ str_replace('_', ' ', $invoice->status) }}</dd>
                         <dt class="col-sm-5 text-muted">{{ __('Periode Dicakup') }}</dt>
                         <dd class="col-sm-7">
                             {{ $invoice->months_count ?? 1 }} {{ __('bulan') }}
@@ -88,15 +123,37 @@
                                 </div>
                             @endif
                         </dd>
-                        <dt class="col-sm-5 text-muted">{{ __('Status') }}</dt>
-                        <dd class="col-sm-7 text-capitalize">{{ str_replace('_', ' ', $invoice->status) }}</dd>
+                        @if ($reason)
+                            <dt class="col-sm-5 text-muted">{{ __('Catatan Status') }}</dt>
+                            <dd class="col-sm-7">{{ $reason }}</dd>
+                        @endif
                     </dl>
                 </div>
             </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ __('Informasi Properti') }}</h5>
+                    @if ($invoice->contract)
+                        <a href="{{ route('tenant.contracts.show', $invoice->contract) }}" class="small link-primary">{{ __('Lihat Kontrak') }}</a>
+                    @endif
+                </div>
+                <div class="card-body">
+                    <div class="fw-semibold mb-1">{{ $invoice->contract?->room?->roomType?->property?->name ?? '—' }}</div>
+                    <div class="text-muted small mb-2">{{ __('Kamar :code', ['code' => $invoice->contract?->room?->room_code ?? '—']) }}</div>
+                    @if ($invoice->contract?->room?->roomType)
+                        <div class="text-muted small mb-2">{{ $invoice->contract?->room?->roomType?->name }}</div>
+                    @endif
+                    <div class="text-muted small">{{ $invoice->contract?->room?->roomType?->property?->address ?? '' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white">
-                    <h2 class="h6 fw-semibold mb-0">{{ __('Riwayat Pembayaran') }}</h2>
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ __('Riwayat Pembayaran') }}</h5>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -132,157 +189,188 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-lg-5">
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-body">
-                    <ul class="nav nav-pills mb-3" id="paymentTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="qris-tab" data-bs-toggle="pill" data-bs-target="#qris-pane" type="button" role="tab" aria-controls="qris-pane" aria-selected="true">
-                                {{ __('QRIS') }}
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="manual-tab" data-bs-toggle="pill" data-bs-target="#manual-pane" type="button" role="tab" aria-controls="manual-pane" aria-selected="false">
-                                {{ __('Transfer Manual') }}
-                            </button>
-                        </li>
-                    </ul>
-                    <div class="tab-content" id="paymentTabsContent">
-                        <div class="tab-pane fade show active" id="qris-pane" role="tabpanel" aria-labelledby="qris-tab">
-                            @if ($invoice->status === 'paid')
-                                <div class="alert alert-success mb-0">{{ __('Tagihan ini telah lunas. Terima kasih!') }}</div>
-                            @else
-                                <p class="text-muted small">{{ __('Klik tombol berikut untuk mendapatkan kode QRIS resmi Midtrans dan melakukan pembayaran.') }}</p>
-                                <form action="{{ route('tenant.invoices.pay', $invoice) }}" method="post" class="js-qris-generate-form">
-                                    @csrf
-                                    <button class="btn btn-primary w-100" type="submit" data-loading-text="{{ __('Memproses...') }}">
-                                        {{ __('Bayar via QRIS') }}
-                                    </button>
-                                </form>
-                            @endif
-                        </div>
-                        <div class="tab-pane fade" id="manual-pane" role="tabpanel" aria-labelledby="manual-tab">
-                            @if ($invoice->status === 'paid')
-                                <div class="alert alert-success mb-0">{{ __('Tagihan ini telah lunas. Terima kasih!') }}</div>
-                            @elseif ($paymentAccounts->isEmpty())
-                                <div class="alert alert-warning mb-0">{{ __('Pemilik belum menambahkan informasi rekening manual. Silakan hubungi pemilik untuk detail pembayaran.') }}</div>
-                            @else
-                                @if ($invoice->status === 'pending_verification')
-                                    <div class="alert alert-warning">{{ __('Bukti pembayaran Anda sedang divalidasi oleh pemilik/admin.') }}</div>
-                                @endif
-                                <p class="text-muted small">{{ __('Pilih metode transfer, unggah bukti pembayaran, dan sertakan catatan jika diperlukan.') }}</p>
-                                <form action="{{ route('tenant.invoices.manual-payment.store', $invoice) }}" method="post" enctype="multipart/form-data">
-                                    @csrf
-                                    <div class="mb-3">
-                                        <label for="payment_method" class="form-label">{{ __('Metode') }}</label>
-                                        <select name="payment_method" id="payment_method" class="form-select" @if($invoice->status === 'pending_verification') disabled @endif>
-                                            <option value="" disabled selected>{{ __('Pilih bank atau metode pembayaran') }}</option>
-                                            @foreach ($paymentAccounts as $account)
-                                                <option value="{{ $account->method }}" @selected(old('payment_method') === $account->method)>
-                                                    {{ $account->method }} @if($account->account_number) &middot; {{ $account->account_number }} ({{ $account->account_name }}) @endif
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('payment_method')
-                                            <div class="text-danger small mt-1">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="proof" class="form-label">{{ __('Bukti Pembayaran (jpg/png, maks 5MB)') }}</label>
-                                        <input type="file" name="proof" id="proof" class="form-control" accept="image/jpeg,image/png" @if($invoice->status === 'pending_verification') disabled @endif>
-                                        @error('proof')
-                                            <div class="text-danger small mt-1">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="notes" class="form-label">{{ __('Catatan (opsional)') }}</label>
-                                        <textarea name="notes" id="notes" rows="3" class="form-control" @if($invoice->status === 'pending_verification') disabled @endif>{{ old('notes') }}</textarea>
-                                        @error('notes')
-                                            <div class="text-danger small mt-1">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <button type="submit" class="btn btn-outline-primary w-100" @if($invoice->status === 'pending_verification') disabled @endif>
-                                        {{ __('Kirim Bukti Pembayaran') }}
-                                    </button>
-                                </form>
+</div>
 
-                                <div class="mt-3">
-                                    @foreach ($paymentAccounts as $account)
-                                        <div class="border rounded-3 p-3 mb-2">
-                                            <p class="fw-semibold mb-1">{{ $account->method }}</p>
-                                            @if ($account->account_number)
-                                                <p class="text-muted small mb-1">{{ $account->account_number }} ({{ $account->account_name }})</p>
-                                            @endif
-                                            @if ($account->instructions)
-                                                <p class="text-muted small mb-0">{{ $account->instructions }}</p>
-                                            @endif
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @endif
+<div class="modal fade" id="qrisModal" tabindex="-1" aria-labelledby="qrisModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-body position-relative">
+                <button type="button" class="btn-close position-absolute end-0 top-0 mt-2 me-2" data-bs-dismiss="modal" aria-label="{{ __('Tutup') }}"></button>
+                <div class="mb-3">
+                    <h6 class="mb-1" id="qrisModalLabel">{{ __('Pembayaran QRIS') }}</h6>
+                    <p class="text-muted small mb-0">{{ __('Generate, scan, atau cek status Midtrans tanpa meninggalkan halaman.') }}</p>
+                </div>
+
+                @if ($invoice->status === 'paid')
+                    <div class="alert alert-success mb-0">{{ __('Tagihan ini sudah lunas. Tidak perlu pembayaran baru.') }}</div>
+                @elseif(in_array($invoice->status, ['expired','canceled']))
+                    <div class="alert alert-warning mb-0">{{ __('QRIS tidak tersedia karena status tagihan sudah :status.', ['status' => $invoice->status]) }}</div>
+                @else
+                    @if ($invoice->expires_at && now()->greaterThan($invoice->expires_at))
+                        <div class="alert alert-warning small">{{ __('QRIS sebelumnya kedaluwarsa. Generate ulang untuk melanjutkan pembayaran.') }}</div>
+                    @endif
+                    @if ($hasQrisPayload && in_array($transactionStatus, ['expire', 'cancel', 'deny'], true))
+                        <div class="alert alert-warning small">{{ __('Status Midtrans terakhir: :status. Silakan generate ulang lalu scan.', ['status' => str_replace('_', ' ', $transactionStatus)]) }}</div>
+                    @endif
+
+                    <div class="border rounded-3 p-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div>
+                                <div class="fw-semibold">{{ __('Jumlah Tagihan') }}</div>
+                                <div class="small text-muted">{{ $invoice->contract?->room?->roomType?->property?->name ?? '—' }} · {{ $invoice->contract?->room?->room_code ?? '—' }}</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold">Rp{{ number_format($invoice->total ?? 0, 0, ',', '.') }}</div>
+                                <span class="badge bg-{{ $qrisExpired ? 'warning text-dark' : 'info text-dark' }}">{{ $qrisExpired ? __('Kedaluwarsa') : __('Aktif') }}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <h2 class="h6 fw-semibold mb-3">{{ __('Informasi Kontrak') }}</h2>
-                    <p class="mb-1 fw-semibold">{{ $invoice->contract?->room?->roomType?->property?->name ?? '—' }}</p>
-                    <p class="text-muted small mb-2">{{ __('Kamar :code', ['code' => $invoice->contract?->room?->room_code ?? '—']) }}</p>
-                    @if ($invoice->contract)
-                        <a href="{{ route('tenant.contracts.show', $invoice->contract) }}" class="btn btn-outline-primary btn-sm">{{ __('Lihat Kontrak') }}</a>
+                    <div class="d-grid gap-2 mb-3">
+                        @if ($allowRegenerate)
+                            <form
+                                action="{{ route('tenant.invoices.pay', $invoice) }}"
+                                method="post"
+                                class="js-disable-on-submit js-regenerate-form"
+                                data-loading-text="{{ __('Memproses...') }}"
+                                @if($expiryIso) data-auto-regenerate="true" data-qris-expiry="{{ $expiryIso }}" @endif
+                                @if(in_array($transactionStatus, ['expire', 'cancel', 'deny'], true)) data-auto-regenerate-status="true" data-qris-status="{{ $transactionStatus }}" @endif
+                            >
+                                @csrf
+                                <button
+                                    class="btn btn-primary w-100 js-regenerate-btn"
+                                    type="submit"
+                                    data-active-text="{{ __('Generate Ulang QRIS') }}"
+                                    data-wait-text="{{ __('QRIS masih aktif. Menunggu kedaluwarsa...') }}"
+                                    @disabled($invoice->status === 'pending_verification')
+                                >
+                                    {{ $hasQrisPayload ? __('Generate Ulang QRIS') : __('Generate & Lihat QRIS') }}
+                                </button>
+                            </form>
+                        @endif
+                        <form action="{{ route('tenant.invoices.check-status', $invoice) }}" method="post" class="js-disable-on-submit" data-loading-text="{{ __('Memproses...') }}">
+                            @csrf
+                            <button class="btn btn-outline-primary w-100" type="submit">
+                                {{ __('Cek Status Pembayaran') }}
+                            </button>
+                        </form>
+                    </div>
+
+                    @if ($expiryIso && ! $allowRegenerate)
+                        <form action="{{ route('tenant.invoices.pay', $invoice) }}" method="post" class="d-none js-auto-regenerate" data-qris-expiry="{{ $expiryIso }}">
+                            @csrf
+                        </form>
+                    @endif
+
+                    @if ($hasQrisPayload)
+                        <div class="border rounded-3 p-3 bg-light mb-3" @if($expiryIso) data-qris-expiry="{{ $expiryIso }}" @endif>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>{{ __('QRIS terbaru') }}</strong>
+                                <span class="badge bg-{{ $qrisExpired ? 'warning text-dark' : 'info text-dark' }}">
+                                    {{ $qrisExpired ? __('Kedaluwarsa') : __('Aktif') }}
+                                </span>
+                            </div>
+                            <p class="text-muted small mb-3 mb-lg-2">{{ __('Scan kode di bawah atau generate ulang jika sudah kedaluwarsa.') }}</p>
+                            @if ($qrImageUrl || $qrString)
+                                <div class="text-center mb-3">
+                                    @if ($qrImageUrl)
+                                        <img src="{{ $qrImageUrl }}" alt="{{ __('Kode QRIS Midtrans') }}" class="img-fluid mx-auto d-block" style="max-width: 260px;">
+                                    @elseif ($qrString)
+                                        <pre class="bg-white border rounded p-2 small text-wrap">{{ $qrString }}</pre>
+                                    @endif
+                                </div>
+                            @endif
+                            <dl class="row small text-muted mb-0">
+                                <dt class="col-5">{{ __('Order ID') }}</dt>
+                                <dd class="col-7">{{ data_get($qrisPayload, 'order_id', $invoice->external_order_id ?? '—') }}</dd>
+                                @php
+                                    $merchantName = data_get($qrisPayload, 'merchant_name') ?? data_get($qrisPayload, 'raw_response.merchant_name');
+                                    $grossAmount = data_get($qrisPayload, 'gross_amount') ?? data_get($qrisPayload, 'raw_response.transaction_details.gross_amount') ?? $invoice->total;
+                                @endphp
+                                @if ($merchantName)
+                                    <dt class="col-5">{{ __('Merchant') }}</dt>
+                                    <dd class="col-7">{{ $merchantName }}</dd>
+                                @endif
+                                <dt class="col-5">{{ __('Status Midtrans') }}</dt>
+                                <dd class="col-7 text-capitalize">{{ str_replace('_', ' ', $transactionStatus) }}</dd>
+                                <dt class="col-5">{{ __('Nominal') }}</dt>
+                                <dd class="col-7">Rp{{ number_format((int) $grossAmount, 0, ',', '.') }}</dd>
+                                <dt class="col-5">{{ __('Properti') }}</dt>
+                                <dd class="col-7">{{ $invoice->contract?->room?->roomType?->property?->name ?? '—' }}</dd>
+                            </dl>
+                            <hr class="my-3">
+                            <div class="small text-muted">
+                                <div><strong>{{ __('Properti') }}:</strong> {{ $invoice->contract?->room?->roomType?->property?->name ?? '—' }}</div>
+                                <div><strong>{{ __('Kamar') }}:</strong> {{ $invoice->contract?->room?->room_code ?? '—' }}</div>
+                            </div>
+                        </div>
+                    @endif
+                @endif
+
+                <div class="border-top pt-3">
+                    <h6 class="mb-2">{{ __('Transfer Manual') }}</h6>
+                    @if ($invoice->status === 'paid')
+                        <div class="alert alert-success mb-0">{{ __('Tagihan ini telah lunas. Tidak perlu pembayaran baru.') }}</div>
+                    @elseif ($paymentAccounts->isEmpty())
+                        <div class="alert alert-warning mb-0">{{ __('Pemilik belum menambahkan informasi rekening manual. Silakan hubungi pemilik untuk detail pembayaran.') }}</div>
+                    @else
+                        @if ($invoice->status === 'pending_verification')
+                            <div class="alert alert-warning">{{ __('Bukti pembayaran Anda sedang divalidasi oleh pemilik/admin.') }}</div>
+                        @endif
+                        <p class="text-muted small">{{ __('Pilih metode transfer, unggah bukti pembayaran, dan sertakan catatan jika diperlukan.') }}</p>
+                        <form action="{{ route('tenant.invoices.manual-payment.store', $invoice) }}" method="post" enctype="multipart/form-data" class="js-disable-on-submit" data-loading-text="{{ __('Mengunggah...') }}">
+                            @csrf
+                            <div class="mb-3">
+                                <label for="payment_method" class="form-label">{{ __('Metode') }}</label>
+                                <select name="payment_method" id="payment_method" class="form-select" @if($invoice->status === 'pending_verification') disabled @endif>
+                                    <option value="" disabled selected>{{ __('Pilih bank atau metode pembayaran') }}</option>
+                                    @foreach ($paymentAccounts as $account)
+                                        <option value="{{ $account->method }}" @selected(old('payment_method') === $account->method)>
+                                            {{ $account->method }} @if($account->account_number) · {{ $account->account_number }} ({{ $account->account_name }}) @endif
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('payment_method')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
+                                <label for="proof" class="form-label">{{ __('Bukti Pembayaran (jpg/png, maks 5MB)') }}</label>
+                                <input type="file" name="proof" id="proof" class="form-control" accept="image/jpeg,image/png" @if($invoice->status === 'pending_verification') disabled @endif>
+                                @error('proof')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
+                                <label for="notes" class="form-label">{{ __('Catatan (opsional)') }}</label>
+                                <textarea name="notes" id="notes" rows="3" class="form-control" @if($invoice->status === 'pending_verification') disabled @endif>{{ old('notes') }}</textarea>
+                                @error('notes')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <button type="submit" class="btn btn-outline-primary w-100" @if($invoice->status === 'pending_verification') disabled @endif>
+                                {{ __('Kirim Bukti Pembayaran') }}
+                            </button>
+                        </form>
+                        <div class="mt-3">
+                            @foreach ($paymentAccounts as $account)
+                                <div class="border rounded-3 p-3 mb-2">
+                                    <p class="fw-semibold mb-1">{{ $account->method }}</p>
+                                    @if ($account->account_number)
+                                        <p class="text-muted small mb-1">{{ $account->account_number }} ({{ $account->account_name }})</p>
+                                    @endif
+                                    @if ($account->instructions)
+                                        <p class="text-muted small mb-0">{{ $account->instructions }}</p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
                     @endif
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-@if ($hasQrisPayload)
-    <div class="modal fade" id="qrisPaymentModal" tabindex="-1" aria-labelledby="qrisPaymentModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="qrisPaymentModalLabel">{{ __('Pembayaran QRIS') }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Tutup') }}"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-muted small mb-3">
-                        {{ __('Tunjukkan atau pindai kode berikut menggunakan aplikasi bank atau e-wallet Anda. Pastikan nominal pembayaran sesuai dengan tagihan.') }}
-                    </p>
-                    <div class="border rounded p-3 text-center bg-light">
-                        @if ($qrImageUrl)
-                            <img src="{{ $qrImageUrl }}" alt="{{ __('Kode QRIS Midtrans') }}" class="img-fluid mx-auto d-block" style="max-width: 260px;">
-                        @elseif ($qrString)
-                            <pre class="bg-white border rounded p-2 small text-wrap">{{ $qrString }}</pre>
-                        @else
-                            <span class="text-muted small">{{ __('Payload QRIS belum lengkap. Mohon refresh kode pembayaran.') }}</span>
-                        @endif
-                    </div>
-                    <dl class="row small text-muted mt-3 mb-0">
-                        <dt class="col-5">{{ __('Order ID') }}</dt>
-                        <dd class="col-7">{{ data_get($qrisPayload, 'order_id', $invoice->external_order_id ?? '—') }}</dd>
-                        <dt class="col-5">{{ __('Status') }}</dt>
-                        <dd class="col-7 text-capitalize">{{ str_replace('_', ' ', $transactionStatus) }}</dd>
-                        @if ($expiryCarbon)
-                            <dt class="col-5">{{ __('Berlaku hingga') }}</dt>
-                            <dd class="col-7">{{ $expiryCarbon->timezone(config('app.timezone'))->format('d M Y H:i') }}</dd>
-                        @endif
-                    </dl>
-                </div>
-                <div class="modal-footer d-flex justify-content-between flex-wrap gap-2">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('Tutup') }}</button>
-                    <form action="{{ route('tenant.invoices.check-status', $invoice) }}" method="post">
-                        @csrf
-                        <button class="btn btn-primary" type="submit">{{ __('Cek Status Pembayaran') }}</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-@endif
 @endsection
 
 @push('scripts')
@@ -290,29 +378,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             const shouldShowModal = @json(session('show_qris_modal', false));
             if (shouldShowModal) {
-                const modalElement = document.getElementById('qrisPaymentModal');
-                if (modalElement) {
-                    const showModal = () => {
-                        const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
-                        modalInstance.show();
-                    };
-
-                    if (window.bootstrap && window.bootstrap.Modal) {
-                        showModal();
-                    } else {
-                        const observer = new MutationObserver(() => {
-                            if (window.bootstrap && window.bootstrap.Modal) {
-                                observer.disconnect();
-                                showModal();
-                            }
-                        });
-                        observer.observe(window.document.body, { childList: true, subtree: true });
-                        setTimeout(() => observer.disconnect(), 5000);
-                    }
+                const modalElement = document.getElementById('qrisModal');
+                if (modalElement && window.bootstrap?.Modal) {
+                    const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+                    modalInstance.show();
                 }
             }
 
-            document.querySelectorAll('.js-qris-generate-form').forEach((form) => {
+            document.querySelectorAll('.js-disable-on-submit').forEach((form) => {
                 form.addEventListener('submit', () => {
                     const submitButton = form.querySelector('button[type="submit"]');
                     if (!submitButton) {
@@ -320,9 +393,43 @@
                     }
 
                     submitButton.disabled = true;
-                    const loadingText = submitButton.dataset.loadingText || '{{ __('Memproses...') }}';
+                    const loadingText = form.dataset.loadingText || submitButton.dataset.loadingText || '{{ __('Memproses...') }}';
                     submitButton.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>${loadingText}`;
                 });
+            });
+
+            const regenForms = document.querySelectorAll('.js-regenerate-form');
+
+            regenForms.forEach((formElement) => {
+                if (formElement.dataset.regenTriggered === 'true') {
+                    return;
+                }
+
+                const submitForm = (form) => {
+                    form.dataset.regenTriggered = 'true';
+                    if (form.requestSubmit) {
+                        form.requestSubmit();
+                    } else {
+                        form.submit();
+                    }
+                };
+
+                const status = formElement.dataset.qrisStatus ?? '';
+                if (formElement.dataset.autoRegenerateStatus === 'true' && ['expire', 'cancel', 'deny'].includes(status)) {
+                    submitForm(formElement);
+                    return;
+                }
+
+                const expiryIso = formElement.dataset.qrisExpiry;
+                if (expiryIso) {
+                    const expiry = new Date(expiryIso);
+                    const delay = expiry.getTime() - Date.now();
+                    if (delay <= 0) {
+                        submitForm(formElement);
+                        return;
+                    }
+                    setTimeout(() => submitForm(formElement), delay + 300);
+                }
             });
         });
     </script>

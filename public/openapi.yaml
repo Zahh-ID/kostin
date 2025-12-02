@@ -1,0 +1,382 @@
+openapi: 3.1.0
+info:
+  title: KostIn API
+  version: 1.0.0
+  description: |
+    API contract for the KostIn platform. All responses are JSON. Authentication uses Laravel Sanctum (stateful cookie for SPA) unless otherwise noted.
+servers:
+  - url: http://localhost:8000
+    description: Local
+  - url: https://api.example.com
+    description: Production
+tags:
+  - name: Auth
+  - name: Properties
+  - name: Payments
+  - name: Stats
+  - name: Tenant
+paths:
+  /sanctum/csrf-cookie:
+    get:
+      tags: [Auth]
+      summary: Issue CSRF cookie for Sanctum SPA auth
+      responses:
+        '204':
+          description: CSRF cookie issued
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a user
+      requestBody:
+        required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [name, email, password, role]
+                properties:
+                  name: { type: string }
+                  email: { type: string, format: email }
+                  password: { type: string, minLength: 8 }
+                  role:
+                  type: string
+                  enum: [tenant, owner, admin]
+      responses:
+        '201':
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/v1/auth/me:
+    get:
+      security:
+        - sanctumSession: []
+      tags: [Auth]
+      summary: Get authenticated user
+      responses:
+        '200':
+          description: Authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthenticated
+  /api/v1/auth/logout:
+    post:
+      security:
+        - sanctumSession: []
+      tags: [Auth]
+      summary: Logout current user
+      responses:
+        '204':
+          description: Logged out
+  /api/v1/properties:
+    get:
+      tags: [Properties]
+      summary: List properties
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Paginated properties
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginationMeta'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Property'
+    post:
+      security:
+        - sanctumSession: []
+      tags: [Properties]
+      summary: Create property
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertyCreate'
+      responses:
+        '201':
+          description: Created property
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/v1/properties/{id}:
+    get:
+      tags: [Properties]
+      summary: Get property detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Property detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+        '404':
+          description: Not found
+    put:
+      security:
+        - sanctumSession: []
+      tags: [Properties]
+      summary: Update property
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertyCreate'
+      responses:
+        '200':
+          description: Updated property
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+    delete:
+      security:
+        - sanctumSession: []
+      tags: [Properties]
+      summary: Delete property
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '204':
+          description: Deleted
+  /api/payment/create-qris:
+    post:
+      security:
+        - sanctumSession: []
+      tags: [Payments]
+      summary: Create Midtrans QRIS charge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id, amount]
+              properties:
+                order_id: { type: string }
+                amount: { type: number, format: float }
+      responses:
+        '201':
+          description: QRIS created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/payment/{orderId}/status:
+    get:
+      security:
+        - sanctumSession: []
+      tags: [Payments]
+      summary: Check payment status
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Payment status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+components:
+  securitySchemes:
+    sanctumSession:
+      type: apiKey
+      in: cookie
+      name: XSRF-TOKEN
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message: { type: string }
+              errors:
+                type: object
+                additionalProperties:
+                  type: array
+                  items: { type: string }
+  schemas:
+    PaginationMeta:
+      type: object
+      properties:
+        meta:
+          type: object
+          properties:
+            current_page: { type: integer }
+            last_page: { type: integer }
+            per_page: { type: integer }
+            total: { type: integer }
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string, format: email }
+        role: { type: string }
+    Property:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        address: { type: string }
+        status: { type: string }
+        photos:
+          type: array
+          items: { type: string, format: uri }
+        room_types:
+          type: array
+          items: { $ref: '#/components/schemas/RoomType' }
+        owner:
+          $ref: '#/components/schemas/User'
+    PropertyCreate:
+      type: object
+      required: [name, address]
+      properties:
+        name: { type: string }
+        address: { type: string }
+        status: { type: string, enum: [draft, pending, approved] }
+        photos:
+          type: array
+          items: { type: string, format: uri }
+    RoomType:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        base_price: { type: number, format: float }
+    Payment:
+      type: object
+      properties:
+        order_id: { type: string }
+        amount: { type: number, format: float }
+        status: { type: string }
+        qr_url: { type: string, format: uri }
+        payment_type: { type: string }
+  /api/v1/stats:
+    get:
+      tags: [Stats]
+      summary: Get aggregated dashboard stats
+      responses:
+        '200':
+          description: Aggregated stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payments:
+                    type: object
+                    properties:
+                      success_rate: { type: number, format: float }
+                      success_count: { type: integer }
+                      total_count: { type: integer }
+                      qris_count: { type: integer }
+                      manual_count: { type: integer }
+                  contracts:
+                    type: object
+                    properties:
+                      active_count: { type: integer }
+                  tickets:
+                    type: object
+                    properties:
+                      live_count: { type: integer }
+  /api/v1/tenant/overview:
+    get:
+      security:
+        - sanctumSession: []
+      tags: [Tenant]
+      summary: Tenant-specific overview stats
+      responses:
+        '200':
+          description: Tenant overview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invoices:
+                    type: object
+                    properties:
+                      unpaid: { type: integer }
+                      overdue: { type: integer }
+                      pending_verification: { type: integer }
+                      paid: { type: integer }
+                  contracts:
+                    type: object
+                    properties:
+                      active: { type: integer }
+                  tickets:
+                    type: object
+                    properties:
+                      open: { type: integer }
+                  wishlist:
+                    type: object
+                    properties:
+                      count: { type: integer }

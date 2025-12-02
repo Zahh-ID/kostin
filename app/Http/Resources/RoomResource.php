@@ -32,8 +32,11 @@ class RoomResource extends JsonResource
             'custom_price' => $this->custom_price,
             'status' => $this->status,
             'facilities_override_json' => $this->facilities_override_json,
+            'description' => $this->description,
+            'photos' => $this->photos_json,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
+            'room_type' => new RoomTypeResource($this->whenLoaded('roomType')),
         ];
     }
 }

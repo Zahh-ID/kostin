@@ -6,11 +6,9 @@ Dokumen ini berisi panduan lengkap untuk semua fitur baru yang telah diimplement
 
 1. **Property Management** - Kelola properti kos untuk Owner
 2. **Wishlist/Shortlist** - Simpan dan bandingkan properti favorit
-3. **Saved Search & Alerts** - Simpan filter pencarian dengan notifikasi
-4. **Live Chat** - Chat real-time Tenant ↔ Owner
-5. **Ticketing & Moderation** - Sistem tiket dengan Kanban board
-6. **Wishlist Button** - Tombol wishlist di property cards
-7. **Save Search Dialog** - Dialog untuk simpan pencarian
+3. **Live Chat** - Chat real-time Tenant ↔ Owner
+4. **Ticketing & Moderation** - Sistem tiket dengan Kanban board
+5. **Wishlist Button** - Tombol wishlist di property cards
 
 ---
 
@@ -93,61 +91,7 @@ import { WishlistButton } from "./components/WishlistButton";
 
 ---
 
-## 3. 🔖 Saved Search & Alerts
-
-### Untuk Semua User (Login Required)
-
-**Akses:** `/saved-searches`
-
-### Fitur Utama:
-- ✅ Simpan filter pencarian
-- ✅ Beri nama pencarian
-- ✅ Enable/disable notifikasi
-- ✅ Apply saved search kembali
-- ✅ Delete saved search
-- ✅ Auto alert untuk listing baru
-
-### Form Save Search:
-```javascript
-{
-  name: "Kos di Jakarta Selatan",
-  filters: {
-    city: "Jakarta",
-    type: "putra",
-    minPrice: 1000000,
-    maxPrice: 2000000,
-    facilities: ["wifi", "ac"]
-  },
-  notificationEnabled: true
-}
-```
-
-### Komponen:
-- **SavedSearchesPage** - Halaman utama
-- **SaveSearchDialog** - Dialog untuk save search
-
-### Cara Pakai di Browse Page:
-```tsx
-import { SaveSearchDialog } from "./components/SaveSearchDialog";
-
-const [showSaveDialog, setShowSaveDialog] = useState(false);
-const [currentFilters, setCurrentFilters] = useState({});
-
-<SaveSearchDialog
-  open={showSaveDialog}
-  onOpenChange={setShowSaveDialog}
-  filters={currentFilters}
-/>
-```
-
-### Backend Endpoints:
-- `GET /saved-searches` - Get user's saved searches
-- `POST /saved-searches` - Save search
-- `DELETE /saved-searches/:searchId` - Delete saved search
-
----
-
-## 4. 💬 Live Chat
+## 3. 💬 Live Chat
 
 ### Untuk Tenant & Owner
 
@@ -210,7 +154,7 @@ useEffect(() => {
 
 ---
 
-## 5. 🎫 Ticketing & Moderation
+## 4. 🎫 Ticketing & Moderation
 
 ### Untuk Semua User (Login Required)
 

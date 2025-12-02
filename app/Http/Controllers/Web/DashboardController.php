@@ -7,8 +7,8 @@ use App\Models\Contract;
 use App\Models\Invoice;
 use App\Models\Property;
 use App\Models\Room;
-use App\Models\User;
 use App\Models\Ticket;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
@@ -32,7 +32,7 @@ class DashboardController extends Controller
                         'label' => __('Kontrak Aktif'),
                         'value' => Contract::query()
                             ->where('tenant_id', $user->id)
-                            ->where('status', 'active')
+                            ->where('status', Contract::STATUS_ACTIVE)
                             ->count(),
                         'description' => __('Kontrak berjalan saat ini.'),
                     ],
@@ -149,7 +149,7 @@ class DashboardController extends Controller
                     ],
                     [
                         'label' => __('Kontrak Aktif'),
-                        'value' => Contract::where('status', 'active')->count(),
+                        'value' => Contract::where('status', Contract::STATUS_ACTIVE)->count(),
                         'description' => __('Kontrak sewa berjalan saat ini.'),
                     ],
                 ]);

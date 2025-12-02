@@ -6,11 +6,15 @@ use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Illuminate\Http\Client\ConnectionException;
 
 class MidtransService
 {
     private $serverKey;
+
     private $baseUrl;
+
     private $isProduction;
 
     public function __construct()
@@ -18,7 +22,6 @@ class MidtransService
         $this->serverKey = config('midtrans.server_key');
         $this->baseUrl = config('midtrans.base_url');
         $this->isProduction = config('midtrans.is_production');
-
         if (empty($this->serverKey)) {
             throw new Exception('Midtrans Server Key is not configured');
         }
@@ -29,20 +32,21 @@ class MidtransService
      */
     private function getAuthHeader()
     {
-        return 'Basic ' . base64_encode($this->serverKey . ':');
+        return 'Basic '.base64_encode($this->serverKey.':');
     }
 
     /**
      * Create QRIS Payment Transaction
-     * 
-     * @param array $params
+     *
+     * @param  array  $params
      * @return array
+     *
      * @throws Exception
      */
     public function createQrisTransaction($params)
     {
         try {
-            $url = $this->baseUrl . '/v2/charge';
+            $url = $this->baseUrl.'/v2/charge';
 
             $orderId = Arr::get($params, 'order_id', Arr::get($params, 'transaction_details.order_id'));
             $grossAmount = Arr::get($params, 'gross_amount', Arr::get($params, 'transaction_details.gross_amount'));
@@ -114,6 +118,8 @@ class MidtransService
             return [
                 'transaction_id' => $data['transaction_id'] ?? null,
                 'order_id' => $data['order_id'] ?? null,
+                'expiry_time' => $data['expiry_time'] ?? Arr::get($data, 'actions.0.expiry_time'),
+                'expiry_duration_seconds' => $data['expiry_duration'] ?? Arr::get($data, 'expiry.duration') ?? 0,
                 'qr_image_url' => $qrImageUrl,
                 'qris_string' => $qrImageUrl, // backward compatibility
                 'qr_string' => $data['qr_string'] ?? null,
@@ -126,22 +132,23 @@ class MidtransService
         } catch (Exception $e) {
             Log::error('Create QRIS Transaction Error', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             throw $e;
         }
     }
 
+
     /**
      * Create Bank Transfer Transaction
-     * 
-     * @param array $params
+     *
+     * @param  array  $params
      * @return array
      */
     public function createBankTransferTransaction($params)
     {
         try {
-            $url = $this->baseUrl . '/v2/charge';
+            $url = $this->baseUrl.'/v2/charge';
 
             $payload = [
                 'payment_type' => 'bank_transfer',
@@ -166,7 +173,7 @@ class MidtransService
                 'Authorization' => $this->getAuthHeader(),
             ])->post($url, $payload);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 $error = $response->json();
                 $errorMessage = $error['error_messages'][0] ?? 'Unknown error';
                 throw new Exception("Midtrans Error: {$errorMessage}");
@@ -194,7 +201,7 @@ class MidtransService
     public function createGopayTransaction($params)
     {
         try {
-            $url = $this->baseUrl . '/v2/charge';
+            $url = $this->baseUrl.'/v2/charge';
 
             $payload = [
                 'payment_type' => 'gopay',
@@ -216,7 +223,7 @@ class MidtransService
                 'Authorization' => $this->getAuthHeader(),
             ])->post($url, $payload);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 $error = $response->json();
                 throw new Exception($error['error_messages'][0] ?? 'Unknown error');
             }
@@ -231,19 +238,20 @@ class MidtransService
 
     /**
      * Verify Transaction Status
-     * 
-     * @param string $orderId
+     *
+     * @param  string  $orderId
      * @return array
+     *
      * @throws Exception
      */
     public function getTransactionStatus($orderId)
     {
         try {
-            $url = $this->baseUrl . '/v2/' . $orderId . '/status';
+            $url = $this->baseUrl.'/v2/'.$orderId.'/status';
 
             Log::info('Getting transaction status', [
                 'url' => $url,
-                'order_id' => $orderId
+                'order_id' => $orderId,
             ]);
 
             $response = Http::withHeaders([
@@ -252,13 +260,13 @@ class MidtransService
                 'Authorization' => $this->getAuthHeader(),
             ])->get($url);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 $error = $response->json();
                 Log::error('Get Status Error', [
                     'status' => $response->status(),
-                    'error' => $error
+                    'error' => $error,
                 ]);
-                
+
                 $errorMessage = $error['error_messages'][0] ?? 'Transaction not found';
                 throw new Exception("Midtrans Error: {$errorMessage}");
             }
@@ -281,7 +289,7 @@ class MidtransService
         } catch (Exception $e) {
             Log::error('Get Transaction Status Error', [
                 'order_id' => $orderId,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
             throw $e;
         }
@@ -293,7 +301,7 @@ class MidtransService
     public function cancelTransaction($orderId)
     {
         try {
-            $url = $this->baseUrl . '/v2/' . $orderId . '/cancel';
+            $url = $this->baseUrl.'/v2/'.$orderId.'/cancel';
 
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
@@ -301,7 +309,7 @@ class MidtransService
                 'Authorization' => $this->getAuthHeader(),
             ])->post($url);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 throw new Exception('Failed to cancel transaction');
             }
 
@@ -319,7 +327,7 @@ class MidtransService
     public function approveTransaction($orderId)
     {
         try {
-            $url = $this->baseUrl . '/v2/' . $orderId . '/approve';
+            $url = $this->baseUrl.'/v2/'.$orderId.'/approve';
 
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
@@ -327,7 +335,7 @@ class MidtransService
                 'Authorization' => $this->getAuthHeader(),
             ])->post($url);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 throw new Exception('Failed to approve transaction');
             }
 
@@ -345,7 +353,7 @@ class MidtransService
     public function verifySignature($orderId, $statusCode, $grossAmount, $signatureKey)
     {
         $serverKey = $this->serverKey;
-        $input = $orderId . $statusCode . $grossAmount . $serverKey;
+        $input = $orderId.$statusCode.$grossAmount.$serverKey;
         $hash = hash('sha512', $input);
 
         return $hash === $signatureKey;

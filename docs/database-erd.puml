@@ -1,0 +1,64 @@
+@startuml
+hide circle
+hide attributes
+hide stereotypes
+skinparam linetype ortho
+skinparam shadowing false
+
+entity "User" as User
+entity "Property" as Property
+entity "Room Type" as RoomType
+entity "Room" as Room
+entity "Rental Application" as RentalApplication
+entity "Contract" as Contract
+entity "Contract Termination Request" as ContractTerminationRequest
+entity "Invoice" as Invoice
+entity "Payment" as Payment
+entity "Payment Account" as PaymentAccount
+entity "Owner Wallet" as OwnerWallet
+entity "Owner Wallet Transaction" as OwnerWalletTransaction
+entity "Wishlist Item" as WishlistItem
+entity "Shared Task" as SharedTask
+entity "Shared Task Log" as SharedTaskLog
+entity "Ticket" as Ticket
+entity "Ticket Comment" as TicketComment
+entity "Ticket Event" as TicketEvent
+entity "Conversation" as Conversation
+entity "Conversation Member" as ConversationMember
+entity "Message" as Message
+
+User ||--o{ Property : owns
+Property ||--o{ RoomType : contains
+RoomType ||--o{ Room : inventories
+User ||--o{ RentalApplication : submits
+Property ||--o{ RentalApplication : targets
+Room ||--o{ RentalApplication : prefers
+User ||--o{ Contract : tenant
+Room ||--o{ Contract : reserved
+Contract ||--o{ Invoice : bills
+Invoice ||--o{ Payment : collects
+User ||--o{ Payment : payer
+User ||--o{ Payment : verifier
+PaymentAccount -- Payment : manual_methods
+User ||--|| OwnerWallet : owns
+OwnerWallet ||--o{ OwnerWalletTransaction : ledger
+Payment ||--|| OwnerWalletTransaction : settlement
+Contract ||--o{ ContractTerminationRequest : termination
+User ||--o{ ContractTerminationRequest : tenant
+User ||--o{ WishlistItem : favorites
+Property ||--o{ WishlistItem : bookmarked
+Property ||--o{ SharedTask : tasks
+User ||--o{ SharedTask : assignee
+SharedTask ||--o{ SharedTaskLog : runs
+User ||--o{ SharedTaskLog : completed_by
+User ||--o{ Ticket : reports
+User ||--o{ Ticket : assigned
+Ticket ||--o{ TicketComment : comments
+User ||--o{ TicketComment : author
+Ticket ||--o{ TicketEvent : events
+User ||--o{ TicketEvent : actor
+Conversation ||--o{ ConversationMember : participants
+User ||--o{ ConversationMember : membership
+Conversation ||--o{ Message : stream
+User ||--o{ Message : sender
+@enduml

@@ -8,6 +8,7 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -15,7 +16,7 @@ use Illuminate\Support\Str;
 
 class ManualPaymentController extends Controller
 {
-    public function store(ManualPaymentRequest $request, Invoice $invoice): RedirectResponse
+    public function store(ManualPaymentRequest $request, Invoice $invoice): RedirectResponse|JsonResponse
     {
         /** @var User $tenant */
         $tenant = $request->user();
@@ -35,14 +36,13 @@ class ManualPaymentController extends Controller
         }
 
         if ($invoice->payments()->where('status', 'waiting_verification')->exists()) {
-            return redirect()
-                ->route('tenant.invoices.show', $invoice)
-                ->with('status', __('Masih terdapat pembayaran manual yang menunggu verifikasi.'));
+            return $this->respond($request, $invoice, [
+                'status' => __('Masih terdapat pembayaran manual yang menunggu verifikasi.'),
+            ]);
         }
 
-        $method = strtoupper($request->input('payment_method'));
-
-        $paymentAccount = PaymentAccount::active()->firstWhere('method', $method);
+        $method = $request->input('payment_method');
+        $paymentAccount = $this->findPaymentAccount($method);
 
         abort_if($paymentAccount === null, 422, __('Metode pembayaran tidak tersedia.'));
 
@@ -73,8 +73,26 @@ class ManualPaymentController extends Controller
             throw $exception;
         }
 
+        return $this->respond($request, $invoice, [
+            'status' => __('Bukti pembayaran berhasil dikirim. Mohon menunggu verifikasi.'),
+        ]);
+    }
+
+    private function respond(ManualPaymentRequest $request, Invoice $invoice, array $data): RedirectResponse|JsonResponse
+    {
+        if ($request->wantsJson()) {
+            return response()->json($data);
+        }
+
         return redirect()
             ->route('tenant.invoices.show', $invoice)
-            ->with('status', __('Bukti pembayaran berhasil dikirim. Mohon menunggu verifikasi.'));
+            ->with($data);
+    }
+
+    private function findPaymentAccount(string $method): ?PaymentAccount
+    {
+        return PaymentAccount::active()
+            ->whereRaw('LOWER(method) = ?', [mb_strtolower($method)])
+            ->first();
     }
 }

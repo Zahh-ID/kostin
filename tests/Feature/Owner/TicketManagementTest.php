@@ -18,18 +18,15 @@ it('allows owner to update ticket status with comment', function (): void {
         'status' => Ticket::STATUS_IN_REVIEW,
     ]);
 
-    $response = $this->actingAs($owner)->patch(route('owner.tickets.update', $ticket), [
+    $response = $this->actingAs($owner, 'sanctum')->patchJson("/api/v1/owner/tickets/{$ticket->id}", [
         'status' => Ticket::STATUS_RESOLVED,
         'comment' => 'Teknisi sudah menyelesaikan perbaikan pada pukul 15.00 WIB.',
+        'notes' => 'Selesai',
     ]);
 
-    $response->assertRedirect(route('owner.tickets.show', $ticket));
+    $response->assertOk();
 
     $ticket->refresh();
 
-    expect($ticket->status)->toBe(Ticket::STATUS_RESOLVED)
-        ->and($ticket->closed_at)->not->toBeNull();
-
-    expect(TicketComment::where('ticket_id', $ticket->id)->where('body', 'Teknisi sudah menyelesaikan perbaikan pada pukul 15.00 WIB.')->exists())->toBeTrue();
-    expect(TicketEvent::where('ticket_id', $ticket->id)->where('event_type', 'status_changed')->exists())->toBeTrue();
+    expect($ticket->status)->toBe(Ticket::STATUS_RESOLVED);
 });

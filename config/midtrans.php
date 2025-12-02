@@ -62,4 +62,16 @@ return [
     'base_url' => env('MIDTRANS_ENVIRONMENT') === 'production' 
         ? env('MIDTRANS_PRODUCTION_URL', 'https://api.midtrans.com')
         : env('MIDTRANS_SANDBOX_URL', 'https://api.sandbox.midtrans.com'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mock QRIS (Dev/Testing)
+    |--------------------------------------------------------------------------
+    |
+    | Saat environment tidak bisa memanggil Midtrans (mis. sandbox offline),
+    | aktifkan mock ini untuk mengembalikan payload QRIS fiktif agar alur UI
+    | tetap bisa diuji.
+    |
+    */
+    'mock_qris' => env('MIDTRANS_MOCK_QRIS', false),
 ];

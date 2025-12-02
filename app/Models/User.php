@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     public const ROLE_ADMIN = 'admin';
 
@@ -33,6 +34,7 @@ class User extends Authenticatable
         'role',
         'password',
         'google_id',
+        'suspended_at',
     ];
 
     /**
@@ -55,6 +57,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'suspended_at' => 'datetime',
         ];
     }
 
@@ -86,11 +89,6 @@ class User extends Authenticatable
     public function wishlistProperties(): BelongsToMany
     {
         return $this->belongsToMany(Property::class, 'wishlist_items');
-    }
-
-    public function savedSearches(): HasMany
-    {
-        return $this->hasMany(SavedSearch::class);
     }
 
     public function invoices(): HasManyThrough

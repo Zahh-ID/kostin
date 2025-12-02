@@ -26,9 +26,9 @@ new class extends Component
 
         $role = $this->user->role;
 
-        if ($role === User::ROLE_TENANT) {
-            $this->badges['tenant.invoices.index'] = Invoice::query()
-                ->whereIn('status', ['unpaid', 'overdue'])
+            if ($role === User::ROLE_TENANT) {
+                $this->badges['tenant.invoices.index'] = Invoice::query()
+                ->whereIn('invoices.status', ['unpaid', 'overdue'])
                 ->whereHas('contract', fn ($query) => $query->where('tenant_id', $this->user->id))
                 ->count();
 
@@ -109,9 +109,8 @@ new class extends Component
                 ['label' => __('Tenant Dashboard'), 'route' => 'tenant.dashboard', 'icon' => 'bi-speedometer2'],
                 ['label' => __('Kontrak'), 'route' => 'tenant.contracts.index', 'icon' => 'bi-file-earmark-text'],
                 ['label' => __('Tagihan'), 'route' => 'tenant.invoices.index', 'icon' => 'bi-receipt'],
-                ['label' => __('Pengajuan Kontrak'), 'route' => 'tenant.applications.index', 'icon' => 'bi-clipboard-check'],
                 ['label' => __('Wishlist'), 'route' => 'tenant.wishlist.index', 'icon' => 'bi-heart'],
-                ['label' => __('Pencarian Tersimpan'), 'route' => 'tenant.saved-searches.index', 'icon' => 'bi-search-heart'],
+                ['label' => __('Pencarian'), 'route' => 'tenant.search', 'icon' => 'bi-search'],
                 ['label' => __('Tiket'), 'route' => 'tenant.tickets.index', 'icon' => 'bi-ticket'],
             ],
             User::ROLE_OWNER => [
@@ -179,7 +178,7 @@ new class extends Component
         @foreach ($this->primaryNav() as $item)
             @if ((! isset($item['roles']) || in_array($user?->role, $item['roles'] ?? [], true)) && $this->routeExists($item['route'] ?? null))
                 <li class="nav-item">
-                    <a class="nav-link d-flex align-items-center @if ($this->isActive($item['route'])) active @else link-dark @endif" href="{{ route($item['route']) }}">
+                    <a wire:navigate class="nav-link d-flex align-items-center @if ($this->isActive($item['route'])) active @else link-dark @endif" href="{{ route($item['route']) }}">
                         <i class="bi {{ $item['icon'] }} me-2"></i>
                         <span>{{ $item['label'] }}</span>
                         @if (($badges[$item['route']] ?? 0) > 0)
@@ -195,7 +194,7 @@ new class extends Component
             @foreach ($this->roleNav() as $item)
                 @if ($this->routeExists($item['route'] ?? null))
                     <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center @if ($this->isActive($item['route'])) active @else link-dark @endif" href="{{ route($item['route']) }}">
+                        <a wire:navigate class="nav-link d-flex align-items-center @if ($this->isActive($item['route'])) active @else link-dark @endif" href="{{ route($item['route']) }}">
                             <i class="bi {{ $item['icon'] }} me-2"></i>
                             <span>{{ $item['label'] }}</span>
                             @if (($badges[$item['route']] ?? 0) > 0)
@@ -216,7 +215,7 @@ new class extends Component
             @if ($shouldShow)
                 @if (isset($item['route']) && $this->routeExists($item['route']))
                     <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center @if ($this->isActive($item['route'])) active @else link-dark @endif" href="{{ route($item['route']) }}">
+                        <a wire:navigate class="nav-link d-flex align-items-center @if ($this->isActive($item['route'])) active @else link-dark @endif" href="{{ route($item['route']) }}">
                             <i class="bi {{ $item['icon'] }} me-2"></i>
                             <span>{{ $item['label'] }}</span>
                             @if (($badges[$item['route']] ?? 0) > 0)

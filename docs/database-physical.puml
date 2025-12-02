@@ -1,0 +1,262 @@
+@startuml
+hide circle
+hide stereotypes
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+' Core entities with storage-focused attributes
+entity users {
+  *id : BIGINT <<PK>>
+  name : VARCHAR(255)
+  email : VARCHAR(255) <<UNIQUE>>
+  phone : VARCHAR(255)?
+  role : ENUM(admin,owner,tenant)
+  google_id : VARCHAR(255)? <<UNIQUE>>
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity properties {
+  *id : BIGINT <<PK>>
+  owner_id : BIGINT <<FK users.id>>
+  status : ENUM(draft,pending,approved,rejected)
+  moderated_by : BIGINT?
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+note right of properties
+FK cascade: owner_id -> users.id
+FK null: moderated_by -> users.id
+end note
+
+entity room_types {
+  *id : BIGINT <<PK>>
+  property_id : BIGINT <<FK properties.id>>
+  base_price : INTEGER
+  deposit : INTEGER
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity rooms {
+  *id : BIGINT <<PK>>
+  room_type_id : BIGINT <<FK room_types.id>>
+  room_code : VARCHAR(255)
+  status : ENUM(available,occupied,maintenance)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+note right of rooms
+Unique: (room_type_id, room_code)
+end note
+
+entity rental_applications {
+  *id : BIGINT <<PK>>
+  tenant_id : BIGINT <<FK users.id>>
+  property_id : BIGINT <<FK properties.id>>
+  room_type_id : BIGINT?
+  room_id : BIGINT?
+  status : VARCHAR(50)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity contracts {
+  *id : BIGINT <<PK>>
+  tenant_id : BIGINT <<FK users.id>>
+  room_id : BIGINT <<FK rooms.id>>
+  status : ENUM(draft,submitted,active,pending_renewal,terminated,canceled,expired)
+  start_date : DATE
+  end_date : DATE?
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity contract_termination_requests {
+  *id : BIGINT <<PK>>
+  contract_id : BIGINT <<FK contracts.id>>
+  tenant_id : BIGINT <<FK users.id>>
+  status : ENUM(pending,approved,rejected)
+  requested_end_date : DATE
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity invoices {
+  *id : BIGINT <<PK>>
+  contract_id : BIGINT <<FK contracts.id>>
+  period_month : SMALLINT
+  period_year : SMALLINT
+  due_date : DATE
+  status : ENUM(unpaid,paid,overdue,canceled,pending_verification,expired)
+  total : INTEGER
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+note right of invoices
+Unique: (contract_id, period_month, period_year)
+end note
+
+entity payments {
+  *id : BIGINT <<PK>>
+  invoice_id : BIGINT <<FK invoices.id>>
+  submitted_by : BIGINT?
+  user_id : BIGINT?
+  verified_by : BIGINT?
+  order_id : VARCHAR(255) <<UNIQUE>>
+  midtrans_order_id : VARCHAR(255)?
+  payment_type : ENUM(qris,manual_bank_transfer,manual_cash)
+  status : ENUM(pending,waiting_verification,success,failed,rejected)
+  amount : DECIMAL(15,2)
+  paid_at : TIMESTAMP?
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+note right of payments
+Indexes: order_id, status, (invoice_id,status), midtrans_order_id
+FK null: submitted_by, user_id, verified_by -> users.id
+end note
+
+entity payment_accounts {
+  *id : BIGINT <<PK>>
+  method : VARCHAR(255) <<UNIQUE>>
+  is_active : BOOLEAN
+  display_order : INTEGER
+}
+note right of payment_accounts
+Index: (is_active, display_order)
+end note
+
+entity owner_wallets {
+  *id : BIGINT <<PK>>
+  owner_id : BIGINT <<FK users.id>>
+  balance : DECIMAL(15,2)
+}
+note right of owner_wallets
+Unique: owner_id
+end note
+
+entity owner_wallet_transactions {
+  *id : BIGINT <<PK>>
+  owner_wallet_id : BIGINT <<FK owner_wallets.id>>
+  payment_id : BIGINT?
+  type : ENUM(credit,debit)
+  amount : DECIMAL(15,2)
+}
+note right of owner_wallet_transactions
+Unique: payment_id (nullable)
+end note
+
+entity wishlist_items {
+  *id : BIGINT <<PK>>
+  user_id : BIGINT <<FK users.id>>
+  property_id : BIGINT <<FK properties.id>>
+}
+note right of wishlist_items
+Unique: (user_id, property_id)
+end note
+
+entity shared_tasks {
+  *id : BIGINT <<PK>>
+  property_id : BIGINT <<FK properties.id>>
+  assignee_user_id : BIGINT?
+}
+
+entity shared_task_logs {
+  *id : BIGINT <<PK>>
+  shared_task_id : BIGINT <<FK shared_tasks.id>>
+  completed_by : BIGINT?
+}
+
+entity tickets {
+  *id : BIGINT <<PK>>
+  ticket_code : VARCHAR(255) <<UNIQUE>>
+  reporter_id : BIGINT <<FK users.id>>
+  assignee_id : BIGINT?
+  status : ENUM(open,in_review,escalated,resolved,rejected)
+  priority : ENUM(low,medium,high,urgent)
+}
+note right of tickets
+Indexes: (status, priority), (reporter_id, status)
+end note
+
+entity ticket_comments {
+  *id : BIGINT <<PK>>
+  ticket_id : BIGINT <<FK tickets.id>>
+  user_id : BIGINT <<FK users.id>>
+}
+note right of ticket_comments
+Index: (ticket_id, created_at)
+end note
+
+entity ticket_events {
+  *id : BIGINT <<PK>>
+  ticket_id : BIGINT <<FK tickets.id>>
+  user_id : BIGINT?
+}
+note right of ticket_events
+Index: (ticket_id, created_at)
+end note
+
+entity conversations {
+  *id : BIGINT <<PK>>
+  is_group : BOOLEAN
+}
+
+entity conversation_user {
+  *id : BIGINT <<PK>>
+  conversation_id : BIGINT <<FK conversations.id>>
+  user_id : BIGINT <<FK users.id>>
+}
+note right of conversation_user
+Unique: (conversation_id, user_id)
+end note
+
+entity messages {
+  *id : BIGINT <<PK>>
+  conversation_id : BIGINT <<FK conversations.id>>
+  user_id : BIGINT <<FK users.id>>
+}
+note right of messages
+Index: (conversation_id, created_at)
+end note
+
+' Relationships
+users ||--o{ properties : owner
+properties ||--o{ room_types : property
+room_types ||--o{ rooms : room_type
+rooms ||--o{ contracts : room
+users ||--o{ contracts : tenant
+contracts ||--o{ invoices : billing
+invoices ||--o{ payments : invoice
+users ||--o{ payments : submitter
+users ||--o{ payments : payer
+users ||--o{ payments : verifier
+users ||--|| owner_wallets : wallet
+owner_wallets ||--o{ owner_wallet_transactions : tx
+payments ||--|| owner_wallet_transactions : payout
+users ||--o{ rental_applications : applicant
+properties ||--o{ rental_applications : property
+room_types ||--o{ rental_applications : room_type
+rooms ||--o{ rental_applications : room
+contracts ||--o{ contract_termination_requests : termination
+users ||--o{ contract_termination_requests : requester
+users ||--o{ wishlist_items : wishlist
+properties ||--o{ wishlist_items : wishlist
+users ||--o{ saved_searches : saved_search
+properties ||--o{ shared_tasks : property_task
+users ||--o{ shared_tasks : assignee
+shared_tasks ||--o{ shared_task_logs : log
+users ||--o{ shared_task_logs : completed_by
+users ||--o{ tickets : reporter
+users ||--o{ tickets : assignee
+tickets ||--o{ ticket_comments : comment
+users ||--o{ ticket_comments : author
+tickets ||--o{ ticket_events : event
+users ||--o{ ticket_events : actor
+conversations ||--o{ conversation_user : member
+users ||--o{ conversation_user : membership
+conversations ||--o{ messages : message
+users ||--o{ messages : sender
+@enduml

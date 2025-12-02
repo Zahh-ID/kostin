@@ -33,7 +33,15 @@ class ContractActionController extends Controller
             'deposit_amount' => ['nullable', 'numeric', 'min:0'],
             'grace_days' => ['nullable', 'integer', 'min:0', 'max:14'],
             'late_fee_per_day' => ['nullable', 'numeric', 'min:0'],
-            'status' => ['nullable', Rule::in(['active', 'ended', 'canceled'])],
+            'status' => ['nullable', Rule::in([
+                Contract::STATUS_DRAFT,
+                Contract::STATUS_SUBMITTED,
+                Contract::STATUS_ACTIVE,
+                Contract::STATUS_PENDING_RENEWAL,
+                Contract::STATUS_TERMINATED,
+                Contract::STATUS_CANCELED,
+                Contract::STATUS_EXPIRED,
+            ])],
         ]);
 
         $room = Room::with('roomType.property')->findOrFail($validated['room_id']);
@@ -55,7 +63,9 @@ class ContractActionController extends Controller
             'deposit_amount' => $validated['deposit_amount'] ?? 0,
             'grace_days' => $validated['grace_days'] ?? 0,
             'late_fee_per_day' => $validated['late_fee_per_day'] ?? 0,
-            'status' => $validated['status'] ?? 'active',
+            'status' => $validated['status'] ?? Contract::STATUS_ACTIVE,
+            'submitted_at' => $validated['status'] === Contract::STATUS_DRAFT ? null : now(),
+            'activated_at' => ($validated['status'] ?? Contract::STATUS_ACTIVE) === Contract::STATUS_ACTIVE ? now() : null,
         ]);
 
         if ($request->wantsJson()) {
@@ -80,7 +90,10 @@ class ContractActionController extends Controller
     {
         $hasOverlap = Contract::query()
             ->where('room_id', $roomId)
-            ->where('status', 'active')
+            ->whereIn('status', [
+                Contract::STATUS_ACTIVE,
+                Contract::STATUS_PENDING_RENEWAL,
+            ])
             ->where(function ($query) use ($start, $end) {
                 $query->where(function ($inner) use ($start, $end) {
                     $inner->whereNull('end_date')

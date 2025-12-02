@@ -13,6 +13,20 @@ class Contract extends Model
 {
     use HasFactory;
 
+    public const STATUS_DRAFT = 'draft';
+
+    public const STATUS_SUBMITTED = 'submitted';
+
+    public const STATUS_ACTIVE = 'active';
+
+    public const STATUS_PENDING_RENEWAL = 'pending_renewal';
+
+    public const STATUS_TERMINATED = 'terminated';
+
+    public const STATUS_CANCELED = 'canceled';
+
+    public const STATUS_EXPIRED = 'expired';
+
     protected $fillable = [
         'tenant_id',
         'room_id',
@@ -24,23 +38,34 @@ class Contract extends Model
         'grace_days',
         'late_fee_per_day',
         'status',
+        'submitted_at',
+        'activated_at',
+        'terminated_at',
+        'termination_reason',
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
+        'submitted_at' => 'datetime',
+        'activated_at' => 'datetime',
+        'terminated_at' => 'datetime',
     ];
 
     protected static function booted(): void
     {
         static::creating(function (Contract $contract): void {
+            if ($contract->status !== self::STATUS_ACTIVE) {
+                return;
+            }
+
             if (! $contract->tenant_id) {
                 return;
             }
 
             $activeContract = static::query()
                 ->where('tenant_id', $contract->tenant_id)
-                ->where('status', 'active')
+                ->where('status', self::STATUS_ACTIVE)
                 ->first();
 
             if (! $activeContract) {
@@ -53,7 +78,8 @@ class Contract extends Model
                 ]);
             }
 
-            $activeContract->status = 'ended';
+            $activeContract->status = self::STATUS_TERMINATED;
+            $activeContract->terminated_at = now();
 
             $cutoff = Carbon::parse($contract->start_date)->subDay();
             if (! $activeContract->end_date || $activeContract->end_date->gt($cutoff)) {
@@ -61,6 +87,12 @@ class Contract extends Model
             }
 
             $activeContract->save();
+        });
+
+        static::updated(function (Contract $contract): void {
+            if ($contract->wasChanged('status') && $contract->status === self::STATUS_ACTIVE) {
+                $contract->deactivateOtherContracts();
+            }
         });
     }
 
@@ -109,5 +141,33 @@ class Contract extends Model
     public function terminationRequests(): HasMany
     {
         return $this->hasMany(ContractTerminationRequest::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', self::STATUS_ACTIVE);
+    }
+
+    public function deactivateOtherContracts(): void
+    {
+        if (! $this->tenant_id) {
+            return;
+        }
+
+        $cutoff = $this->start_date ? Carbon::parse($this->start_date)->subDay() : now();
+
+        static::query()
+            ->where('tenant_id', $this->tenant_id)
+            ->where('id', '!=', $this->id)
+            ->where('status', self::STATUS_ACTIVE)
+            ->get()
+            ->each(function (Contract $activeContract) use ($cutoff): void {
+                $activeContract->status = self::STATUS_TERMINATED;
+                $activeContract->terminated_at = now();
+                if (! $activeContract->end_date || $activeContract->end_date->gt($cutoff)) {
+                    $activeContract->end_date = $cutoff;
+                }
+                $activeContract->save();
+            });
     }
 }

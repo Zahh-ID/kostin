@@ -36,24 +36,29 @@ class PropertyController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Property::class);
-
-        /** @var User $user */
+        /** @var User|null $user */
         $user = $request->user();
 
         $query = Property::query()->with(['owner']);
 
-        if ($user->role === User::ROLE_OWNER) {
-            $query->where('owner_id', $user->id);
+        if ($user === null) {
+            $query->where('status', 'approved');
+        } else {
+            $this->authorize('viewAny', Property::class);
+
+            if ($user->role === User::ROLE_OWNER) {
+                $query->where('owner_id', $user->id);
+            }
+
+            if ($user->role === User::ROLE_TENANT) {
+                $query->whereHas('roomTypes.rooms.contracts', function (Builder $builder) use ($user): void {
+                    $builder->where('tenant_id', $user->id);
+                });
+            }
         }
 
-        if ($user->role === User::ROLE_TENANT) {
-            $query->whereHas('roomTypes.rooms.contracts', function (Builder $builder) use ($user) {
-                $builder->where('tenant_id', $user->id);
-            });
-        }
-
-        $properties = $query->paginate($request->integer('per_page', 15));
+        $perPage = $request->integer('per_page', 15);
+        $properties = $query->latest()->paginate($perPage);
 
         return PropertyResource::collection($properties);
     }
@@ -99,7 +104,16 @@ class PropertyController extends Controller
      */
     public function show(Request $request, Property $property): PropertyResource
     {
-        $this->authorize('view', $property);
+        /** @var User|null $user */
+        $user = $request->user();
+
+        if ($user === null && $property->status !== 'approved') {
+            abort(404);
+        }
+
+        if ($user !== null) {
+            $this->authorize('view', $property);
+        }
 
         $property->load(['owner', 'roomTypes.rooms']);
 

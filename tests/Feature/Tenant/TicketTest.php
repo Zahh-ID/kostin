@@ -11,7 +11,7 @@ uses(RefreshDatabase::class);
 it('allows tenant to create a support ticket', function (): void {
     $tenant = User::factory()->tenant()->create();
 
-    $response = $this->actingAs($tenant)->post(route('tenant.tickets.store'), [
+    $response = $this->actingAs($tenant, 'sanctum')->postJson('/api/v1/tenant/tickets', [
         'subject' => 'Masalah pembayaran bulan ini',
         'description' => 'Saya sudah membayar melalui transfer bank namun status masih unpaid.',
         'category' => 'payment',
@@ -20,7 +20,7 @@ it('allows tenant to create a support ticket', function (): void {
 
     $ticket = Ticket::first();
 
-    $response->assertRedirect(route('tenant.tickets.show', $ticket));
+    $response->assertCreated();
 
     expect($ticket)->not->toBeNull()
         ->and($ticket->reporter_id)->toBe($tenant->id)

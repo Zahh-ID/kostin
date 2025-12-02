@@ -31,6 +31,13 @@ class WebhookController extends Controller
 
             Log::info('Midtrans Webhook Received', $notification);
 
+            // Allow manual success trigger from simulator/dev
+            if ($request->boolean('force_success')) {
+                $notification['transaction_status'] = $notification['transaction_status'] ?? 'settlement';
+                $notification['status_code'] = $notification['status_code'] ?? '200';
+                $notification['fraud_status'] = $notification['fraud_status'] ?? 'accept';
+            }
+
             // Extract data
             $orderId = $notification['order_id'] ?? null;
             $statusCode = $notification['status_code'] ?? null;

@@ -17,8 +17,7 @@ class ContractController extends Controller
 {
     public function __construct(
         private readonly ContractBillingService $contractBillingService,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): View
     {
@@ -37,7 +36,7 @@ class ContractController extends Controller
             ->latest('start_date');
 
         if (! $withHistory) {
-            $query->where('status', 'active');
+            $query->where('status', \App\Models\Contract::STATUS_ACTIVE);
         }
 
         $contracts = $query->paginate(10)->withQueryString();
@@ -65,9 +64,12 @@ class ContractController extends Controller
             ? max(0, Carbon::now()->diffInDays($contract->end_date, false))
             : null;
         $outstandingInvoicesCount = $contract->outstandingInvoicesCount();
+        $primaryInvoice = $contract->invoices->first(function ($invoice) {
+            return in_array($invoice->status, \App\Models\Invoice::OUTSTANDING_STATUSES, true);
+        });
         $terminationBlockedReason = null;
 
-        if ($contract->status !== 'active') {
+        if ($contract->status !== \App\Models\Contract::STATUS_ACTIVE) {
             $terminationBlockedReason = __('Kontrak tidak aktif.');
         } elseif ($outstandingInvoicesCount > 0) {
             $terminationBlockedReason = __('Selesaikan :count tagihan aktif sebelum mengajukan pengakhiran.', [
@@ -83,6 +85,7 @@ class ContractController extends Controller
             'canRequestTermination' => $terminationBlockedReason === null,
             'terminationBlockedReason' => $terminationBlockedReason,
             'outstandingInvoicesCount' => $outstandingInvoicesCount,
+            'primaryInvoice' => $primaryInvoice,
         ]);
     }
 
@@ -112,5 +115,4 @@ class ContractController extends Controller
     {
         abort_if($contract->tenant_id !== $tenant->id, 403, 'Kontrak tidak ditemukan untuk akun ini.');
     }
-
 }

@@ -22,6 +22,7 @@ class TicketStoreRequest extends FormRequest
             'description' => ['required', 'string', 'max:2000'],
             'category' => ['required', Rule::in(['technical', 'payment', 'content', 'abuse'])],
             'priority' => ['required', Rule::in(['low', 'medium', 'high', 'urgent'])],
+            'property_id' => ['nullable', 'integer', 'exists:properties,id'],
         ];
     }
 

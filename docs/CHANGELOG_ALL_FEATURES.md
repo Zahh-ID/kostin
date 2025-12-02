@@ -21,13 +21,8 @@
 - **Component**: `WishlistPage.tsx`, `WishlistButton.tsx`
 - **Route**: `/wishlist`
 
-#### 3. Saved Search & Alerts
-- **NEW** Save filter pencarian dengan nama custom
-- **NEW** Toggle notifikasi untuk listing baru
-- **NEW** Apply saved search kembali
-- **NEW** Manage multiple saved searches
-- **Component**: `SavedSearchesPage.tsx`, `SaveSearchDialog.tsx`
-- **Route**: `/saved-searches`
+#### 3. Saved Search & Alerts (removed)
+- Fitur pencarian tersimpan dan route `/saved-searches` telah dihapus dari aplikasi.
 
 #### 4. Live Chat System
 - **NEW** Real-time messaging Tenant ↔ Owner
@@ -167,7 +162,6 @@ Features:
 ```javascript
 /owner/properties       → PropertyManagementPage
 /wishlist              → WishlistPage
-/saved-searches        → SavedSearchesPage
 /chat                  → ChatPage
 /tickets               → TicketingPage
 ```
@@ -207,25 +201,6 @@ Features:
 ```typescript
 // Stored as array of property IDs per user
 string[] // Array of propertyId
-```
-
-#### SavedSearch Model
-```typescript
-{
-  id: string;
-  userId: string;
-  name: string;
-  filters: {
-    search?: string;
-    city?: string;
-    type?: string;
-    minPrice?: number;
-    maxPrice?: number;
-    facilities?: string[];
-  };
-  notificationEnabled: boolean;
-  createdAt: string;
-}
 ```
 
 #### Conversation Model

@@ -20,7 +20,7 @@ class ContractUpdateRequest extends FormRequest
             'deposit_amount' => ['nullable', 'integer', 'min:0'],
             'grace_days' => ['nullable', 'integer', 'min:0', 'max:31'],
             'late_fee_per_day' => ['nullable', 'integer', 'min:0'],
-            'status' => ['nullable', 'in:active,ended,canceled'],
+            'status' => ['nullable', 'in:draft,submitted,active,pending_renewal,terminated,canceled,expired'],
         ];
     }
 }

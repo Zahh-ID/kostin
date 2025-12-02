@@ -9,12 +9,15 @@ use App\Models\RentalApplication;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ApplicationController extends Controller
 {
     public function index(Request $request): View
     {
+        $search = $request->string('q')->toString();
+
         /** @var LengthAwarePaginator $applications */
         $applications = RentalApplication::query()
             ->where('tenant_id', $request->user()->id)
@@ -23,13 +26,39 @@ class ApplicationController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        $searchProperties = collect();
+
+        if ($search) {
+            $searchProperties = Property::query()
+                ->where('status', 'approved')
+                ->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('address', 'like', "%{$search}%");
+                })
+                ->orderBy('name')
+                ->limit(6)
+                ->get()
+                ->map(function (Property $property) {
+                    $property->preview_rules = Str::limit($property->rules_text, 120);
+
+                    return $property;
+                });
+        }
+
         return view('tenant.applications.index', [
             'applications' => $applications,
+            'searchProperties' => $searchProperties,
         ]);
     }
 
-    public function create(Request $request): View
+    public function create(Request $request): View|RedirectResponse
     {
+        if ($this->hasOverdueInvoices($request)) {
+            return redirect()
+                ->route('tenant.invoices.index')
+                ->with('status', __('Anda memiliki tagihan tertunggak. Selesaikan pembayaran sebelum mengajukan kontrak baru.'));
+        }
+
         $properties = Property::query()
             ->where('status', 'approved')
             ->with('roomTypes.rooms')
@@ -48,6 +77,12 @@ class ApplicationController extends Controller
 
     public function store(ApplicationStoreRequest $request): RedirectResponse
     {
+        if ($this->hasOverdueInvoices($request)) {
+            return redirect()
+                ->route('tenant.invoices.index')
+                ->with('status', __('Anda memiliki tagihan tertunggak. Selesaikan pembayaran sebelum mengajukan kontrak baru.'));
+        }
+
         $validated = $request->validated();
 
         $property = Property::where('status', 'approved')->findOrFail($validated['property_id']);
@@ -82,5 +117,12 @@ class ApplicationController extends Controller
         return view('tenant.applications.show', [
             'application' => $application,
         ]);
+    }
+
+    private function hasOverdueInvoices(Request $request): bool
+    {
+        return $request->user()->invoices()
+            ->whereIn('invoices.status', ['overdue', 'unpaid'])
+            ->exists();
     }
 }

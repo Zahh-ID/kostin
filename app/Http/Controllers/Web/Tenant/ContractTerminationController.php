@@ -15,7 +15,7 @@ class ContractTerminationController extends Controller
         $tenant = $request->user();
         abort_if($contract->tenant_id !== $tenant->id, 403);
 
-        if ($contract->status !== 'active') {
+        if ($contract->status !== Contract::STATUS_ACTIVE) {
             return back()->with('status', __('Kontrak ini belum aktif atau sudah berakhir.'));
         }
 

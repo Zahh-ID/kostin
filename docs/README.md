@@ -152,8 +152,7 @@ Platform manajemen kos end-to-end dengan tiga role utama: **Tenant** (Penyewa), 
 │   ├── PropertyManagementPage.tsx  # 🆕 CRUD properti (Owner)
 │   ├── WishlistPage.tsx            # 🆕 Wishlist management
 │   ├── WishlistButton.tsx          # 🆕 Reusable wishlist toggle
-│   ├── SavedSearchesPage.tsx       # 🆕 Saved searches
-│   ├── SaveSearchDialog.tsx        # 🆕 Dialog save search
+│   ├── SaveSearchDialog.tsx        # (removed) Dialog save search
 │   ├── ChatPage.tsx                # 🆕 Live chat interface
 │   ├── TicketingPage.tsx           # 🆕 Ticketing & Kanban
 │   ├── LoginPage.tsx               # Login form

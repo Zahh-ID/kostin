@@ -2,26 +2,23 @@
 
 namespace Tests\Feature\Auth;
 
-use Livewire\Volt\Volt;
+use Illuminate\Support\Str;
 
-test('registration screen can be rendered', function () {
-    $response = $this->get('/register');
-
-    $response
-        ->assertOk()
-        ->assertSee('pages.auth.register');
+test('registration screen is removed in API-only mode', function (): void {
+    $this->get('/register')->assertNotFound();
 });
 
-test('new users can register', function () {
-    $component = Volt::test('pages.auth.register')
-        ->set('name', 'Test User')
-        ->set('email', 'test@example.com')
-        ->set('password', 'password')
-        ->set('password_confirmation', 'password');
+test('new users can register via API', function (): void {
+    $email = Str::random(6).'@example.com';
 
-    $component->call('register');
+    $response = $this->postJson('/api/v1/auth/register', [
+        'name' => 'Test User',
+        'email' => $email,
+        'password' => 'password',
+        'role' => 'tenant',
+    ]);
 
-    $component->assertRedirect(route('dashboard', absolute: false));
-
+    $response->assertCreated();
+    $this->assertDatabaseHas('users', ['email' => $email]);
     $this->assertAuthenticated();
 });

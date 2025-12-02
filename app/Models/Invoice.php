@@ -13,15 +13,22 @@ class Invoice extends Model
     use HasFactory;
 
     public const STATUS_UNPAID = 'unpaid';
+
     public const STATUS_PAID = 'paid';
+
     public const STATUS_OVERDUE = 'overdue';
+
     public const STATUS_CANCELED = 'canceled';
+
     public const STATUS_PENDING_VERIFICATION = 'pending_verification';
+
+    public const STATUS_EXPIRED = 'expired';
 
     public const OUTSTANDING_STATUSES = [
         self::STATUS_UNPAID,
         self::STATUS_OVERDUE,
         self::STATUS_PENDING_VERIFICATION,
+        self::STATUS_EXPIRED,
     ];
 
     protected $fillable = [
@@ -38,6 +45,9 @@ class Invoice extends Model
         'late_fee',
         'total',
         'status',
+        'status_reason',
+        'expires_at',
+        'primary_payment_id',
         'external_order_id',
         'qris_payload',
         'paid_at',
@@ -48,6 +58,7 @@ class Invoice extends Model
         'qris_payload' => 'array',
         'months_count' => 'integer',
         'paid_at' => 'datetime',
+        'expires_at' => 'datetime',
     ];
 
     public function contract(): BelongsTo

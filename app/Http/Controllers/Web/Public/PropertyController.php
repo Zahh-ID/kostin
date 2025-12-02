@@ -25,6 +25,6 @@ class PropertyController extends Controller
         return view('public.property', [
             'property' => $property,
             'activeTab' => $request->query('tab', 'overview'),
-        ])->layout('layouts.public');
+        ]);
     }
 }

@@ -56,6 +56,7 @@ class InvoicePaymentController extends Controller
             );
 
             $response = $this->midtransService->chargeQris($payload);
+            $response = $this->ensureQrPayload($response, $orderId, $amount);
         } catch (RuntimeException $exception) {
             return $this->respond($request, [
                 'message' => $exception->getMessage(),
@@ -173,5 +174,20 @@ class InvoicePaymentController extends Controller
         }
 
         return (int) round((float) $amount);
+    }
+
+    private function ensureQrPayload(array $response, string $orderId, int $amount): array
+    {
+        $hasQr = ! empty($response['qr_image_url'])
+            || ! empty($response['qris_string'])
+            || ! empty($response['qr_string'])
+            || ! empty(data_get($response, 'raw_response.qr_string'))
+            || ! empty(data_get($response, 'raw_response.actions.0.url'));
+
+        if ($hasQr) {
+            return $response;
+        }
+
+        throw new RuntimeException('QRIS payload tidak tersedia dari Midtrans.');
     }
 }
