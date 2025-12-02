@@ -12,7 +12,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production   # <- sesuaikan dengan nama Environment tempat kamu simpan secrets
+    environment: SSH_HOST   # <- sesuaikan dengan nama Environment tempat kamu simpan secrets
 
     steps:
       - name: Checkout
@@ -64,7 +64,7 @@ jobs:
 
       - name: Rsync source to server (use SSH port)
         run: |
-          rsync -az --delete \
+          rsync -az --no-t --delete \
             --exclude='.git/' \
             --exclude='.github/' \
             --exclude='node_modules/' \
@@ -111,8 +111,8 @@ jobs:
               php artisan migrate --force || true
               php artisan l5-swagger:generate || true
 
-              chgrp -R www-data storage bootstrap/cache
-              chmod -R ug+rwx storage bootstrap/cache
+              sudo chgrp -R www-data storage bootstrap/cache
+              sudo chmod -R ug+rwx storage bootstrap/cache
 
               sudo systemctl reload '${{ secrets.PHP_FPM_SERVICE || 'php8.3-fpm' }}' || true
               sudo systemctl reload '${{ secrets.NGINX_SERVICE || 'nginx' }}' || true
