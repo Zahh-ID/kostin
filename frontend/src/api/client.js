@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: (import.meta.env.VITE_API_BASE_URL || '') + '/api',
   withCredentials: true,
   headers: {
     Accept: 'application/json',
@@ -10,7 +10,10 @@ export const api = axios.create({
   xsrfHeaderName: 'X-XSRF-TOKEN',
 });
 
-export const ensureCsrfCookie = () => api.get('/sanctum/csrf-cookie');
+export const ensureCsrfCookie = () => axios.get(
+  (import.meta.env.VITE_API_BASE_URL || '') + '/sanctum/csrf-cookie',
+  { withCredentials: true }
+);
 
 export const login = async (payload) => {
   await ensureCsrfCookie();
