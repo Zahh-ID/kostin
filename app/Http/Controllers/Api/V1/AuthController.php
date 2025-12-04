@@ -51,10 +51,12 @@ class AuthController extends Controller
             'role' => $request->string('role')->toString(),
         ]);
 
-        Auth::login($user);
-        $request->session()->regenerate();
+        $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(new UserResource($user), Response::HTTP_CREATED);
+        return response()->json([
+            'user' => new UserResource($user),
+            'token' => $token,
+        ], Response::HTTP_CREATED);
     }
 
     /**

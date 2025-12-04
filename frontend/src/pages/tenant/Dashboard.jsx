@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiCreditCard, FiFileText, FiMessageSquare, FiHeart, FiSearch, FiActivity, FiArrowRight, FiHome, FiClock, FiAlertCircle } from 'react-icons/fi';
 import { currentUser, fetchProperties, fetchTenantOverview, fetchTenantTickets, fetchTenantWishlist } from '../../api/client.js';
+import SEO from '../../components/SEO.jsx';
 
 const TenantDashboard = () => {
   const [overview, setOverview] = useState(null);
@@ -38,6 +39,10 @@ const TenantDashboard = () => {
 
   return (
     <div className="page min-h-screen bg-bg relative overflow-x-hidden pt-28 pb-20">
+      <SEO
+        title="Dashboard - KostIn"
+        description="View your rental status, pay bills, and manage tickets on your KostIn dashboard."
+      />
       {/* Immersive Background */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] opacity-50" />

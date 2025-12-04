@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { fetchProperties, fetchStats } from '../api/client.js';
 import { FiCreditCard, FiFileText, FiMessageSquare, FiPieChart, FiHome, FiArrowRight } from 'react-icons/fi';
+import SEO from '../components/SEO.jsx';
 
 // --- Components ---
 
@@ -270,6 +271,10 @@ const Footer = () => (
 const HomePage = () => {
   return (
     <div className="page">
+      <SEO
+        title="KostIn - Modern Boarding House Management"
+        description="Manage your boarding house business efficiently with KostIn. Automated billing, digital contracts, and seamless communication."
+      />
       <Hero />
       <Features />
       <PropertiesSection />

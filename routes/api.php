@@ -65,6 +65,8 @@ Route::prefix('v1')
     ->group(function (): void {
         Route::post('/auth/login', [AuthController::class, 'login']);
         Route::post('/auth/register', [AuthController::class, 'register']);
+        Route::post('/auth/forgot-password', [\App\Http\Controllers\Api\V1\Auth\ForgotPasswordController::class, 'store']);
+        Route::post('/auth/reset-password', [\App\Http\Controllers\Api\V1\Auth\ResetPasswordController::class, 'store']);
 
         Route::get('/stats', StatsController::class);
         Route::get('/stats', StatsController::class);
@@ -145,6 +147,9 @@ Route::prefix('v1')
                 Route::get('/users', AdminUserIndexController::class);
                 Route::post('/users/{user}/suspend', [\App\Http\Controllers\Api\V1\Admin\UserActionController::class, 'suspend']);
                 Route::post('/users/{user}/activate', [\App\Http\Controllers\Api\V1\Admin\UserActionController::class, 'activate']);
+
+                // Webhook Simulator
+                Route::post('/webhook/midtrans', \App\Http\Controllers\Api\V1\Admin\WebhookSimulatorController::class);
             });
         });
     });

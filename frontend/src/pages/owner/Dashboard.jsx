@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { currentUser, fetchOwnerDashboard } from '../../api/client.js';
 import { FiTrendingUp, FiUsers, FiHome, FiDollarSign, FiActivity, FiAlertCircle, FiCheckCircle, FiClock } from 'react-icons/fi';
+import SEO from '../../components/SEO.jsx';
 
 const currency = new Intl.NumberFormat('id-ID', {
   style: 'currency',
@@ -56,6 +57,10 @@ const OwnerDashboard = () => {
 
   return (
     <div className="page pt-32 pb-20">
+      <SEO
+        title="Owner Dashboard - KostIn"
+        description="Manage your properties, track revenue, and handle tenant requests on your KostIn Owner Dashboard."
+      />
       <div className="container">
         <motion.div
           initial={{ opacity: 0, y: -20 }}

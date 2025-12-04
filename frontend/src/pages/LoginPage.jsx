@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { login } from '../api/client.js';
+import SEO from '../components/SEO.jsx';
+
+import { FiAlertCircle } from 'react-icons/fi';
 
 const EyeIcon = ({ hidden = false }) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -67,99 +70,153 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-back">
-        <Link className="btn ghost small-link" to="/">
-          Kembali
-        </Link>
-      </div>
-      <div className="container auth auth-grid">
-        <div className="auth-hero no-card">
-          <div className="pill">Masuk</div>
-          <h1 className="section-title">Akses dashboard KostIn</h1>
-          <p className="muted">Kelola tagihan, kontrak, tiket, dan moderasi properti.</p>
-          <div className="hero-tags">
-            <span className="mini-chip">QRIS & Manual</span>
-            <span className="mini-chip">Kontrak Digital</span>
-            <span className="mini-chip">Tiket & Chat</span>
-          </div>
-          <ul className="hero-list">
-            <li>Status tagihan dan bukti bayar selalu jelas</li>
-            <li>Kontrak digital, PDF, dan terminasi terpantau</li>
-            <li>Tiket & chat cepat dengan unread badge</li>
-          </ul>
+    <div className="auth-split-layout">
+      <SEO
+        title="Login - KostIn"
+        description="Login to your KostIn account to manage your boarding house or view your rental status."
+      />
+
+      {/* Visual Side */}
+      <div className="auth-visual-side">
+        <div className="nav-logo">Kost<span>In</span>.</div>
+
+        <div className="auth-visual-content">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <h1 className="text-4xl font-display font-bold mb-6">
+              Kelola Kost Jadi <br />
+              <span className="text-primary">Lebih Simpel.</span>
+            </h1>
+            <p className="text-lg text-text-secondary mb-8 max-w-md">
+              Satu platform untuk semua kebutuhan manajemen properti Anda.
+              Tagihan otomatis, kontrak digital, dan laporan keuangan real-time.
+            </p>
+
+            <div className="flex gap-3 flex-wrap">
+              <span className="px-3 py-1 rounded-full bg-surface-highlight border border-border text-xs font-medium text-text-secondary">
+                QRIS Otomatis
+              </span>
+              <span className="px-3 py-1 rounded-full bg-surface-highlight border border-border text-xs font-medium text-text-secondary">
+                Kontrak Digital
+              </span>
+              <span className="px-3 py-1 rounded-full bg-surface-highlight border border-border text-xs font-medium text-text-secondary">
+                Tiket & Chat
+              </span>
+            </div>
+          </motion.div>
         </div>
 
-        <div className="auth-card">
-          {error && <div className="alert">{error}</div>}
+        <div className="auth-visual-footer">
+          &copy; {new Date().getFullYear()} KostIn. All rights reserved.
+        </div>
+      </div>
 
-          <form className="auth-form" onSubmit={handleSubmit}>
-            <label className="auth-label">
-              Email
-              <input
-                type="email"
-                name="email"
-                autoComplete="email"
-                value={form.email}
-                onChange={handleChange}
-                required
-              />
-            </label>
-            <label className="auth-label">
-              Kata sandi
-              <div className="input-wrap">
+      {/* Form Side */}
+      <div className="auth-form-side">
+        <div className="absolute top-6 right-6">
+          <Link className="btn ghost btn-sm" to="/">
+            Kembali ke Beranda
+          </Link>
+        </div>
+
+        <div className="auth-form-container">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold font-display mb-2">Selamat Datang Kembali</h2>
+            <p className="text-text-secondary">Masuk untuk mengakses dashboard Anda.</p>
+          </div>
+
+          <div className="auth-card">
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-sm flex items-start gap-2 mb-4"
+              >
+                <FiAlertCircle className="mt-0.5 flex-shrink-0" />
+                <span>{error}</span>
+              </motion.div>
+            )}
+
+            <form className="auth-form" onSubmit={handleSubmit}>
+              <label className="auth-label">
+                Email
                 <input
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  autoComplete="current-password"
-                  value={form.password}
+                  type="email"
+                  name="email"
+                  autoComplete="email"
+                  value={form.email}
                   onChange={handleChange}
                   required
+                  className={error ? 'border-red-500/50 focus:border-red-500' : ''}
+                  placeholder="nama@email.com"
                 />
-                <button
-                  type="button"
-                  className="toggle-password"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  aria-label="Toggle password visibility"
-                >
-                  <EyeIcon hidden={showPassword} />
-                </button>
+              </label>
+              <label className="auth-label">
+                Kata sandi
+                <div className="input-wrap">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    autoComplete="current-password"
+                    value={form.password}
+                    onChange={handleChange}
+                    required
+                    className={error ? 'border-red-500/50 focus:border-red-500' : ''}
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    className="toggle-password"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label="Toggle password visibility"
+                  >
+                    <EyeIcon hidden={showPassword} />
+                  </button>
+                </div>
+              </label>
+
+              <div className="flex justify-between items-center">
+                <label className="auth-check">
+                  <input
+                    type="checkbox"
+                    checked={remember}
+                    onChange={(event) => setRemember(event.target.checked)}
+                  />
+                  <span>Ingat saya</span>
+                </label>
+                <Link to="/forgot-password" className="text-xs text-primary hover:underline">Lupa password?</Link>
               </div>
-            </label>
-            <label className="auth-check">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={(event) => setRemember(event.target.checked)}
-              />
-              <span>Ingat saya</span>
-            </label>
-            <motion.button
+
+              <motion.button
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                className="btn primary full w-full"
+                disabled={loading}
+              >
+                {loading ? 'Memproses...' : 'Masuk'}
+              </motion.button>
+            </form>
+
+            <div className="divider">atau</div>
+            <motion.a
               whileHover={{ y: -1 }}
               whileTap={{ scale: 0.98 }}
-              type="submit"
-              className="btn primary full"
-              disabled={loading}
+              className="btn ghost full w-full"
+              href="/auth/redirect"
             >
-              {loading ? 'Memproses...' : 'Masuk'}
-            </motion.button>
-          </form>
+              Masuk dengan Google
+            </motion.a>
 
-          <div className="divider">atau</div>
-          <motion.a
-            whileHover={{ y: -1 }}
-            whileTap={{ scale: 0.98 }}
-            className="btn ghost full"
-            href="/auth/redirect"
-          >
-            Masuk dengan Google
-          </motion.a>
-
-          <div className="muted small">
-            Belum punya akun?{' '}
-            <Link to="/register" className="link">
-              Daftar sekarang
-            </Link>
+            <div className="mt-6 text-center text-sm text-text-secondary">
+              Belum punya akun?{' '}
+              <Link to="/register" className="text-primary hover:underline font-medium">
+                Daftar sekarang
+              </Link>
+            </div>
           </div>
         </div>
       </div>

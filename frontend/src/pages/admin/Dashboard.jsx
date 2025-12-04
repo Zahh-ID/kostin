@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { currentUser, fetchAdminDashboard, fetchAdminModerations, fetchAdminTickets } from '../../api/client.js';
 import { FiTrendingUp, FiUsers, FiHome, FiDollarSign, FiActivity, FiAlertCircle, FiCheckCircle, FiClock, FiShield, FiFileText } from 'react-icons/fi';
+import SEO from '../../components/SEO.jsx';
 
 const currency = new Intl.NumberFormat('id-ID', {
   style: 'currency',
@@ -60,6 +61,10 @@ const AdminDashboard = () => {
 
   return (
     <div className="page pt-32 pb-20">
+      <SEO
+        title="Admin Dashboard - KostIn"
+        description="KostIn Admin Dashboard for platform moderation, user management, and system monitoring."
+      />
       <div className="container">
         <motion.div
           initial={{ opacity: 0, y: -20 }}

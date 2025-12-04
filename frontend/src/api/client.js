@@ -26,9 +26,22 @@ export const login = async (payload) => {
 
 export const register = async (payload) => {
   const response = await api.post('/v1/auth/register', payload);
-  // Note: Register usually logs in automatically in Laravel, but if we want token we might need to adjust backend register too.
-  // For now, let's assume register just creates user and they need to login, or backend returns token.
-  // If backend register doesn't return token, user needs to login.
+  const { token, user } = response.data;
+
+  if (token) {
+    localStorage.setItem('auth_token', token);
+  }
+
+  return { user };
+};
+
+export const forgotPassword = async (email) => {
+  const response = await api.post('/v1/auth/forgot-password', { email });
+  return response.data;
+};
+
+export const resetPassword = async (payload) => {
+  const response = await api.post('/v1/auth/reset-password', payload);
   return response.data;
 };
 
@@ -431,5 +444,10 @@ export const suspendAdminUser = async (userId) => {
 export const activateAdminUser = async (userId) => {
 
   const response = await api.post(`/v1/admin/users/${userId}/activate`);
+  return response.data;
+};
+
+export const simulateWebhook = async (payload) => {
+  const response = await api.post('/v1/admin/webhook/midtrans', payload);
   return response.data;
 };
