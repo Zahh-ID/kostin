@@ -20,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \Illuminate\Auth\Notifications\ResetPassword::createUrlUsing(function (object $notifiable, string $token) {
-            return env('FRONTEND_URL', 'http://localhost:5173') . "/reset-password?token=$token&email={$notifiable->getEmailForPasswordReset()}";
+            return config('app.frontend_url') . "/reset-password?token=$token&email={$notifiable->getEmailForPasswordReset()}";
         });
     }
 }
