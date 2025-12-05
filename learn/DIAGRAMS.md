@@ -9,27 +9,28 @@ Dokumen ini berisi visualisasi alur dan proses sistem Kostin menggunakan diagram
 Menggambarkan interaksi antara pengguna (Aktor) dengan fitur-fitur sistem.
 
 ```mermaid
-usecaseDiagram
-    actor "Tenant (Penyewa)" as T
-    actor "Owner (Pemilik)" as O
-    actor "Admin" as A
+flowchart LR
+    subgraph System [Sistem Kostin]
+        direction TB
+        UC1(Login / Register)
+        UC2(Cari Kost)
+        UC3(Ajukan Sewa)
+        UC4(Bayar Tagihan)
+        UC5(Lapor Komplain)
+        UC6(Kelola Properti)
+        UC7(Kelola Kamar)
+        UC8(Validasi Sewa)
+        UC9(Cek Pendapatan)
+        UC10(Moderasi Kost)
+        UC11(Blokir User)
+    end
 
-    package "Sistem Kostin" {
-        usecase "Login / Register" as UC1
-        usecase "Cari Kost" as UC2
-        usecase "Ajukan Sewa" as UC3
-        usecase "Bayar Tagihan" as UC4
-        usecase "Lapor Komplain" as UC5
-        
-        usecase "Kelola Properti" as UC6
-        usecase "Kelola Kamar" as UC7
-        usecase "Validasi Sewa" as UC8
-        usecase "Cek Pendapatan" as UC9
-        
-        usecase "Moderasi Kost" as UC10
-        usecase "Blokir User" as UC11
-    }
+    %% Actors
+    T{{Tenant}}
+    O{{Owner}}
+    A{{Admin}}
 
+    %% Relationships
     T --> UC1
     T --> UC2
     T --> UC3
