@@ -68,6 +68,10 @@ Route::prefix('v1')
         Route::post('/auth/forgot-password', [\App\Http\Controllers\Api\V1\Auth\ForgotPasswordController::class, 'store']);
         Route::post('/auth/reset-password', [\App\Http\Controllers\Api\V1\Auth\ResetPasswordController::class, 'store']);
 
+        // Social Auth
+        Route::get('/auth/google/redirect', [\App\Http\Controllers\Api\V1\Auth\SocialAuthController::class, 'redirect']);
+        Route::get('/auth/google/callback', [\App\Http\Controllers\Api\V1\Auth\SocialAuthController::class, 'callback']);
+
         Route::get('/stats', StatsController::class);
         Route::get('/stats', StatsController::class);
         Route::apiResource('properties', ApiV1PropertyController::class)->only(['index', 'show']);

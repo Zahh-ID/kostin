@@ -234,6 +234,7 @@ createRoot(root).render(
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
