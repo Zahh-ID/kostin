@@ -5,70 +5,94 @@ Sistem otentikasi Kostin dibangun di atas **Laravel Sanctum**. Kami menggunakan 
 
 ---
 
-## Alur Otentikasi (Authentication Flow)
+## 1. Alur Login (Login Flow)
 
-Berikut adalah langkah-langkah bagaimana seorang pengguna masuk ke dalam sistem:
+Proses masuk ke dalam aplikasi melibatkan beberapa langkah keamanan untuk memastikan identitas pengguna.
 
-### 1. Inisialisasi CSRF (CSRF Protection)
-Sebelum melakukan request login, Frontend **wajib** meminta "cookie pembuka" terlebih dahulu.
--   **Request**: `GET /sanctum/csrf-cookie`
--   **Tujuan**: Server Laravel akan memberikan cookie `XSRF-TOKEN`.
--   **Otomatisasi**: Library Axios di frontend akan otomatis membaca cookie ini dan menyertakannya di *header* setiap request selanjutnya (`X-XSRF-TOKEN`). Ini memastikan request benar-benar datang dari aplikasi kita, bukan dari situs jahat.
+### Langkah-langkah:
+1.  **Inisialisasi CSRF (Handshake)**
+    *   **Aksi**: Frontend mengirim request `GET` ke `/sanctum/csrf-cookie`.
+    *   **Tujuan**: Mengambil cookie `XSRF-TOKEN`.
+    *   **Mekanisme**: Browser otomatis menyimpan cookie ini. Library Axios akan membaca nilai token ini dan menyertakannya di header `X-XSRF-TOKEN` pada setiap request berikutnya. Ini mencegah serangan CSRF (Cross-Site Request Forgery).
 
-### 2. Proses Login
--   **Endpoint**: `POST /api/v1/auth/login`
--   **Controller**: `AuthController@login`
--   **Proses**:
-    1.  Validasi email dan password.
-    2.  Jika valid, Laravel akan membuat ulang ID sesi (session regeneration) untuk keamanan.
-    3.  Mengembalikan respons JSON berisi data user dan role-nya.
-    4.  **Penting**: Tidak ada "token" yang dikembalikan di body JSON. Token sesi disimpan aman di dalam cookie browser.
+2.  **Pengiriman Kredensial**
+    *   **Aksi**: Frontend mengirim `POST` ke `/api/v1/auth/login` dengan `email` dan `password`.
+    *   **Validasi Backend**:
+        *   Cek apakah email ada di database.
+        *   Cek apakah password cocok (menggunakan Hash Bcrypt).
+        *   Cek apakah akun sedang disuspend (`suspended_at` tidak null).
 
-### 3. Proses Register
--   **Endpoint**: `POST /api/v1/auth/register`
--   **Controller**: `AuthController@register`
--   **Proses**:
-    1.  Validasi input (Password minimal 8 karakter, email unik, dll).
-    2.  Membuat user baru di database.
-    3.  Memberikan role default (misal: `tenant` atau `owner`).
-    4.  Otomatis meloginkan user tersebut setelah registrasi sukses.
+3.  **Regenerasi Sesi (Session Fixation Protection)**
+    *   **Aksi**: Jika valid, Laravel menghancurkan ID sesi lama dan membuat ID sesi baru.
+    *   **Tujuan**: Mencegah serangan Session Fixation.
 
-### 4. Lupa Password (Password Reset)
-Fitur ini menggunakan email untuk verifikasi kepemilikan akun.
-1.  **Request Link**: User memasukkan email di halaman "Lupa Password".
-    -   Endpoint: `POST /api/v1/auth/forgot-password`
-    -   Backend mengirim email berisi link unik ke user (menggunakan `resend-php`).
-2.  **Reset Password**: User mengklik link di email, lalu diarahkan ke halaman frontend untuk membuat password baru.
-    -   Endpoint: `POST /api/v1/auth/reset-password`
-    -   Backend memverifikasi token dan mengubah password user.
+4.  **Respons**
+    *   **Backend**: Mengembalikan JSON berisi data user (`id`, `name`, `role`, `avatar`).
+    *   **Browser**: Menerima cookie `laravel_session` (HttpOnly). Cookie ini adalah "tiket" masuk user untuk request selanjutnya.
 
 ---
 
-## Middleware (Penjaga Akses)
+## 2. Alur Registrasi (Registration Flow)
 
-Middleware berfungsi sebagai "satpam" yang mengecek apakah user boleh mengakses halaman tertentu.
+Proses pendaftaran pengguna baru.
 
-### 1. `auth:sanctum`
-Middleware bawaan Laravel Sanctum.
--   **Fungsi**: Memastikan user **sudah login**. Jika belum, server akan menolak dengan error `401 Unauthorized`.
--   **Digunakan di**: Hampir semua route API kecuali Login, Register, dan halaman publik (Landing Page).
+### Langkah-langkah:
+1.  **Input Data**
+    *   **Aksi**: User mengisi Nama, Email, Password, dan memilih Role (Penyewa/Pemilik).
+    *   **Validasi Frontend**: Memastikan password minimal 8 karakter dan email valid.
 
-### 2. `role:{nama_role}`
-Middleware kustom (`App\Http\Middleware\RoleMiddleware`).
--   **Fungsi**: Memastikan user memiliki **jabatan/role** tertentu.
--   **Daftar Role**:
-    -   `tenant`: Pencari kost (User biasa).
-    -   `owner`: Pemilik kost (Mitra).
-    -   `admin`: Administrator sistem (Super user).
--   **Contoh Penggunaan**:
-    ```php
-    // Hanya Owner yang boleh mengakses route ini
-    Route::middleware('role:owner')->group(function () { ... });
-    ```
+2.  **Proses Backend**
+    *   **Endpoint**: `POST /api/v1/auth/register`.
+    *   **Validasi**: Cek apakah email sudah terdaftar (Unique).
+    *   **Pembuatan User**:
+        *   Password di-hash.
+        *   User disimpan ke tabel `users`.
+        *   Role diset sesuai pilihan (default `tenant` jika kosong).
+
+3.  **Auto-Login**
+    *   **Aksi**: Setelah sukses dibuat, sistem otomatis meloginkan user tersebut (membuat sesi) sehingga user tidak perlu input email/password lagi.
 
 ---
 
-## Daftar Controller Otentikasi
+## 3. Alur Lupa Password (Password Reset Flow)
+
+Fitur krusial jika user kehilangan akses ke akunnya.
+
+### Tahap 1: Permintaan Link
+1.  **Input Email**: User memasukkan email di halaman "Lupa Password".
+2.  **Request**: Frontend mengirim `POST` ke `/api/v1/auth/forgot-password`.
+3.  **Backend**:
+    *   Mencari user dengan email tersebut.
+    *   Membuat **Token** unik dan menyimpannya di tabel `password_reset_tokens`.
+    *   Mengirim **Email** ke user berisi link khusus: `https://kostin.web.id/reset-password?token=xyz&email=abc@mail.com`.
+
+### Tahap 2: Reset Password
+1.  **Klik Link**: User mengklik link di email dan diarahkan ke halaman Frontend "Reset Password".
+2.  **Input Baru**: User memasukkan Password Baru dan Konfirmasi Password.
+3.  **Eksekusi**: Frontend mengirim `POST` ke `/api/v1/auth/reset-password` dengan data: `token`, `email`, `password`.
+4.  **Verifikasi Backend**:
+    *   Cek kecocokan Token dan Email di tabel `password_reset_tokens`.
+    *   Cek apakah token sudah kadaluarsa (biasanya 60 menit).
+5.  **Update**: Jika valid, password user di tabel `users` diupdate dengan password baru yang sudah di-hash. Token dihapus agar tidak bisa dipakai lagi.
+
+---
+
+## 4. Middleware (Penjaga Akses)
+
+Middleware berfungsi sebagai "satpam" yang mengecek setiap request sebelum sampai ke Controller.
+
+### `auth:sanctum`
+*   **Logika**: Mengecek keberadaan dan validitas cookie `laravel_session`.
+*   **Gagal**: Jika cookie tidak ada atau sesi habis, kembalikan `401 Unauthorized`. Frontend akan merespons ini dengan melempar user ke halaman Login.
+
+### `role:{nama_role}`
+*   **Logika**: Mengecek kolom `role` pada user yang sedang login.
+*   **Contoh**: Middleware `role:owner` hanya mengizinkan user dengan `role = 'owner'`.
+*   **Gagal**: Jika `tenant` mencoba akses halaman `owner`, kembalikan `403 Forbidden`.
+
+---
+
+## 5. Daftar Controller Otentikasi
 
 | Fitur | Controller | Lokasi File |
 |-------|------------|-------------|
