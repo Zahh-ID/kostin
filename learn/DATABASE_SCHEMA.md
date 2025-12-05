@@ -2,6 +2,39 @@
 
 Dokumen ini menjelaskan struktur database aplikasi Kostin secara rinci, mencakup seluruh tabel yang ada dalam sistem.
 
+## Diagram Relasi Entitas (ERD)
+
+Berikut adalah visualisasi hubungan antar tabel utama dalam database Kostin.
+
+```mermaid
+erDiagram
+    USERS ||--o{ PROPERTIES : owns
+    USERS ||--o{ RENTAL_APPLICATIONS : applies
+    USERS ||--o{ CONTRACTS : signs
+    USERS ||--o{ TICKETS : reports
+    USERS ||--o{ WISHLIST_ITEMS : saves
+
+    PROPERTIES ||--o{ ROOM_TYPES : has
+    PROPERTIES ||--o{ ROOMS : contains
+    PROPERTIES ||--o{ SHARED_TASKS : has
+
+    ROOM_TYPES ||--o{ ROOMS : defines
+
+    ROOMS ||--o{ CONTRACTS : occupied_by
+    ROOMS ||--o{ RENTAL_APPLICATIONS : requested_in
+
+    CONTRACTS ||--o{ INVOICES : generates
+    CONTRACTS ||--o{ CONTRACT_TERMINATION_REQUESTS : has
+
+    INVOICES ||--o{ PAYMENTS : paid_via
+
+    TICKETS ||--o{ TICKET_COMMENTS : has
+    TICKETS ||--o{ TICKET_EVENTS : logs
+
+    OWNER_WALLETS ||--o{ OWNER_WALLET_TRANSACTIONS : logs
+    USERS ||--|| OWNER_WALLETS : has
+```
+
 ---
 
 ## 1. Otentikasi & Pengguna (Auth & Users)

@@ -9,6 +9,31 @@ Sistem otentikasi Kostin dibangun di atas **Laravel Sanctum**. Kami menggunakan 
 
 Proses masuk ke dalam aplikasi melibatkan beberapa langkah keamanan untuk memastikan identitas pengguna.
 
+### Visualisasi Alur
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend (React)
+    participant Backend (Laravel)
+    participant Database
+
+    User->>Frontend: Input Email & Password
+    Frontend->>Backend: GET /sanctum/csrf-cookie
+    Backend-->>Frontend: Set-Cookie: XSRF-TOKEN
+    
+    Frontend->>Backend: POST /api/v1/auth/login (Email, Pass)
+    Note right of Frontend: Header X-XSRF-TOKEN disertakan
+    
+    Backend->>Database: Cek User & Hash Password
+    Database-->>Backend: User Valid
+    
+    Backend->>Backend: Regenerasi Session ID
+    Backend-->>Frontend: 200 OK (User Data) + Set-Cookie: laravel_session
+    
+    Frontend->>User: Redirect ke Dashboard
+```
+
 ### Langkah-langkah:
 1.  **Inisialisasi CSRF (Handshake)**
     *   **Aksi**: Frontend mengirim request `GET` ke `/sanctum/csrf-cookie`.
