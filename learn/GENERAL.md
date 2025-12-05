@@ -19,28 +19,67 @@ Aplikasi Kostin dibangun menggunakan teknologi modern yang menjamin performa, ke
 
 ---
 
-## Pustaka & Paket Kunci (Key Libraries)
+## Daftar Lengkap Pustaka (Libraries)
 
-### Backend (Laravel)
+Berikut adalah daftar lengkap pustaka yang digunakan dalam proyek ini, dikategorikan berdasarkan fungsinya.
+
+### 1. Backend - Dependensi Utama (`composer.json`)
+Pustaka ini wajib ada agar aplikasi dapat berjalan di server produksi.
+
+| Paket | Versi | Fungsi & Kegunaan |
+|-------|-------|-------------------|
+| `laravel/framework` | ^11.0 | **Core Framework**: Jantung dari aplikasi Kostin. Menyediakan routing, ORM (Eloquent), dan fitur dasar lainnya. |
+| `laravel/sanctum` | ^4.2 | **Otentikasi API**: Menangani otentikasi berbasis cookie (SPA) dan token API yang aman. |
+| `laravel/socialite` | ^5.23 | **Login Sosial**: Memungkinkan pengguna login menggunakan akun Google (OAuth). |
+| `laravel/reverb` | ^1.6 | **WebSocket Server**: Server real-time bawaan Laravel untuk fitur komunikasi instan (chat/notifikasi). |
+| `barryvdh/laravel-dompdf` | ^3.1 | **PDF Generator**: Mengubah tampilan HTML (Blade) menjadi file PDF. Digunakan untuk mencetak Surat Perjanjian Sewa. |
+| `darkaonline/l5-swagger` | ^9.0 | **Dokumentasi API**: Menghasilkan halaman dokumentasi API interaktif (OpenAPI/Swagger) secara otomatis. |
+| `guzzlehttp/guzzle` | ^7.10 | **HTTP Client**: Pustaka standar PHP untuk mengirim request HTTP ke layanan eksternal (misal: API Midtrans). |
+| `livewire/livewire` | ^3.6 | **Full-stack Framework**: (Opsional/Bawaan) Terinstall sebagai bagian dari ekosistem Laravel, namun frontend utama menggunakan React. |
+| `livewire/volt` | ^1.7 | **Functional API**: Pelengkap Livewire untuk penulisan komponen yang lebih ringkas. |
+| `laravel/ui` | ^4.4 | **Auth Scaffolding**: Paket legacy untuk setup otentikasi dasar (kemungkinan digunakan untuk preset awal). |
+
+> **Catatan**: Pustaka `midtrans/midtrans-php` dan `resend/resend-php` mungkin diinstall secara manual atau merupakan dependensi tidak langsung, namun sangat krusial untuk fitur Pembayaran dan Email.
+
+### 2. Backend - Dependensi Pengembangan (`require-dev`)
+Pustaka ini hanya digunakan saat pengembangan (local) dan testing.
+
 | Paket | Fungsi & Kegunaan |
 |-------|-------------------|
-| `laravel/sanctum` | **Otentikasi SPA**: Menangani otentikasi berbasis cookie yang aman untuk Single Page Application, serta token API untuk penggunaan mobile/eksternal. |
-| `laravel/socialite` | **Login Sosial**: Memudahkan integrasi login menggunakan akun Google (OAuth). |
-| `laravel/reverb` | **Real-time**: Server WebSocket bawaan Laravel untuk fitur real-time seperti notifikasi instan. |
-| `barryvdh/laravel-dompdf` | **Pembuatan PDF**: Digunakan untuk men-generate Surat Perjanjian Sewa (Kontrak) dalam format PDF secara otomatis. |
-| `darkaonline/l5-swagger` | **Dokumentasi API**: Menghasilkan dokumentasi API interaktif (Swagger UI) agar mudah diuji oleh pengembang frontend. |
-| `resend/resend-php` | **Email Transaksional**: Layanan pengiriman email modern untuk mengirim notifikasi penting (Lupa Password, Pengingat Tagihan). |
-| `midtrans/midtrans-php` | **Payment Gateway**: Integrasi pembayaran digital (QRIS, Virtual Account, E-Wallet) yang populer di Indonesia. |
+| `fakerphp/faker` | **Data Palsu**: Men-generate data dummy (Nama, Alamat, Email) untuk keperluan testing database (Seeding). |
+| `laravel/tinker` | **REPL**: Terminal interaktif untuk mencoba kode PHP/Laravel secara langsung tanpa membuat route. |
+| `laravel/sail` | **Docker Environment**: Lingkungan pengembangan berbasis Docker yang ringan. |
+| `laravel/pint` | **Code Style**: Memperbaiki format kode PHP secara otomatis agar rapi dan konsisten. |
+| `pestphp/pest` | **Testing Framework**: Framework testing modern dengan sintaks yang lebih sederhana dibanding PHPUnit. |
+| `mockery/mockery` | **Mocking**: Membuat objek tiruan (mock) untuk isolasi saat unit testing. |
+| `nunomaduro/collision` | **Error Reporting**: Menampilkan pesan error yang indah dan informatif di terminal. |
 
-### Frontend (React)
+---
+
+### 3. Frontend - Dependensi Utama (`package.json`)
+Pustaka yang dibundle bersama aplikasi React untuk pengguna.
+
+| Paket | Versi | Fungsi & Kegunaan |
+|-------|-------|-------------------|
+| `react` | ^18.3 | **UI Library**: Pustaka inti untuk membangun antarmuka pengguna berbasis komponen. |
+| `react-dom` | ^18.3 | **DOM Renderer**: Menghubungkan React dengan browser (DOM). |
+| `react-router-dom` | ^7.0 | **Routing**: Mengatur navigasi halaman (pindah URL) tanpa reload halaman penuh. |
+| `axios` | ^1.11 | **HTTP Client**: Melakukan request AJAX ke API backend. Dikonfigurasi dengan interceptor untuk token. |
+| `framer-motion` | ^11.9 | **Animasi**: Pustaka animasi deklaratif untuk React. Digunakan untuk transisi halaman dan efek hover. |
+| `gsap` | ^3.12 | **Animasi Pro**: GreenSock Animation Platform. Digunakan untuk animasi kompleks dengan performa tinggi (misal: Landing Page). |
+| `react-helmet-async` | ^2.0 | **SEO**: Mengelola tag `<head>` (Title, Meta Description) secara dinamis di setiap halaman. |
+| `react-icons` | ^5.5 | **Ikon**: Koleksi ikon vektor (SVG) dari berbagai set populer (FontAwesome, Material, dll). |
+
+### 4. Frontend - Dependensi Pengembangan (`devDependencies`)
+Alat bantu untuk memproses kode sebelum siap diproduksi.
+
 | Paket | Fungsi & Kegunaan |
 |-------|-------------------|
-| `axios` | **HTTP Client**: Melakukan request ke API backend dengan konfigurasi interceptor otomatis (untuk token & error handling). |
-| `react-router-dom` | **Routing**: Mengatur navigasi halaman di sisi klien tanpa reload browser (SPA experience). |
-| `framer-motion` | **Animasi UI**: Membuat transisi halaman dan animasi elemen yang halus dan menarik. |
-| `gsap` | **Animasi Kompleks**: Digunakan untuk animasi landing page yang membutuhkan performa tinggi. |
-| `react-helmet-async` | **SEO Dinamis**: Mengubah Title dan Meta Tags halaman secara dinamis agar ramah mesin pencari (Google). |
-| `react-icons` | **Ikon**: Kumpulan ikon vektor (SVG) dari berbagai library populer (FontAwesome, Material Design, dll). |
+| `vite` | **Build Tool**: Server pengembangan super cepat dan bundler untuk produksi. |
+| `tailwindcss` | **CSS Framework**: Framework CSS utility-first untuk styling cepat. |
+| `postcss` | **CSS Processor**: Alat untuk memtransformasi CSS (dipakai oleh Tailwind). |
+| `autoprefixer` | **Vendor Prefix**: Menambahkan prefix CSS otomatis (misal: `-webkit-`) agar kompatibel dengan browser lama. |
+| `@vitejs/plugin-react` | **Vite Plugin**: Plugin resmi agar Vite bisa mengerti sintaks JSX/React. |
 
 ---
 
