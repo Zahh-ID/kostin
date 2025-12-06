@@ -56,7 +56,13 @@ export const logout = async () => {
 export const currentUser = async () => {
   try {
     const response = await api.get('/v1/auth/me');
-    return response.data;
+    const user = response.data;
+
+    // Validate that we got a real user object, not HTML or empty object
+    if (user && typeof user === 'object' && user.id) {
+      return user;
+    }
+    return null;
   } catch (error) {
     return null;
   }

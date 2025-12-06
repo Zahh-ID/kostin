@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'; // Trigger HMR
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
@@ -6,6 +6,9 @@ import AppShell from './ui/AppShell.jsx';
 import AuthShell from './ui/AuthShell.jsx';
 import HomePage from './pages/HomePage.jsx';
 import FeaturesPage from './pages/FeaturesPage.jsx';
+import AboutPage from './pages/AboutPage.jsx';
+import ContactPage from './pages/ContactPage.jsx';
+import CareersPage from './pages/CareersPage.jsx';
 import FAQPage from './pages/FAQPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
@@ -50,6 +53,9 @@ createRoot(root).render(
           <Route element={<AppShell />}>
             <Route index element={<HomePage />} />
             <Route path="/features" element={<FeaturesPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/careers" element={<CareersPage />} />
             <Route path="/faq" element={<FAQPage />} />
             <Route
               path="/dashboard"

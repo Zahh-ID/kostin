@@ -164,6 +164,7 @@ const LoginPage = () => {
                     value={form.password}
                     onChange={handleChange}
                     required
+                    minLength={8}
                     className={error ? 'border-red-500/50 focus:border-red-500' : ''}
                     placeholder="••••••••"
                   />

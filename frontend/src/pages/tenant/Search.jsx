@@ -121,6 +121,8 @@ const TenantSearch = () => {
               <FiDollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" />
               <input
                 type="number"
+                min="0"
+                onKeyDown={(e) => ['e', 'E', '+', '-'].includes(e.key) && e.preventDefault()}
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
                 placeholder="Harga Min"
@@ -131,6 +133,8 @@ const TenantSearch = () => {
               <FiDollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" />
               <input
                 type="number"
+                min="0"
+                onKeyDown={(e) => ['e', 'E', '+', '-'].includes(e.key) && e.preventDefault()}
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
                 placeholder="Harga Max"

@@ -5,8 +5,7 @@ import { gsap } from 'gsap';
 import { fetchProperties, fetchStats } from '../api/client.js';
 import { FiCreditCard, FiFileText, FiMessageSquare, FiPieChart, FiHome, FiArrowRight } from 'react-icons/fi';
 import SEO from '../components/SEO.jsx';
-
-// --- Components ---
+import AnimatedText from '../components/AnimatedText.jsx';
 
 const Hero = () => {
   return (
@@ -24,15 +23,18 @@ const Hero = () => {
           <span className="pill">Platform Manajemen Kost #1</span>
         </motion.div>
 
-        <motion.h1
-          className="hero-title"
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1 }}
-        >
-          Kelola Kost Jadi <br />
-          <span>Lebih Simpel.</span>
-        </motion.h1>
+        <div className="hero-title mb-6 font-display font-bold">
+          <AnimatedText
+            text="Kelola Kost Jadi"
+            className="text-white block"
+            delay={0.2}
+          />
+          <AnimatedText
+            text="Lebih Simpel."
+            className="text-primary block"
+            delay={0.8}
+          />
+        </div>
 
         <motion.p
           className="hero-lead"
@@ -51,7 +53,7 @@ const Hero = () => {
           transition={{ duration: 0.8, delay: 0.3 }}
         >
           <Link to="/register" className="btn primary">Mulai Sekarang Gratis</Link>
-          <Link to="/about" className="btn ghost">Pelajari Fitur</Link>
+          <Link to="/features" className="btn ghost">Pelajari Fitur</Link>
         </motion.div>
       </div>
 
@@ -74,7 +76,7 @@ const HeroStats = () => {
   ];
 
   return (
-    <div className="container" style={{ marginTop: '80px' }}>
+    <div className="container section">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
         {items.map((item, i) => (
           <motion.div
@@ -106,11 +108,12 @@ const BentoFeature = ({ title, desc, icon, colSpan = 1 }) => {
     ref.current.style.setProperty('--mouse-y', `${y}px`);
   };
 
+  const spanClass = colSpan === 2 ? 'md:col-span-2 col-span-1' : 'col-span-1';
+
   return (
     <motion.div
       ref={ref}
-      className="bento-card"
-      style={{ gridColumn: `span ${colSpan}` }}
+      className={`bento-card ${spanClass}`}
       onMouseMove={handleMouseMove}
       initial={{ opacity: 0, scale: 0.95 }}
       whileInView={{ opacity: 1, scale: 1 }}
@@ -125,10 +128,12 @@ const BentoFeature = ({ title, desc, icon, colSpan = 1 }) => {
 };
 
 const Features = () => (
-  <section className="container" style={{ padding: '100px 24px' }}>
+  <section className="container section">
     <div className="text-center" style={{ marginBottom: '60px' }}>
       <span className="pill">Fitur Unggulan</span>
-      <h2 style={{ fontSize: '2.5rem', marginTop: '16px' }}>Satu Aplikasi, Banyak Solusi</h2>
+      <div className="font-display font-bold text-4xl mt-4">
+        <AnimatedText text="Satu Aplikasi, Banyak Solusi" />
+      </div>
     </div>
 
     <div className="bento-grid">
@@ -168,6 +173,7 @@ const PropertyCard = ({ property }) => {
       className="property-card"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -10, transition: { duration: 0.3 } }}
       viewport={{ once: true }}
     >
       <img
@@ -198,13 +204,25 @@ const PropertiesSection = () => {
   const [properties, setProperties] = useState([]);
 
   useEffect(() => {
-    fetchProperties().then(setProperties).catch(() => setProperties([]));
+    fetchProperties()
+      .then(data => {
+        // Fisher-Yates shuffle
+        const shuffled = [...data];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        setProperties(shuffled);
+      })
+      .catch(() => setProperties([]));
   }, []);
 
   return (
-    <section className="container" style={{ padding: '0 24px 100px' }}>
+    <section className="container section">
       <div className="flex justify-between items-center" style={{ marginBottom: '40px' }}>
-        <h2>Properti Pilihan</h2>
+        <div className="font-display font-bold text-4xl">
+          <AnimatedText text="Properti Pilihan" />
+        </div>
         <Link to="/search" className="btn ghost">Lihat Semua</Link>
       </div>
 
@@ -230,7 +248,9 @@ const CTA = () => (
         whileInView={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <h2 style={{ fontSize: '3rem', marginBottom: '24px' }}>Siap Mengelola Kost dengan Cara Baru?</h2>
+        <div className="cta-title">
+          <AnimatedText text="Siap Mengelola Kost dengan Cara Baru?" />
+        </div>
         <p style={{ fontSize: '1.2rem', marginBottom: '40px', maxWidth: '600px', margin: '0 auto 40px' }}>
           Bergabung dengan ratusan owner dan tenant yang sudah beralih ke KostIn.
         </p>
@@ -244,7 +264,7 @@ const CTA = () => (
 
 const Footer = () => (
   <footer style={{ borderTop: '1px solid var(--border)', padding: '60px 24px', background: '#050505' }}>
-    <div className="container flex justify-between flex-wrap" style={{ gap: '40px' }}>
+    <div className="container footer-content">
       <div>
         <div className="nav-logo" style={{ marginBottom: '16px' }}>Kost<span>In</span>.</div>
         <p style={{ maxWidth: '300px' }}>Platform manajemen kost modern untuk masa depan properti Anda.</p>
@@ -253,7 +273,7 @@ const Footer = () => (
         <div className="flex flex-col" style={{ gap: '12px' }}>
           <h4 style={{ color: 'white' }}>Product</h4>
           <Link to="/features" style={{ color: 'var(--text-secondary)' }}>Fitur</Link>
-          <Link to="/pricing" style={{ color: 'var(--text-secondary)' }}>Harga</Link>
+          <Link to="/careers" style={{ color: 'var(--text-secondary)' }}>Karir</Link>
         </div>
         <div className="flex flex-col" style={{ gap: '12px' }}>
           <h4 style={{ color: 'white' }}>Company</h4>

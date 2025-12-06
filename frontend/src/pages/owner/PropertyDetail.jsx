@@ -260,6 +260,8 @@ const EditRoomModal = ({ room, onClose, onSuccess }) => {
                         <label className="block text-sm text-text-secondary mb-2">Harga Custom (Opsional)</label>
                         <input
                             type="number"
+                            min="0"
+                            onKeyDown={(e) => ['e', 'E', '+', '-'].includes(e.key) && e.preventDefault()}
                             value={form.custom_price}
                             onChange={e => setForm({ ...form, custom_price: e.target.value })}
                             className="w-full bg-surface-highlight border border-white/10 rounded-xl px-4 py-3 focus:border-primary outline-none"
@@ -512,6 +514,8 @@ const RoomTypeModal = ({ propertyId, roomType, onClose, onSuccess }) => {
                         <label className="block text-sm text-text-secondary mb-2">Harga Dasar (Bulanan)</label>
                         <input
                             type="number"
+                            min="0"
+                            onKeyDown={(e) => ['e', 'E', '+', '-'].includes(e.key) && e.preventDefault()}
                             value={form.price}
                             onChange={e => setForm({ ...form, price: e.target.value })}
                             className="w-full bg-surface-highlight border border-white/10 rounded-xl px-4 py-3 focus:border-primary outline-none"
@@ -522,6 +526,8 @@ const RoomTypeModal = ({ propertyId, roomType, onClose, onSuccess }) => {
                         <label className="block text-sm text-text-secondary mb-2">Luas (m²)</label>
                         <input
                             type="number"
+                            min="0"
+                            onKeyDown={(e) => ['e', 'E', '+', '-'].includes(e.key) && e.preventDefault()}
                             value={form.area_m2}
                             onChange={e => setForm({ ...form, area_m2: e.target.value })}
                             className="w-full bg-surface-highlight border border-white/10 rounded-xl px-4 py-3 focus:border-primary outline-none"
@@ -602,6 +608,8 @@ const BulkCreateModal = ({ propertyId, roomTypes, onClose, onSuccess }) => {
                             <label className="block text-sm text-text-secondary mb-2">Mulai Nomor</label>
                             <input
                                 type="number"
+                                min="1"
+                                onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
                                 value={form.start_number}
                                 onChange={e => setForm({ ...form, start_number: parseInt(e.target.value) })}
                                 className="w-full bg-surface-highlight border border-white/10 rounded-xl px-4 py-3 focus:border-primary outline-none"
@@ -612,10 +620,12 @@ const BulkCreateModal = ({ propertyId, roomTypes, onClose, onSuccess }) => {
                         <label className="block text-sm text-text-secondary mb-2">Jumlah Kamar</label>
                         <input
                             type="number"
+                            min="1"
+                            max="50"
+                            onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
                             value={form.count}
                             onChange={e => setForm({ ...form, count: parseInt(e.target.value) })}
                             className="w-full bg-surface-highlight border border-white/10 rounded-xl px-4 py-3 focus:border-primary outline-none"
-                            max="50"
                         />
                     </div>
                     <button type="submit" disabled={loading} className="btn primary w-full justify-center">

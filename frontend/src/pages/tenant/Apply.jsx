@@ -336,8 +336,8 @@ const RoomCards = ({ rooms, selectedRoomId, onSelectRoom }) => {
             key={room.id}
             onClick={() => onSelectRoom(room.id)}
             className={`relative p-4 rounded-2xl border text-left transition-all duration-300 group overflow-hidden ${isSelected
-                ? 'bg-primary/5 border-primary shadow-[0_0_20px_rgba(204,255,0,0.1)]'
-                : 'bg-surface border-white/5 hover:border-white/20 hover:bg-surface-highlight'
+              ? 'bg-primary/5 border-primary shadow-[0_0_20px_rgba(204,255,0,0.1)]'
+              : 'bg-surface border-white/5 hover:border-white/20 hover:bg-surface-highlight'
               }`}
           >
             <div className="flex gap-4">
@@ -496,14 +496,14 @@ const RoomApplyPanel = ({ property, rooms, selectedRoomId, onSelectRoom, onClose
                 if (s.id < step) setStep(s.id);
               }}
               className={`relative flex items-center gap-3 w-full p-3 rounded-xl transition-all text-left ${step === s.id
-                  ? 'bg-primary/10 text-primary font-bold'
-                  : step > s.id
-                    ? 'text-white hover:bg-white/5'
-                    : 'text-text-tertiary'
+                ? 'bg-primary/10 text-primary font-bold'
+                : step > s.id
+                  ? 'text-white hover:bg-white/5'
+                  : 'text-text-tertiary'
                 }`}
             >
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs border z-10 ${step === s.id ? 'bg-primary text-black border-primary' :
-                  step > s.id ? 'bg-green-500 text-black border-green-500' : 'bg-surface border-white/10'
+                step > s.id ? 'bg-green-500 text-black border-green-500' : 'bg-surface border-white/10'
                 }`}>
                 {step > s.id ? <FiCheck /> : s.id}
               </div>
@@ -532,16 +532,16 @@ const RoomApplyPanel = ({ property, rooms, selectedRoomId, onSelectRoom, onClose
           {step === 1 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InputGroup label="Tanggal Mulai Sewa" type="date" value={form.preferred_start_date} onChange={(e) => setForm({ ...form, preferred_start_date: e.target.value })} required />
-              <InputGroup label="Durasi (Bulan)" type="number" min="1" max="36" value={form.duration_months} onChange={(e) => setForm({ ...form, duration_months: Number(e.target.value) })} required />
-              <InputGroup label="Jumlah Penghuni" type="number" min="1" max="4" value={form.occupants_count} onChange={(e) => setForm({ ...form, occupants_count: Number(e.target.value) })} required />
-              <InputGroup label="Budget per Bulan" type="number" value={form.budget_per_month} onChange={(e) => setForm({ ...form, budget_per_month: Number(e.target.value) })} required prefix="Rp" />
+              <InputGroup label="Durasi (Bulan)" type="number" min="1" max="36" onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()} value={form.duration_months} onChange={(e) => setForm({ ...form, duration_months: Number(e.target.value) })} required />
+              <InputGroup label="Jumlah Penghuni" type="number" min="1" max="4" onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()} value={form.occupants_count} onChange={(e) => setForm({ ...form, occupants_count: Number(e.target.value) })} required />
+              <InputGroup label="Budget per Bulan" type="number" min="0" onKeyDown={(e) => ['e', 'E', '+', '-'].includes(e.key) && e.preventDefault()} value={form.budget_per_month} onChange={(e) => setForm({ ...form, budget_per_month: Number(e.target.value) })} required prefix="Rp" />
             </div>
           )}
 
           {step === 2 && (
             <div className="grid grid-cols-1 gap-4">
               <InputGroup label="Nama Lengkap (Sesuai KTP)" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} required placeholder="Contoh: Budi Santoso" />
-              <InputGroup label="Nomor Induk Kependudukan (NIK)" value={form.national_id} onChange={(e) => setForm({ ...form, national_id: e.target.value })} required placeholder="16 digit angka" />
+              <InputGroup label="Nomor Induk Kependudukan (NIK)" maxLength={16} minLength={16} value={form.national_id} onChange={(e) => setForm({ ...form, national_id: e.target.value.replace(/\D/g, '') })} required placeholder="16 digit angka" />
             </div>
           )}
 
@@ -568,8 +568,8 @@ const RoomApplyPanel = ({ property, rooms, selectedRoomId, onSelectRoom, onClose
                       type="button"
                       onClick={() => setForm({ ...form, employment_status: opt })}
                       className={`py-3 px-4 rounded-xl border text-sm font-medium transition-all ${form.employment_status === opt
-                          ? 'bg-primary text-black border-primary'
-                          : 'bg-surface border-white/10 text-text-secondary hover:bg-white/5'
+                        ? 'bg-primary text-black border-primary'
+                        : 'bg-surface border-white/10 text-text-secondary hover:bg-white/5'
                         }`}
                     >
                       {opt}
@@ -579,7 +579,7 @@ const RoomApplyPanel = ({ property, rooms, selectedRoomId, onSelectRoom, onClose
               </div>
               <InputGroup label="Nama Perusahaan / Kampus" value={form.company_name} onChange={(e) => setForm({ ...form, company_name: e.target.value })} />
               <InputGroup label="Jabatan / Jurusan" value={form.job_title} onChange={(e) => setForm({ ...form, job_title: e.target.value })} />
-              <InputGroup label="Pendapatan Bulanan (Perkiraan)" type="number" value={form.monthly_income} onChange={(e) => setForm({ ...form, monthly_income: Number(e.target.value) })} required prefix="Rp" />
+              <InputGroup label="Pendapatan Bulanan (Perkiraan)" type="number" min="0" onKeyDown={(e) => ['e', 'E', '+', '-'].includes(e.key) && e.preventDefault()} value={form.monthly_income} onChange={(e) => setForm({ ...form, monthly_income: Number(e.target.value) })} required prefix="Rp" />
             </div>
           )}
 

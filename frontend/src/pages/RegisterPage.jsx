@@ -237,6 +237,7 @@ const RegisterPage = () => {
                   value={form.name}
                   onChange={handleChange}
                   required
+                  minLength={3}
                   className={fieldErrors.name ? 'input-error' : ''}
                   placeholder="Nama Lengkap Anda"
                 />
@@ -268,6 +269,7 @@ const RegisterPage = () => {
                     value={form.password}
                     onChange={handleChange}
                     required
+                    minLength={8}
                     className={fieldErrors.password ? 'input-error' : ''}
                     placeholder="••••••••"
                   />

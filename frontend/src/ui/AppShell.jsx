@@ -1,9 +1,12 @@
+
 import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Logo } from './Logo.jsx';
 import { currentUser, logout as apiLogout } from '../api/client.js';
 import Navbar from './Navbar.jsx';
+
+
 
 const MotionLink = motion.create(Link);
 
@@ -48,7 +51,7 @@ const AppShell = () => {
                   whileHover={{ y: -1 }}
                   whileTap={{ scale: 0.98 }}
                   type="button"
-                  className={`btn ${cta.variant}`}
+                  className={`btn ${cta.variant} `}
                   onClick={cta.onClick ?? logoutHandler}
                 >
                   {cta.label}
@@ -58,7 +61,7 @@ const AppShell = () => {
                   key={cta.to}
                   whileHover={{ y: -1, scale: 1.01 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`btn ${cta.variant}`}
+                  className={`btn ${cta.variant} `}
                   to={cta.to}
                 >
                   {cta.label}
@@ -82,6 +85,8 @@ const navConfig = (user, logoutHandler) => {
       navLinks: [
         { to: '/', label: 'Home' },
         { to: '/features', label: 'Fitur' },
+        { to: '/about', label: 'Tentang Kami' },
+        { to: '/contact', label: 'Kontak' },
         { to: '/search', label: 'Cari Kos' },
         { to: '/faq', label: 'FAQ' },
       ],
