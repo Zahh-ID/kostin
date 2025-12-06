@@ -19,11 +19,17 @@ class SocialAuthController extends Controller
      */
     public function redirect(): JsonResponse
     {
-        $url = Socialite::driver('google')->stateless()->redirect()->getTargetUrl();
-
-        return response()->json([
-            'url' => $url,
-        ]);
+        Log::info('Google Auth Redirect Requested');
+        try {
+            $url = Socialite::driver('google')->stateless()->redirect()->getTargetUrl();
+            Log::info('Google Auth Redirect URL generated: ' . $url);
+            return response()->json([
+                'url' => $url,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Google Auth Redirect Error: ' . $e->getMessage());
+            return response()->json(['message' => 'Failed to generate redirect URL'], 500);
+        }
     }
 
     /**
@@ -31,10 +37,13 @@ class SocialAuthController extends Controller
      */
     public function callback(): JsonResponse
     {
+        Log::info('Google Auth Callback Hit');
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
+            Log::info('Google User retrieved: ' . $googleUser->getEmail());
         } catch (\Exception $e) {
-            Log::error('Google Auth Error: ' . $e->getMessage());
+            Log::error('Google Auth Callback Error: ' . $e->getMessage());
+            Log::error('Trace: ' . $e->getTraceAsString());
             return response()->json([
                 'message' => 'Google authentication failed.',
                 'error' => $e->getMessage(),

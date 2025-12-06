@@ -132,54 +132,7 @@ const OwnerDashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content Area */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Income Trend Chart Placeholder */}
-              <motion.div variants={itemVariants} className="card p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <h3 className="text-xl font-bold font-display">Tren Pendapatan</h3>
-                    <p className="text-sm text-text-secondary">Performa pendapatan 6 bulan terakhir</p>
-                  </div>
-                  <select className="bg-surface-highlight border border-border rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-primary">
-                    <option>6 Bulan Terakhir</option>
-                    <option>Tahun Ini</option>
-                  </select>
-                </div>
-
-                <div className="h-64 flex items-end justify-between gap-2 px-2">
-                  {(() => {
-                    const trendData = metrics?.revenue_trend || [];
-                    const maxVal = Math.max(...trendData.map(d => d.value), 1);
-
-                    if (trendData.length === 0) {
-                      return (
-                        <div className="w-full h-full flex items-center justify-center text-text-tertiary">
-                          Belum ada data pendapatan
-                        </div>
-                      );
-                    }
-
-                    return trendData.map((val, idx) => (
-                      <div key={idx} className="w-full flex flex-col items-center gap-2 group">
-                        <div className="w-full bg-surface-highlight rounded-t-lg relative h-full overflow-hidden flex items-end">
-                          <motion.div
-                            initial={{ height: 0 }}
-                            animate={{ height: `${(val.value / maxVal) * 100}%` }}
-                            transition={{ duration: 1, delay: idx * 0.1 }}
-                            className="w-full bg-gradient-to-t from-primary/20 to-primary/60 group-hover:from-primary/40 group-hover:to-primary/80 transition-colors relative"
-                          >
-                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold bg-surface border border-border px-2 py-1 rounded shadow-lg whitespace-nowrap z-10">
-                              {currency.format(val.value)}
-                            </div>
-                          </motion.div>
-                        </div>
-                        <span className="text-xs text-text-secondary">
-                          {val.label}
-                        </span>
-                      </div>
-                    ));
-                  })()}
-                </div>
-              </motion.div>
+              {/* Income Trend Chart Removed */}
 
               {/* Recent Activities / Tasks */}
               <motion.div variants={itemVariants} className="card p-6">

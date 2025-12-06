@@ -11,6 +11,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
+import GoogleCallbackPage from './pages/GoogleCallbackPage.jsx';
 import TenantDashboard from './pages/tenant/Dashboard.jsx';
 import TenantContracts from './pages/tenant/Contracts.jsx';
 import TenantWishlist from './pages/tenant/Wishlist.jsx';
