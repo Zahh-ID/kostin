@@ -239,7 +239,7 @@ const OwnerDashboard = () => {
                     <FiHome className="text-xl text-primary" />
                     <span className="text-xs font-medium">Tambah Properti</span>
                   </a>
-                  <a href="/owner/manual-payments" className="p-3 rounded-xl bg-surface-highlight hover:bg-surface-highlight/80 border border-border transition-colors flex flex-col items-center text-center gap-2">
+                  <a href="/owner/payments" className="p-3 rounded-xl bg-surface-highlight hover:bg-surface-highlight/80 border border-border transition-colors flex flex-col items-center text-center gap-2">
                     <FiDollarSign className="text-xl text-green-400" />
                     <span className="text-xs font-medium">Cek Pembayaran</span>
                   </a>

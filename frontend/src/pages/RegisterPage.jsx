@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { register } from '../api/client.js';
+import { register, fetchGoogleAuthUrl } from '../api/client.js';
 import { FiAlertCircle, FiCheck, FiX } from 'react-icons/fi';
 
 const isValidEmail = (value) => /\S+@\S+\.\S+/.test(value);
@@ -378,14 +378,23 @@ const RegisterPage = () => {
             </form>
 
             <div className="divider">atau</div>
-            <motion.a
+            <motion.button
               whileHover={{ y: -1 }}
               whileTap={{ scale: 0.98 }}
               className="btn ghost full w-full"
-              href="/auth/redirect"
+              onClick={async () => {
+                try {
+                  const url = await fetchGoogleAuthUrl();
+                  window.location.href = url;
+                } catch (error) {
+                  console.error("Google Auth Error", error);
+                  setError("Gagal menghubungkan ke Google.");
+                }
+              }}
+              type="button"
             >
               Daftar dengan Google
-            </motion.a>
+            </motion.button>
 
             <div className="mt-6 text-center text-sm text-text-secondary">
               Sudah punya akun?{' '}

@@ -10,6 +10,19 @@ use Illuminate\Support\Facades\Log;
 
 class WebhookSimulatorController extends Controller
 {
+    public function index(): \Illuminate\Http\JsonResponse
+    {
+        $payments = Payment::query()
+            ->pending()
+            ->latest()
+            ->select(['id', 'order_id', 'amount', 'status', 'created_at'])
+            ->get();
+
+        return response()->json([
+            'data' => $payments
+        ]);
+    }
+
     public function __construct(
         protected OwnerWalletService $walletService
     ) {

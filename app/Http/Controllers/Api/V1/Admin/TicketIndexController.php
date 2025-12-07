@@ -17,9 +17,15 @@ class TicketIndexController extends Controller
 
         $tickets = Ticket::query()
             ->with(['reporter', 'assignee'])
-            ->where(function ($query) use ($admin) {
-                $query->whereNull('assignee_id')
-                    ->orWhere('assignee_id', $admin->id);
+            ->where(function ($query) {
+                $query->whereNull('related_type')
+                    ->orWhereNotIn('related_type', [
+                        \App\Models\Property::class,
+                        \App\Models\Room::class,
+                        \App\Models\RoomType::class,
+                        \App\Models\Contract::class,
+                        \App\Models\Invoice::class,
+                    ]);
             })
             ->latest()
             ->limit(50)
@@ -41,7 +47,7 @@ class TicketIndexController extends Controller
         $ticket->fill(array_filter([
             'status' => $validated['status'] ?? null,
             'assignee_id' => $validated['assignee_id'] ?? null,
-        ], static fn ($value) => $value !== null));
+        ], static fn($value) => $value !== null));
         $ticket->save();
 
         $this->recordAudit('admin.ticket.update', 'ticket', $ticket->id, [

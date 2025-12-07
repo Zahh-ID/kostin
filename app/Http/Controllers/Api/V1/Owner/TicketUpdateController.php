@@ -20,6 +20,11 @@ class TicketUpdateController extends Controller
 
         abort_unless($this->canManage($owner?->id, $ticket), Response::HTTP_FORBIDDEN);
 
+        // Prevent owner from updating status of tickets they reported (Platform Tickets)
+        if ($ticket->reporter_id === $owner->id && $ticket->related_type === null) {
+            abort(Response::HTTP_FORBIDDEN, 'Anda tidak dapat mengubah status tiket yang Anda buat untuk Admin.');
+        }
+
         $ticket->update([
             'status' => $request->string('status'),
             'assignee_id' => $ticket->assignee_id ?: $owner?->id,

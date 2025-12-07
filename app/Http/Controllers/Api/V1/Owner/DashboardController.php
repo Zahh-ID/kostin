@@ -9,6 +9,7 @@ use App\Models\Property;
 use App\Models\RentalApplication;
 use App\Models\Room;
 use App\Models\RoomType;
+use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -63,6 +64,16 @@ class DashboardController extends Controller
             ->groupBy('status')
             ->pluck('aggregate', 'status');
 
+        $ticketsOpen = Ticket::query()
+            ->whereIn('status', [Ticket::STATUS_OPEN, Ticket::STATUS_IN_REVIEW, Ticket::STATUS_ESCALATED])
+            ->where('related_type', Property::class)
+            ->whereHasMorph(
+                'related',
+                [Property::class],
+                fn($query) => $query->where('owner_id', $owner->id)
+            )
+            ->count();
+
         $revenueTrend = $this->buildMonthlyTrend(
             fn(Carbon $start, Carbon $end) => Payment::query()
                 ->whereHas('invoice.contract.room.roomType.property', fn($query) => $query->where('owner_id', $owner->id))
@@ -98,6 +109,7 @@ class DashboardController extends Controller
                 'approved' => (int) ($applications['approved'] ?? 0),
                 'rejected' => (int) ($applications['rejected'] ?? 0),
             ],
+            'tickets_open' => $ticketsOpen,
             'revenue_trend' => $revenueTrend,
             'contracts_started_trend' => $contractsStartedTrend,
         ]);

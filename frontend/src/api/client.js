@@ -111,6 +111,16 @@ export const fetchTenantWishlist = async () => {
   return response.data?.data ?? [];
 };
 
+export const addToWishlist = async (propertyId) => {
+  const response = await api.post('/v1/tenant/wishlist', { property_id: propertyId });
+  return response.data;
+};
+
+export const removeFromWishlist = async (propertyId) => {
+  const response = await api.delete(`/v1/tenant/wishlist/${propertyId}`);
+  return response.data;
+};
+
 export const searchTenantProperties = async (search) => {
   const response = await api.get('/v1/tenant/search', { params: { search } });
 
@@ -208,16 +218,18 @@ export const fetchOwnerRooms = async () => {
   return response.data;
 };
 
-export const fetchOwnerTickets = async () => {
-  const response = await api.get('/v1/owner/tickets');
-
-  return response.data?.data ?? [];
+export const fetchOwnerTickets = async (params = {}) => {
+  const response = await api.get('/v1/owner/tickets', { params });
+  return response.data;
 };
 
-export const updateOwnerTicket = async (ticketId, payload) => {
+export const createOwnerTicket = async (data) => {
+  const response = await api.post('/v1/owner/tickets', data);
+  return response.data;
+};
 
-  const response = await api.put(`/v1/owner/tickets/${ticketId}`, payload);
-
+export const updateOwnerTicket = async (id, data) => {
+  const response = await api.patch(`/v1/owner/tickets/${id}`, data);
   return response.data?.data ?? response.data;
 };
 
@@ -456,4 +468,14 @@ export const activateAdminUser = async (userId) => {
 export const simulateWebhook = async (payload) => {
   const response = await api.post('/v1/admin/webhook/midtrans', payload);
   return response.data;
+};
+
+export const fetchPendingPayments = async () => {
+  const response = await api.get('/v1/admin/simulator/orders');
+  return response.data?.data ?? [];
+};
+
+export const fetchGoogleAuthUrl = async () => {
+  const response = await api.get('/v1/auth/google/redirect');
+  return response.data.url;
 };

@@ -41,6 +41,16 @@ class DashboardController extends Controller
 
         $ticketsOpen = Ticket::query()
             ->whereIn('status', [Ticket::STATUS_OPEN, Ticket::STATUS_IN_REVIEW, Ticket::STATUS_ESCALATED])
+            ->where(function ($query) {
+                $query->whereNull('related_type')
+                    ->orWhereNotIn('related_type', [
+                        \App\Models\Property::class,
+                        \App\Models\Room::class,
+                        \App\Models\RoomType::class,
+                        \App\Models\Contract::class,
+                        \App\Models\Invoice::class,
+                    ]);
+            })
             ->count();
 
         $invoices = Invoice::query()
@@ -53,12 +63,12 @@ class DashboardController extends Controller
             ->groupBy('role')
             ->pluck('aggregate', 'role');
 
-        $revenueTrend = $this->buildMonthlyTrend(fn (Carbon $start, Carbon $end) => Payment::query()
+        $revenueTrend = $this->buildMonthlyTrend(fn(Carbon $start, Carbon $end) => Payment::query()
             ->whereBetween('created_at', [$start, $end])
             ->success()
             ->sum('amount'));
 
-        $registrationsTrend = $this->buildMonthlyTrend(fn (Carbon $start, Carbon $end) => User::query()
+        $registrationsTrend = $this->buildMonthlyTrend(fn(Carbon $start, Carbon $end) => User::query()
             ->whereBetween('created_at', [$start, $end])
             ->count());
 

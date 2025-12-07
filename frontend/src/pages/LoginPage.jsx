@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { login } from '../api/client.js';
+import { login, fetchGoogleAuthUrl } from '../api/client.js';
 import SEO from '../components/SEO.jsx';
 
 import { FiAlertCircle } from 'react-icons/fi';
@@ -209,8 +209,8 @@ const LoginPage = () => {
               className="btn ghost full w-full flex items-center justify-center gap-2"
               onClick={async () => {
                 try {
-                  const response = await import('axios').then(m => m.default.get(`${import.meta.env.VITE_API_BASE_URL}/v1/auth/google/redirect`));
-                  window.location.href = response.data.url;
+                  const url = await fetchGoogleAuthUrl();
+                  window.location.href = url;
                 } catch (error) {
                   console.error("Google Auth Error", error);
                   setError("Gagal menghubungkan ke Google.");

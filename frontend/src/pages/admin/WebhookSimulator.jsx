@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiActivity, FiCheck, FiAlertCircle, FiPlay } from 'react-icons/fi';
-import { simulateWebhook } from '../../api/client';
+import { simulateWebhook, fetchPendingPayments } from '../../api/client';
 
 const WebhookSimulator = () => {
     const [formData, setFormData] = useState({
@@ -11,6 +11,19 @@ const WebhookSimulator = () => {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
     const [error, setError] = useState(null);
+    const [pendingOrders, setPendingOrders] = useState([]);
+
+    React.useEffect(() => {
+        const loadOrders = async () => {
+            try {
+                const orders = await fetchPendingPayments();
+                setPendingOrders(orders);
+            } catch (err) {
+                console.error('Failed to load pending orders:', err);
+            }
+        };
+        loadOrders();
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -54,15 +67,20 @@ const WebhookSimulator = () => {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
                             <label className="block text-sm font-medium text-text-secondary mb-2">Order ID</label>
-                            <input
-                                type="text"
+                            <select
                                 value={formData.order_id}
                                 onChange={(e) => setFormData({ ...formData, order_id: e.target.value })}
-                                placeholder="e.g. INV-123-..."
                                 className="w-full bg-bg/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                                 required
-                            />
-                            <p className="text-xs text-text-tertiary mt-2">Enter the full Order ID from the invoice or payment record.</p>
+                            >
+                                <option value="">Select a pending order...</option>
+                                {pendingOrders.map(order => (
+                                    <option key={order.id} value={order.order_id}>
+                                        {order.order_id} - {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(order.amount)}
+                                    </option>
+                                ))}
+                            </select>
+                            <p className="text-xs text-text-tertiary mt-2">Select a pending payment to simulate.</p>
                         </div>
 
                         <div>

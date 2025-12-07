@@ -91,6 +91,8 @@ Route::prefix('v1')
             Route::prefix('tenant')->group(function (): void {
                 Route::get('/overview', TenantOverviewController::class);
                 Route::get('/wishlist', [TenantWishlistController::class, 'index']);
+                Route::post('/wishlist', [TenantWishlistController::class, 'store']);
+                Route::delete('/wishlist/{property}', [TenantWishlistController::class, 'destroy']);
                 Route::get('/tickets', [TenantTicketController::class, 'index']);
                 Route::get('/tickets/{ticket}', [TenantTicketController::class, 'show']);
                 Route::post('/tickets', [TenantTicketController::class, 'store']);
@@ -125,6 +127,7 @@ Route::prefix('v1')
                 Route::get('/contracts', OwnerContractIndexController::class);
                 Route::get('/manual-payments', OwnerManualPaymentIndexController::class);
                 Route::get('/tickets', OwnerTicketIndexController::class);
+                Route::post('/tickets', \App\Http\Controllers\Api\V1\Owner\TicketStoreController::class);
                 Route::match(['put', 'patch'], '/tickets/{ticket}', OwnerTicketUpdateController::class);
                 Route::get('/applications', OwnerApplicationIndexController::class);
                 Route::get('/wallet', OwnerWalletController::class);
@@ -153,6 +156,7 @@ Route::prefix('v1')
                 Route::post('/users/{user}/activate', [\App\Http\Controllers\Api\V1\Admin\UserActionController::class, 'activate']);
 
                 // Webhook Simulator
+                Route::get('/simulator/orders', [\App\Http\Controllers\Api\V1\Admin\WebhookSimulatorController::class, 'index']);
                 Route::post('/webhook/midtrans', \App\Http\Controllers\Api\V1\Admin\WebhookSimulatorController::class);
             });
         });

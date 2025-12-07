@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSearch, FiFilter, FiMapPin, FiHome, FiDollarSign, FiX, FiCheck, FiAlertCircle } from 'react-icons/fi';
-import { fetchTenantProperty, searchTenantPropertiesApi, currentUser } from '../../api/client.js';
+import { FiSearch, FiFilter, FiMapPin, FiHome, FiDollarSign, FiX, FiCheck, FiAlertCircle, FiHeart } from 'react-icons/fi';
+import { fetchTenantProperty, searchTenantPropertiesApi, currentUser, fetchTenantWishlist, addToWishlist, removeFromWishlist } from '../../api/client.js';
 import MapPreview, { toCoords } from './components/MapPreview.jsx';
 
 const formatPrice = (value) => (typeof value === 'number' ? `Rp${value.toLocaleString('id-ID')}` : 'Rp0');
@@ -15,6 +15,7 @@ const TenantSearch = () => {
   const [maxPrice, setMaxPrice] = useState('');
   const [facilities, setFacilities] = useState([]);
   const [results, setResults] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [detailModal, setDetailModal] = useState({ open: false, property: null, loading: false, error: '' });
@@ -76,8 +77,29 @@ const TenantSearch = () => {
 
   useEffect(() => {
     search();
+    fetchTenantWishlist().then(data => setWishlist(data.map(item => item.property_id))).catch(() => { });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleToggleWishlist = async (e, propertyId) => {
+    e.stopPropagation();
+    const isWishlisted = wishlist.includes(propertyId);
+
+    // Optimistic update
+    setWishlist(prev => isWishlisted ? prev.filter(id => id !== propertyId) : [...prev, propertyId]);
+
+    try {
+      if (isWishlisted) {
+        await removeFromWishlist(propertyId);
+      } else {
+        await addToWishlist(propertyId);
+      }
+    } catch (error) {
+      // Revert on error
+      setWishlist(prev => isWishlisted ? [...prev, propertyId] : prev.filter(id => id !== propertyId));
+      console.error('Failed to update wishlist', error);
+    }
+  };
 
   return (
     <div className="page pt-32 pb-20">
@@ -199,6 +221,8 @@ const TenantSearch = () => {
                 property={property}
                 index={index}
                 onDetail={() => openDetail(property.id)}
+                isWishlisted={wishlist.includes(property.id)}
+                onToggleWishlist={(e) => handleToggleWishlist(e, property.id)}
               />
             ))}
           </div>
@@ -239,7 +263,7 @@ const TenantSearch = () => {
   );
 };
 
-const PropertyCard = ({ property, index, onDetail }) => {
+const PropertyCard = ({ property, index, onDetail, isWishlisted, onToggleWishlist }) => {
   const priceCandidates = property.room_types?.map((rt) => rt.base_price).filter(Boolean) ?? [];
   const price = priceCandidates.length ? Math.min(...priceCandidates) : property.base_price ?? property.price;
   const firstPhoto = property.photos?.[0];
@@ -267,6 +291,12 @@ const PropertyCard = ({ property, index, onDetail }) => {
         <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold border border-white/10">
           {availableRooms > 0 ? `${availableRooms} Kamar` : 'Penuh'}
         </div>
+        <button
+          onClick={onToggleWishlist}
+          className="absolute top-3 left-3 p-2 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-black/60 transition-colors z-10"
+        >
+          <FiHeart className={`text-lg ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-white'}`} />
+        </button>
       </div>
       <div className="p-5 flex flex-col flex-grow">
         <div className="flex justify-between items-start mb-2">
@@ -285,7 +315,7 @@ const PropertyCard = ({ property, index, onDetail }) => {
           <button className="btn ghost btn-sm">Detail</button>
         </div>
       </div>
-    </motion.div>
+    </motion.div >
   );
 };
 

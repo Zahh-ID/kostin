@@ -87,9 +87,7 @@ const OwnerPayments = () => {
             animate={{ opacity: 1, x: 0 }}
             className="flex gap-3"
           >
-            <a href="/owner/manual-payments" className="btn ghost">
-              <FiCheckCircle className="mr-2" /> Approval
-            </a>
+            {/* Removed redundant link */}
             <button onClick={() => setIsWithdrawModalOpen(true)} className="btn primary">
               <FiArrowUpRight className="mr-2" /> Tarik Dana
             </button>

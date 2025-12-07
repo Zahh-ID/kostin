@@ -15,6 +15,7 @@ class OwnerWalletTransaction extends Model
         'payment_id',
         'type',
         'amount',
+        'status',
         'description',
         'metadata',
     ];

@@ -355,7 +355,7 @@ const TenantTickets = () => {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative bg-surface/95 backdrop-blur-2xl border border-white/10 rounded-3xl w-full max-w-lg p-8 shadow-2xl ring-1 ring-black/5"
+              className="relative bg-surface/95 backdrop-blur-2xl border border-white/10 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 md:p-8 shadow-2xl ring-1 ring-black/5 m-4"
             >
               <div className="flex justify-between items-start mb-8">
                 <div>
@@ -393,7 +393,7 @@ const TenantTickets = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-bold text-text-secondary mb-2">Kategori</label>
                     <div className="relative">
