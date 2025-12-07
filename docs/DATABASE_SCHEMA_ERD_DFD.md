@@ -36,407 +36,438 @@ KostIn menggunakan **Supabase PostgreSQL** dengan **Key-Value Store pattern** un
 
 ---
 
-## 📊 DATABASE SCHEMA (KV STORE)
+## 📊 DATABASE SCHEMA (RELATIONAL)
 
 ### **Physical Schema**
 
-**Table: `kv_store_dbd6b95a`**
+The system uses a standard Relational Database Management System (PostgreSQL/MySQL) with the following tables:
 
-```sql
-CREATE TABLE kv_store_dbd6b95a (
-  key TEXT NOT NULL PRIMARY KEY,
-  value JSONB NOT NULL
-);
+#### 1️⃣ **users**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `name` | VARCHAR | Not Null | |
+| `email` | VARCHAR | Unique, Not Null | |
+| `phone` | VARCHAR | Nullable | |
+| `role` | ENUM | Default 'tenant' | 'admin', 'owner', 'tenant' |
+| `email_verified_at` | TIMESTAMP | Nullable | |
+| `password` | VARCHAR | Not Null | |
+| `google_id` | VARCHAR | Unique, Nullable | |
+| `suspended_at` | TIMESTAMP | Nullable | |
+| `remember_token` | VARCHAR | Nullable | |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
--- Index untuk prefix queries
-CREATE INDEX idx_kv_key_prefix ON kv_store_dbd6b95a 
-  USING btree (key text_pattern_ops);
-```
+#### 2️⃣ **properties**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `owner_id` | BIGINT | FK -> users.id | Cascade on Delete |
+| `name` | VARCHAR | Not Null | |
+| `address` | VARCHAR | Not Null | |
+| `lat` | DECIMAL(10,7) | Nullable | |
+| `lng` | DECIMAL(10,7) | Nullable | |
+| `rules_text` | TEXT | Nullable | |
+| `photos` | JSON | Nullable | |
+| `status` | ENUM | Default 'pending' | 'draft', 'pending', 'approved', 'rejected' |
+| `moderation_notes` | TEXT | Nullable | |
+| `moderated_by` | BIGINT | FK -> users.id | Nullable, Null on Delete |
+| `moderated_at` | TIMESTAMP | Nullable | |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
-**Structure:**
-- **key**: String identifier (TEXT) - Primary Key
-- **value**: JSON object (JSONB) - Flexible schema
+#### 3️⃣ **room_types**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `property_id` | BIGINT | FK -> properties.id | Cascade on Delete |
+| `name` | VARCHAR | Not Null | |
+| `description` | TEXT | Nullable | |
+| `area_m2` | INT UNSIGNED | Nullable | |
+| `bathroom_type` | ENUM | Nullable | 'inside', 'outside' |
+| `base_price` | INT UNSIGNED | Not Null | |
+| `deposit` | INT UNSIGNED | Default 0 | |
+| `facilities_json` | JSON | Nullable | |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
----
+#### 4️⃣ **rooms**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `room_type_id` | BIGINT | FK -> room_types.id | Cascade on Delete |
+| `room_code` | VARCHAR | Not Null | |
+| `custom_price` | INT UNSIGNED | Nullable | |
+| `status` | ENUM | Default 'available' | 'available', 'occupied', 'maintenance' |
+| `description` | TEXT | Nullable | |
+| `photos_json` | JSON | Nullable | |
+| `facilities_override_json` | JSON | Nullable | |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
-### **Logical Schema - Key Patterns**
+#### 5️⃣ **contracts**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `tenant_id` | BIGINT | FK -> users.id | Cascade on Delete |
+| `room_id` | BIGINT | FK -> rooms.id | Cascade on Delete |
+| `start_date` | DATE | Not Null | |
+| `end_date` | DATE | Nullable | |
+| `price_per_month` | INT UNSIGNED | Not Null | |
+| `billing_day` | TINYINT UNSIGNED | Default 1 | |
+| `deposit_amount` | INT UNSIGNED | Default 0 | |
+| `grace_days` | TINYINT UNSIGNED | Default 3 | |
+| `late_fee_per_day` | INT UNSIGNED | Default 0 | |
+| `status` | ENUM | Default 'active' | 'draft', 'submitted', 'active', 'pending_renewal', 'terminated', 'canceled', 'expired' |
+| `submitted_at` | TIMESTAMP | Nullable | |
+| `activated_at` | TIMESTAMP | Nullable | |
+| `terminated_at` | TIMESTAMP | Nullable | |
+| `termination_reason` | TEXT | Nullable | |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
-Semua data disimpan dengan **hierarchical key pattern** untuk organization dan efficient querying.
+#### 6️⃣ **invoices**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `contract_id` | BIGINT | FK -> contracts.id | Cascade on Delete |
+| `period_month` | SMALLINT UNSIGNED | Not Null | |
+| `period_year` | SMALLINT UNSIGNED | Not Null | |
+| `months_count` | TINYINT UNSIGNED | Default 1 | |
+| `coverage_start_month` | TINYINT UNSIGNED | Nullable | |
+| `coverage_start_year` | SMALLINT UNSIGNED | Nullable | |
+| `coverage_end_month` | TINYINT UNSIGNED | Nullable | |
+| `coverage_end_year` | SMALLINT UNSIGNED | Nullable | |
+| `due_date` | DATE | Not Null | |
+| `amount` | INT UNSIGNED | Not Null | |
+| `late_fee` | INT UNSIGNED | Default 0 | |
+| `total` | INT UNSIGNED | Not Null | |
+| `status` | ENUM | Default 'unpaid' | 'unpaid', 'paid', 'overdue', 'canceled', 'pending_verification', 'expired' |
+| `status_reason` | TEXT | Nullable | |
+| `primary_payment_id` | BIGINT UNSIGNED | Nullable | |
+| `external_order_id` | VARCHAR | Nullable | |
+| `qris_payload` | JSON | Nullable | |
+| `paid_at` | TIMESTAMP | Nullable | |
+| `expires_at` | TIMESTAMP | Nullable | |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
-**Key Pattern Format:**
-```
-{entity_type}:{primary_id}[:{relation}:{secondary_id}]
-```
+#### 7️⃣ **payments**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `invoice_id` | BIGINT | FK -> invoices.id | Cascade on Delete |
+| `user_id` | BIGINT | FK -> users.id | Nullable, Cascade on Delete |
+| `submitted_by` | BIGINT | FK -> users.id | Nullable, Null on Delete |
+| `midtrans_order_id` | VARCHAR | Nullable | Indexed |
+| `order_id` | VARCHAR | Unique | |
+| `transaction_id` | VARCHAR | Nullable | |
+| `payment_type` | ENUM | Default 'qris' | 'qris', 'manual_bank_transfer', 'manual_cash' |
+| `manual_method` | VARCHAR | Nullable | |
+| `amount` | DECIMAL(15,2) | Not Null | |
+| `status` | ENUM | Default 'pending' | 'pending', 'waiting_verification', 'success', 'failed', 'rejected' |
+| `paid_at` | TIMESTAMP | Nullable | |
+| `transaction_status` | VARCHAR | Nullable | |
+| `qris_string` | TEXT | Nullable | |
+| `va_numbers` | JSON | Nullable | |
+| `midtrans_response` | JSON | Nullable | |
+| `raw_webhook_json` | JSON | Nullable | |
+| `proof_path` | VARCHAR | Nullable | |
+| `proof_filename` | VARCHAR | Nullable | |
+| `notes` | TEXT | Nullable | |
+| `verified_by` | BIGINT | FK -> users.id | Nullable, Null on Delete |
+| `verified_at` | TIMESTAMP | Nullable | |
+| `rejection_reason` | TEXT | Nullable | |
+| `settlement_time` | TIMESTAMP | Nullable | |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
-**Example:**
-```
-user:abc123                          // User entity
-property:prop001                     // Property entity
-contract:contract001                 // Contract entity
-invoice:inv001                       // Invoice entity
-wishlist:user123:prop456            // Wishlist relation
-chat:conversation:conv001           // Chat conversation
-chat:message:msg001                 // Chat message
-ticket:ticket001                    // Support ticket
-```
+#### 8️⃣ **wishlist_items**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `user_id` | BIGINT | FK -> users.id | Cascade on Delete |
+| `property_id` | BIGINT | FK -> properties.id | Cascade on Delete |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
----
+#### 9️⃣ **tickets**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `ticket_code` | VARCHAR | Unique | |
+| `reporter_id` | BIGINT | FK -> users.id | Cascade on Delete |
+| `assignee_id` | BIGINT | FK -> users.id | Nullable, Null on Delete |
+| `subject` | VARCHAR | Not Null | |
+| `description` | TEXT | Not Null | |
+| `category` | ENUM | Not Null | 'technical', 'payment', 'content', 'abuse' |
+| `priority` | ENUM | Default 'medium' | 'low', 'medium', 'high', 'urgent' |
+| `status` | ENUM | Default 'open' | 'open', 'in_review', 'escalated', 'resolved', 'rejected' |
+| `related_type` | VARCHAR | Nullable | Polymorphic |
+| `related_id` | BIGINT | Nullable | Polymorphic |
+| `tags` | JSON | Nullable | |
+| `sla_minutes` | INT UNSIGNED | Nullable | |
+| `closed_at` | TIMESTAMP | Nullable | |
+| `escalated_at` | TIMESTAMP | Nullable | |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
-### **Entity Types**
+#### 🔟 **ticket_comments**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `ticket_id` | BIGINT | FK -> tickets.id | Cascade on Delete |
+| `user_id` | BIGINT | FK -> users.id | Cascade on Delete |
+| `body` | TEXT | Not Null | |
+| `attachments` | JSON | Nullable | |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
-#### 1️⃣ **USER** (Stored in Supabase Auth)
-```
-Table: auth.users
-Primary Key: id (UUID)
-```
+#### 1️⃣1️⃣ **ticket_events**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `ticket_id` | BIGINT | FK -> tickets.id | Cascade on Delete |
+| `user_id` | BIGINT | FK -> users.id | Nullable, Null on Delete |
+| `event_type` | ENUM | Not Null | 'created', 'status_changed', 'comment_added', 'assigned', 'escalated', 'resolved', 'reopened', 'rejected' |
+| `payload` | JSON | Nullable | |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
-**User Metadata (in auth):**
-```json
-{
-  "name": "Ahmad Fauzi",
-  "role": "tenant|owner|admin"
-}
-```
+#### 1️⃣2️⃣ **conversations**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `title` | VARCHAR | Nullable | |
+| `is_group` | BOOLEAN | Default false | |
+| `metadata` | JSON | Nullable | |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
-**Extended Profile (in KV):**
-```
-Key: profile:{userId}
-Value: {
-  "phone": "081234567890",
-  "address": "Jl. Example No. 123",
-  "name": "Ahmad Fauzi",
-  "role": "tenant",
-  "updatedAt": "2024-11-04T10:00:00Z"
-}
-```
+#### 1️⃣3️⃣ **conversation_user**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `conversation_id` | BIGINT | FK -> conversations.id | Cascade on Delete |
+| `user_id` | BIGINT | FK -> users.id | Cascade on Delete |
+| `last_read_at` | TIMESTAMP | Nullable | |
+| `role` | VARCHAR | Nullable | |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
----
+#### 1️⃣4️⃣ **messages**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `conversation_id` | BIGINT | FK -> conversations.id | Cascade on Delete |
+| `user_id` | BIGINT | FK -> users.id | Cascade on Delete |
+| `body` | TEXT | Not Null | |
+| `attachments` | JSON | Nullable | |
+| `read_at` | TIMESTAMP | Nullable | |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
-#### 2️⃣ **PROPERTY**
-```
-Key: property:{propertyId}
-```
+#### 1️⃣5️⃣ **rental_applications**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `tenant_id` | BIGINT | FK -> users.id | Cascade on Delete |
+| `property_id` | BIGINT | FK -> properties.id | Cascade on Delete |
+| `room_type_id` | BIGINT | FK -> room_types.id | Nullable, Null on Delete |
+| `room_id` | BIGINT | FK -> rooms.id | Nullable, Null on Delete |
+| `contact_phone` | VARCHAR | Nullable | |
+| `contact_email` | VARCHAR | Nullable | |
+| `preferred_start_date` | DATE | Nullable | |
+| `duration_months` | INT UNSIGNED | Default 12 | |
+| `occupants_count` | TINYINT UNSIGNED | Default 1 | |
+| `budget_per_month` | BIGINT UNSIGNED | Nullable | |
+| `employment_status` | VARCHAR | Nullable | |
+| `company_name` | VARCHAR | Nullable | |
+| `job_title` | VARCHAR | Nullable | |
+| `monthly_income` | BIGINT UNSIGNED | Nullable | |
+| `has_vehicle` | BOOLEAN | Default false | |
+| `vehicle_notes` | VARCHAR | Nullable | |
+| `emergency_contact_name` | VARCHAR | Nullable | |
+| `emergency_contact_phone` | VARCHAR | Nullable | |
+| `status` | VARCHAR | Default 'pending' | 'pending', 'approved', 'rejected', 'cancelled' |
+| `tenant_notes` | TEXT | Nullable | |
+| `owner_notes` | TEXT | Nullable | |
+| `approved_at` | TIMESTAMP | Nullable | |
+| `rejected_at` | TIMESTAMP | Nullable | |
+| `terms_text` | TEXT | Nullable | |
+| `terms_accepted_at` | TIMESTAMP | Nullable | |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
-**Value Structure:**
-```json
-{
-  "id": "prop_001",
-  "ownerId": "user_owner_123",
-  "ownerName": "Ibu Susi",
-  "name": "Kos Melati Residence",
-  "description": "Kos nyaman dan strategis...",
-  "address": "Jl. Raya Dramaga No. 45",
-  "city": "Bogor",
-  "district": "Dramaga",
-  "type": "putra|putri|campur",
-  "pricePerMonth": 1200000,
-  "availableRooms": 5,
-  "totalRooms": 12,
-  "facilities": ["AC", "Wi-Fi", "Kamar Mandi Dalam", "Parkir"],
-  "images": [
-    "https://images.unsplash.com/...",
-    "https://images.unsplash.com/..."
-  ],
-  "status": "pending_approval|active|rejected|inactive",
-  "rating": 4.5,
-  "reviewCount": 24,
-  "createdAt": "2024-10-01T10:00:00Z",
-  "updatedAt": "2024-11-04T10:00:00Z"
-}
-```
+#### 1️⃣6️⃣ **owner_wallets**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `owner_id` | BIGINT | FK -> users.id | Unique, Cascade on Delete |
+| `balance` | DECIMAL(15,2) | Default 0 | |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
-**Related Keys:**
-- `property:{ownerId}:list` - List all properties by owner
-- `property:active:list` - List all active properties
-- `property:{city}:list` - List properties by city
+#### 1️⃣7️⃣ **owner_wallet_transactions**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `owner_wallet_id` | BIGINT | FK -> owner_wallets.id | Cascade on Delete |
+| `payment_id` | BIGINT | FK -> payments.id | Nullable, Null on Delete |
+| `type` | ENUM | Not Null | 'credit', 'debit' |
+| `amount` | DECIMAL(15,2) | Not Null | |
+| `description` | VARCHAR | Nullable | |
+| `metadata` | JSON | Nullable | |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
----
-
-#### 3️⃣ **CONTRACT**
-```
-Key: contract:{contractId}
-```
-
-**Value Structure:**
-```json
-{
-  "id": "contract_001",
-  "tenantId": "user_tenant_123",
-  "tenantName": "Ahmad Fauzi",
-  "tenantEmail": "ahmad@email.com",
-  "tenantPhone": "081234567890",
-  "ownerId": "user_owner_456",
-  "propertyId": "prop_001",
-  "propertyName": "Kos Melati Residence",
-  "roomType": "Single AC - Kamar Mandi Dalam",
-  "roomNumber": "101",
-  "startDate": "2024-01-01",
-  "endDate": "2024-12-31",
-  "monthlyRent": 1200000,
-  "deposit": 1200000,
-  "duration": 12,
-  "status": "active|expired|terminated",
-  "paymentSchedule": "monthly",
-  "paymentDueDay": 5,
-  "terms": [
-    "Dilarang membawa hewan peliharaan",
-    "Tamu wajib lapor",
-    "Jam malam 22.00 WIB"
-  ],
-  "emergencyContact": {
-    "name": "Budi Santoso",
-    "phone": "081234567890",
-    "relation": "Ayah"
-  },
-  "createdAt": "2024-01-01T10:00:00Z",
-  "updatedAt": "2024-11-04T10:00:00Z"
-}
-```
-
-**Related Keys:**
-- `contract:tenant:{tenantId}` - List contracts by tenant
-- `contract:owner:{ownerId}` - List contracts by owner
-- `contract:property:{propertyId}` - List contracts by property
-
----
-
-#### 4️⃣ **INVOICE**
-```
-Key: invoice:{invoiceId}
-```
-
-**Value Structure:**
-```json
-{
-  "id": "INV-2024-11-001",
-  "contractId": "contract_001",
-  "tenantId": "user_tenant_123",
-  "tenantName": "Ahmad Fauzi",
-  "ownerId": "user_owner_456",
-  "propertyId": "prop_001",
-  "propertyName": "Kos Melati Residence",
-  "month": "November 2024",
-  "year": 2024,
-  "monthNumber": 11,
-  "amount": 1200000,
-  "dueDate": "2024-11-05",
-  "status": "pending|paid|overdue|cancelled",
-  "paymentMethod": null,
-  "paidDate": null,
-  "paidAmount": 0,
-  "lateFee": 0,
-  "description": "Sewa bulan November 2024",
-  "notes": "",
-  "createdAt": "2024-10-25T10:00:00Z",
-  "updatedAt": "2024-11-04T10:00:00Z"
-}
-```
-
-**Related Keys:**
-- `invoice:tenant:{tenantId}` - List invoices by tenant
-- `invoice:owner:{ownerId}` - List invoices by owner
-- `invoice:contract:{contractId}` - List invoices by contract
-- `invoice:status:pending` - List pending invoices
-
----
-
-#### 5️⃣ **PAYMENT**
-```
-Key: payment:{paymentId}
-```
-
-**Value Structure:**
-```json
-{
-  "id": "payment_001",
-  "invoiceId": "INV-2024-11-001",
-  "tenantId": "user_tenant_123",
-  "ownerId": "user_owner_456",
-  "amount": 1200000,
-  "method": "qris|manual|bank_transfer|gopay|shopeepay",
-  "status": "pending|success|failed|cancelled",
-  "type": "automatic|manual",
-  
-  // For QRIS/Midtrans
-  "midtransOrderId": "ORDER-1730700000-abc123",
-  "midtransTransactionId": "d4d6576e-26c0-4730...",
-  "qrisString": "https://api.sandbox.midtrans.com/v2/qris/...",
-  "midtransStatus": "pending|settlement|capture|deny|cancel|expire",
-  
-  // For Manual Transfer
-  "proofUrl": "https://...supabase.co/storage/.../proof.jpg",
-  "proofUploadedAt": "2024-11-04T10:00:00Z",
-  "verifiedBy": "user_owner_456",
-  "verifiedAt": "2024-11-04T10:30:00Z",
-  "verificationStatus": "pending|approved|rejected",
-  "rejectionReason": "",
-  
-  "paidAt": "2024-11-04T10:30:00Z",
-  "createdAt": "2024-11-04T10:00:00Z",
-  "updatedAt": "2024-11-04T10:30:00Z"
-}
-```
-
-**Related Keys:**
-- `payment:invoice:{invoiceId}` - Payment for invoice
-- `payment:tenant:{tenantId}` - List payments by tenant
-- `payment:status:pending` - Pending payments
-
----
-
-#### 6️⃣ **WISHLIST**
-```
-Key: wishlist:{userId}:{propertyId}
-```
-
-**Value Structure:**
-```json
-{
-  "userId": "user_tenant_123",
-  "propertyId": "prop_001",
-  "propertyName": "Kos Melati Residence",
-  "propertyCity": "Bogor",
-  "propertyPrice": 1200000,
-  "propertyImage": "https://images.unsplash.com/...",
-  "addedAt": "2024-11-04T10:00:00Z"
-}
-```
-
-**Related Keys:**
-- `wishlist:{userId}:*` - All wishlists for user (prefix query)
-
----
-
-#### 7️⃣ **SAVED SEARCH**
-```
-Key: saved-search:{userId}:{searchId}
-```
-
-**Value Structure:**
-```json
-{
-  "id": "search_001",
-  "userId": "user_tenant_123",
-  "name": "Kos Dekat IPB",
-  "filters": {
-    "search": "",
-    "city": "Bogor",
-    "type": "putra",
-    "minPrice": 0,
-    "maxPrice": 2000000,
-    "facilities": ["ac", "wifi"]
-  },
-  "notificationEnabled": true,
-  "createdAt": "2024-11-04T10:00:00Z",
-  "lastUsed": "2024-11-04T10:00:00Z"
-}
-```
-
-**Related Keys:**
-- `saved-search:{userId}:*` - All saved searches for user
-
----
-
-#### 8️⃣ **CHAT - CONVERSATION**
-```
-Key: chat:conversation:{conversationId}
-```
-
-**Value Structure:**
-```json
-{
-  "id": "conv_001",
-  "participants": ["user_tenant_123", "user_owner_456"],
-  "participantNames": {
-    "user_tenant_123": "Ahmad Fauzi",
-    "user_owner_456": "Ibu Susi"
-  },
-  "participantRoles": {
-    "user_tenant_123": "tenant",
-    "user_owner_456": "owner"
-  },
-  "propertyId": "prop_001",
-  "propertyName": "Kos Melati Residence",
-  "lastMessage": "Kamar masih tersedia kah?",
-  "lastMessageAt": "2024-11-04T10:00:00Z",
-  "createdAt": "2024-11-01T10:00:00Z",
-  "updatedAt": "2024-11-04T10:00:00Z"
-}
-```
-
-**Related Keys:**
-- `chat:user:{userId}:conversations` - List conversations by user
+#### 1️⃣8️⃣ **contract_termination_requests**
+| Column | Type | Attributes | Description |
+|---|---|---|---|
+| `id` | BIGINT | PK, Auto Increment | |
+| `contract_id` | BIGINT | FK -> contracts.id | Cascade on Delete |
+| `tenant_id` | BIGINT | FK -> users.id | Cascade on Delete |
+| `requested_end_date` | DATE | Not Null | |
+| `reason` | TEXT | Nullable | |
+| `status` | ENUM | Default 'pending' | 'pending', 'approved', 'rejected' |
+| `owner_notes` | TEXT | Nullable | |
+| `resolved_at` | TIMESTAMP | Nullable | |
+| `created_at` | TIMESTAMP | | |
+| `updated_at` | TIMESTAMP | | |
 
 ---
 
-#### 9️⃣ **CHAT - MESSAGE**
-```
-Key: chat:message:{messageId}
-```
+### **Physical ERD (Mermaid)**
 
-**Value Structure:**
-```json
-{
-  "id": "msg_001",
-  "conversationId": "conv_001",
-  "senderId": "user_tenant_123",
-  "senderName": "Ahmad Fauzi",
-  "content": "Kamar masih tersedia kah?",
-  "type": "text|image|file",
-  "fileUrl": null,
-  "fileName": null,
-  "readBy": ["user_tenant_123"],
-  "timestamp": "2024-11-04T10:00:00Z"
-}
-```
+```mermaid
+erDiagram
+    USERS ||--o{ PROPERTIES : owns
+    USERS ||--o{ CONTRACTS : "tenant of"
+    USERS ||--o{ PAYMENTS : makes
+    USERS ||--o{ WISHLIST_ITEMS : saves
+    USERS ||--o{ TICKETS : reports
+    USERS ||--o{ TICKET_COMMENTS : writes
+    USERS ||--o{ CONVERSATION_USER : participates
+    USERS ||--o{ MESSAGES : sends
+    USERS ||--o{ RENTAL_APPLICATIONS : applies
+    USERS ||--|| OWNER_WALLETS : has
 
-**Related Keys:**
-- `chat:conversation:{conversationId}:messages` - List messages by conversation
+    PROPERTIES ||--o{ ROOM_TYPES : has
+    PROPERTIES ||--o{ RENTAL_APPLICATIONS : receives
+    PROPERTIES ||--o{ WISHLIST_ITEMS : "is in"
 
----
+    ROOM_TYPES ||--o{ ROOMS : defines
+    ROOM_TYPES ||--o{ RENTAL_APPLICATIONS : "requested type"
 
-#### 🔟 **TICKET**
-```
-Key: ticket:{ticketId}
-```
+    ROOMS ||--o{ CONTRACTS : "is rented in"
+    ROOMS ||--o{ RENTAL_APPLICATIONS : "requested room"
 
-**Value Structure:**
-```json
-{
-  "id": "ticket_001",
-  "reporterId": "user_tenant_123",
-  "reporterName": "Ahmad Fauzi",
-  "reporterEmail": "ahmad@email.com",
-  "reporterRole": "tenant",
-  "category": "technical|payment|content|abuse",
-  "subject": "Pembayaran tidak masuk",
-  "description": "Saya sudah bayar tapi status masih pending...",
-  "priority": "low|medium|high|urgent",
-  "status": "open|in_review|escalated|resolved|rejected",
-  "assignedTo": "user_admin_789",
-  "events": [
-    {
-      "type": "created|status_changed|comment|assigned",
-      "userId": "user_tenant_123",
-      "userName": "Ahmad Fauzi",
-      "timestamp": "2024-11-04T10:00:00Z",
-      "data": {
-        "oldStatus": null,
-        "newStatus": "open",
-        "comment": "Tiket dibuat"
-      }
+    CONTRACTS ||--o{ INVOICES : generates
+    CONTRACTS ||--o{ CONTRACT_TERMINATION_REQUESTS : "has requests"
+
+    INVOICES ||--o{ PAYMENTS : "paid by"
+
+    PAYMENTS ||--o{ OWNER_WALLET_TRANSACTIONS : "triggers"
+
+    OWNER_WALLETS ||--o{ OWNER_WALLET_TRANSACTIONS : "has"
+
+    TICKETS ||--o{ TICKET_COMMENTS : has
+    TICKETS ||--o{ TICKET_EVENTS : has
+
+    CONVERSATIONS ||--o{ CONVERSATION_USER : has
+    CONVERSATIONS ||--o{ MESSAGES : contains
+
+    USERS {
+        bigint id PK
+        string name
+        string email
+        string role
+        string google_id
     }
-  ],
-  "createdAt": "2024-11-04T10:00:00Z",
-  "updatedAt": "2024-11-04T10:00:00Z",
-  "resolvedAt": null
-}
-```
 
-**Related Keys:**
-- `ticket:reporter:{reporterId}` - List tickets by reporter
-- `ticket:status:{status}` - List tickets by status
-- `ticket:category:{category}` - List tickets by category
+    PROPERTIES {
+        bigint id PK
+        bigint owner_id FK
+        string name
+        string status
+    }
+
+    ROOM_TYPES {
+        bigint id PK
+        bigint property_id FK
+        string name
+        int base_price
+    }
+
+    ROOMS {
+        bigint id PK
+        bigint room_type_id FK
+        string room_code
+        string status
+    }
+
+    CONTRACTS {
+        bigint id PK
+        bigint tenant_id FK
+        bigint room_id FK
+        date start_date
+        string status
+    }
+
+    INVOICES {
+        bigint id PK
+        bigint contract_id FK
+        date due_date
+        int amount
+        string status
+    }
+
+    PAYMENTS {
+        bigint id PK
+        bigint invoice_id FK
+        decimal amount
+        string status
+        string payment_type
+    }
+
+    WISHLIST_ITEMS {
+        bigint id PK
+        bigint user_id FK
+        bigint property_id FK
+    }
+
+    TICKETS {
+        bigint id PK
+        bigint reporter_id FK
+        string subject
+        string status
+    }
+
+    CONVERSATIONS {
+        bigint id PK
+        boolean is_group
+    }
+
+    MESSAGES {
+        bigint id PK
+        bigint conversation_id FK
+        bigint user_id FK
+        text body
+    }
+
+    RENTAL_APPLICATIONS {
+        bigint id PK
+        bigint tenant_id FK
+        bigint property_id FK
+        string status
+    }
+
+    OWNER_WALLETS {
+        bigint id PK
+        bigint owner_id FK
+        decimal balance
+    }
+```
 
 ---
 
