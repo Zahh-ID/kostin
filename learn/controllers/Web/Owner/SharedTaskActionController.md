@@ -1,9 +1,9 @@
 # SharedTaskActionController
 
-**Namespace**: `App\Http\Controllers\Web\Owner`
+**Lokasi Kode**: `App\Http\Controllers\Web\Owner`
 
-## Description
-Controller for handling requests related to SharedTaskActionController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **SharedTaskAction**.
 
-## Methods
-- `store`: Handles the `store` action.
+## Daftar Fungsi
+- **`store`**: Menyimpan data baru ke dalam sistem.

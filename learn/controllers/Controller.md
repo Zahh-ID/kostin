@@ -1,9 +1,9 @@
 # Controller
 
-**Namespace**: `App\Http\Controllers`
+**Lokasi Kode**: `App\Http\Controllers`
 
-## Description
-Controller for handling requests related to Controller.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan ****.
 
-## Methods
-No public methods found.
+## Daftar Fungsi
+Tidak ada fungsi publik yang dapat diakses langsung.

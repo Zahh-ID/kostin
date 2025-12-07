@@ -1,10 +1,10 @@
 # OwnerApplicationController
 
-**Namespace**: `App\Http\Controllers\Api\V1\Owner`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1\Owner`
 
-## Description
-Controller for handling requests related to OwnerApplicationController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **OwnerApplication**.
 
-## Methods
-- `approve`: Handles the `approve` action.
-- `reject`: Handles the `reject` action.
+## Daftar Fungsi
+- **`approve`**: Menyetujui permintaan atau data.
+- **`reject`**: Menolak permintaan atau data.

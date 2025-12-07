@@ -1,11 +1,11 @@
 # WalletController
 
-**Namespace**: `App\Http\Controllers\Web\Owner`
+**Lokasi Kode**: `App\Http\Controllers\Web\Owner`
 
-## Description
-Controller for handling requests related to WalletController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Wallet**.
 
-## Methods
-- `__construct`: Handles the `__construct` action.
-- `index`: Handles the `index` action.
-- `withdraw`: Handles the `withdraw` action.
+## Daftar Fungsi
+- **`__construct`**: Menangani tindakan `__construct`.
+- **`index`**: Menampilkan daftar data.
+- **`withdraw`**: Menarik kembali data yang sudah diajukan.

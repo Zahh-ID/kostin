@@ -1,9 +1,9 @@
 # ContractTerminationController
 
-**Namespace**: `App\Http\Controllers\Web\Tenant`
+**Lokasi Kode**: `App\Http\Controllers\Web\Tenant`
 
-## Description
-Controller for handling requests related to ContractTerminationController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **ContractTermination**.
 
-## Methods
-- `store`: Handles the `store` action.
+## Daftar Fungsi
+- **`store`**: Menyimpan data baru ke dalam sistem.

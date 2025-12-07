@@ -1,11 +1,11 @@
 # ManualPaymentController
 
-**Namespace**: `App\Http\Controllers\Web\Owner`
+**Lokasi Kode**: `App\Http\Controllers\Web\Owner`
 
-## Description
-Controller for handling requests related to ManualPaymentController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **ManualPayment**.
 
-## Methods
-- `__construct`: Handles the `__construct` action.
-- `index`: Handles the `index` action.
-- `update`: Handles the `update` action.
+## Daftar Fungsi
+- **`__construct`**: Menangani tindakan `__construct`.
+- **`index`**: Menampilkan daftar data.
+- **`update`**: Memperbarui atau mengubah data yang sudah ada.

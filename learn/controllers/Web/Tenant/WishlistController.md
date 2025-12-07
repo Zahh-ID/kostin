@@ -1,10 +1,10 @@
 # WishlistController
 
-**Namespace**: `App\Http\Controllers\Web\Tenant`
+**Lokasi Kode**: `App\Http\Controllers\Web\Tenant`
 
-## Description
-Controller for handling requests related to WishlistController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Wishlist**.
 
-## Methods
-- `index`: Handles the `index` action.
-- `destroy`: Handles the `destroy` action.
+## Daftar Fungsi
+- **`index`**: Menampilkan daftar data.
+- **`destroy`**: Menghapus data dari sistem.

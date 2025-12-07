@@ -1,15 +1,15 @@
 # RoomController
 
-**Namespace**: `App\Http\Controllers\Web\Owner`
+**Lokasi Kode**: `App\Http\Controllers\Web\Owner`
 
-## Description
-Controller for handling requests related to RoomController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Room**.
 
-## Methods
-- `index`: Handles the `index` action.
-- `show`: Handles the `show` action.
-- `create`: Handles the `create` action.
-- `store`: Handles the `store` action.
-- `edit`: Handles the `edit` action.
-- `update`: Handles the `update` action.
-- `destroy`: Handles the `destroy` action.
+## Daftar Fungsi
+- **`index`**: Menampilkan daftar data.
+- **`show`**: Menampilkan detail lengkap dari satu data.
+- **`create`**: Menangani tindakan `create`.
+- **`store`**: Menyimpan data baru ke dalam sistem.
+- **`edit`**: Menangani tindakan `edit`.
+- **`update`**: Memperbarui atau mengubah data yang sudah ada.
+- **`destroy`**: Menghapus data dari sistem.

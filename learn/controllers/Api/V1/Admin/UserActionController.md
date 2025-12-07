@@ -1,10 +1,10 @@
 # UserActionController
 
-**Namespace**: `App\Http\Controllers\Api\V1\Admin`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1\Admin`
 
-## Description
-Controller for handling requests related to UserActionController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **UserAction**.
 
-## Methods
-- `suspend`: Handles the `suspend` action.
-- `activate`: Handles the `activate` action.
+## Daftar Fungsi
+- **`suspend`**: Membekukan akun atau data sementara.
+- **`activate`**: Mengaktifkan kembali akun atau data.

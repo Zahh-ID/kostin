@@ -1,11 +1,11 @@
 # ProfileController
 
-**Namespace**: `App\Http\Controllers\Web`
+**Lokasi Kode**: `App\Http\Controllers\Web`
 
-## Description
-Controller for handling requests related to ProfileController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Profile**.
 
-## Methods
-- `edit`: Handles the `edit` action.
-- `update`: Handles the `update` action.
-- `destroy`: Handles the `destroy` action.
+## Daftar Fungsi
+- **`edit`**: Menangani tindakan `edit`.
+- **`update`**: Memperbarui atau mengubah data yang sudah ada.
+- **`destroy`**: Menghapus data dari sistem.

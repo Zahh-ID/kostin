@@ -1,9 +1,9 @@
 # PropertyController
 
-**Namespace**: `App\Http\Controllers\Web\Public`
+**Lokasi Kode**: `App\Http\Controllers\Web\Public`
 
-## Description
-Controller for handling requests related to PropertyController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Property**.
 
-## Methods
-- `__invoke`: Handles the `__invoke` action.
+## Daftar Fungsi
+- **`__invoke`**: Fungsi utama yang langsung dijalankan ketika fitur ini diakses.

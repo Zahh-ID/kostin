@@ -1,13 +1,13 @@
 # OwnerRoomController
 
-**Namespace**: `App\Http\Controllers\Api\V1\Owner`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1\Owner`
 
-## Description
-Controller for handling requests related to OwnerRoomController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **OwnerRoom**.
 
-## Methods
-- `index`: Handles the `index` action.
-- `store`: Handles the `store` action.
-- `show`: Handles the `show` action.
-- `update`: Handles the `update` action.
-- `destroy`: Handles the `destroy` action.
+## Daftar Fungsi
+- **`index`**: Menampilkan daftar data.
+- **`store`**: Menyimpan data baru ke dalam sistem.
+- **`show`**: Menampilkan detail lengkap dari satu data.
+- **`update`**: Memperbarui atau mengubah data yang sudah ada.
+- **`destroy`**: Menghapus data dari sistem.

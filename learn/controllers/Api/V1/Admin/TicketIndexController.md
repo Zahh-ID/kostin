@@ -1,10 +1,10 @@
 # TicketIndexController
 
-**Namespace**: `App\Http\Controllers\Api\V1\Admin`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1\Admin`
 
-## Description
-Controller for handling requests related to TicketIndexController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **TicketIndex**.
 
-## Methods
-- `__invoke`: Handles the `__invoke` action.
-- `update`: Handles the `update` action.
+## Daftar Fungsi
+- **`__invoke`**: Fungsi utama yang langsung dijalankan ketika fitur ini diakses.
+- **`update`**: Memperbarui atau mengubah data yang sudah ada.

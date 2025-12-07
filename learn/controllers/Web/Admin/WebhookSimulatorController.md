@@ -1,11 +1,11 @@
 # WebhookSimulatorController
 
-**Namespace**: `App\Http\Controllers\Web\Admin`
+**Lokasi Kode**: `App\Http\Controllers\Web\Admin`
 
-## Description
-Controller for handling requests related to WebhookSimulatorController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **WebhookSimulator**.
 
-## Methods
-- `__construct`: Handles the `__construct` action.
-- `index`: Handles the `index` action.
-- `store`: Handles the `store` action.
+## Daftar Fungsi
+- **`__construct`**: Menangani tindakan `__construct`.
+- **`index`**: Menampilkan daftar data.
+- **`store`**: Menyimpan data baru ke dalam sistem.

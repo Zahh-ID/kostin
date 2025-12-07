@@ -1,9 +1,9 @@
 # ApplicationController
 
-**Namespace**: `App\Http\Controllers\Api\V1\Tenant`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1\Tenant`
 
-## Description
-Controller for handling requests related to ApplicationController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Application**.
 
-## Methods
-- `store`: Handles the `store` action.
+## Daftar Fungsi
+- **`store`**: Menyimpan data baru ke dalam sistem.

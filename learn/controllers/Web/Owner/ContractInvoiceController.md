@@ -1,9 +1,9 @@
 # ContractInvoiceController
 
-**Namespace**: `App\Http\Controllers\Web\Owner`
+**Lokasi Kode**: `App\Http\Controllers\Web\Owner`
 
-## Description
-Controller for handling requests related to ContractInvoiceController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **ContractInvoice**.
 
-## Methods
-- `__invoke`: Handles the `__invoke` action.
+## Daftar Fungsi
+- **`__invoke`**: Fungsi utama yang langsung dijalankan ketika fitur ini diakses.

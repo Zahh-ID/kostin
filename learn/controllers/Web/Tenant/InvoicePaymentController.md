@@ -1,10 +1,10 @@
 # InvoicePaymentController
 
-**Namespace**: `App\Http\Controllers\Web\Tenant`
+**Lokasi Kode**: `App\Http\Controllers\Web\Tenant`
 
-## Description
-Controller for handling requests related to InvoicePaymentController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **InvoicePayment**.
 
-## Methods
-- `__construct`: Handles the `__construct` action.
-- `__invoke`: Handles the `__invoke` action.
+## Daftar Fungsi
+- **`__construct`**: Menangani tindakan `__construct`.
+- **`__invoke`**: Fungsi utama yang langsung dijalankan ketika fitur ini diakses.

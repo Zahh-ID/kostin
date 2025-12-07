@@ -1,9 +1,9 @@
 # ChatController
 
-**Namespace**: `App\Http\Controllers\Web`
+**Lokasi Kode**: `App\Http\Controllers\Web`
 
-## Description
-Controller for handling requests related to ChatController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Chat**.
 
-## Methods
-- `__invoke`: Handles the `__invoke` action.
+## Daftar Fungsi
+- **`__invoke`**: Fungsi utama yang langsung dijalankan ketika fitur ini diakses.

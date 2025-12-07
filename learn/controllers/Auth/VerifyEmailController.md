@@ -1,9 +1,9 @@
 # VerifyEmailController
 
-**Namespace**: `App\Http\Controllers\Auth`
+**Lokasi Kode**: `App\Http\Controllers\Auth`
 
-## Description
-Controller for handling requests related to VerifyEmailController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **VerifyEmail**.
 
-## Methods
-- `__invoke`: Handles the `__invoke` action.
+## Daftar Fungsi
+- **`__invoke`**: Fungsi utama yang langsung dijalankan ketika fitur ini diakses.

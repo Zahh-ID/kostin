@@ -1,11 +1,11 @@
 # InvoiceController
 
-**Namespace**: `App\Http\Controllers\Web\Tenant`
+**Lokasi Kode**: `App\Http\Controllers\Web\Tenant`
 
-## Description
-Controller for handling requests related to InvoiceController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Invoice**.
 
-## Methods
-- `index`: Handles the `index` action.
-- `show`: Handles the `show` action.
-- `pdf`: Handles the `pdf` action.
+## Daftar Fungsi
+- **`index`**: Menampilkan daftar data.
+- **`show`**: Menampilkan detail lengkap dari satu data.
+- **`pdf`**: Menangani tindakan `pdf`.

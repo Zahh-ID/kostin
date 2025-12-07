@@ -1,14 +1,14 @@
 # PropertyController
 
-**Namespace**: `App\Http\Controllers\Api\V1\Owner`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1\Owner`
 
-## Description
-Controller for handling requests related to PropertyController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Property**.
 
-## Methods
-- `show`: Handles the `show` action.
-- `store`: Handles the `store` action.
-- `update`: Handles the `update` action.
-- `submit`: Handles the `submit` action.
-- `withdraw`: Handles the `withdraw` action.
-- `destroy`: Handles the `destroy` action.
+## Daftar Fungsi
+- **`show`**: Menampilkan detail lengkap dari satu data.
+- **`store`**: Menyimpan data baru ke dalam sistem.
+- **`update`**: Memperbarui atau mengubah data yang sudah ada.
+- **`submit`**: Mengirimkan data untuk diproses (misalnya pengajuan).
+- **`withdraw`**: Menarik kembali data yang sudah diajukan.
+- **`destroy`**: Menghapus data dari sistem.

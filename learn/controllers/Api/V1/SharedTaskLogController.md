@@ -1,10 +1,10 @@
 # SharedTaskLogController
 
-**Namespace**: `App\Http\Controllers\Api\V1`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1`
 
-## Description
-Controller for handling requests related to SharedTaskLogController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **SharedTaskLog**.
 
-## Methods
-- `index`: Handles the `index` action.
-- `store`: Handles the `store` action.
+## Daftar Fungsi
+- **`index`**: Menampilkan daftar data.
+- **`store`**: Menyimpan data baru ke dalam sistem.

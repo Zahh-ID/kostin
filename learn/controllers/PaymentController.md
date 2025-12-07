@@ -1,12 +1,12 @@
 # PaymentController
 
-**Namespace**: `App\Http\Controllers`
+**Lokasi Kode**: `App\Http\Controllers`
 
-## Description
-Controller for handling requests related to PaymentController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Payment**.
 
-## Methods
-- `__construct`: Handles the `__construct` action.
-- `createQrisPayment`: Handles the `createQrisPayment` action.
-- `createBankTransferPayment`: Handles the `createBankTransferPayment` action.
-- `getPaymentStatus`: Handles the `getPaymentStatus` action.
+## Daftar Fungsi
+- **`__construct`**: Menangani tindakan `__construct`.
+- **`createQrisPayment`**: Melihat profil pengguna yang sedang login.
+- **`createBankTransferPayment`**: Melihat profil pengguna yang sedang login.
+- **`getPaymentStatus`**: Melihat profil pengguna yang sedang login.

@@ -1,9 +1,9 @@
 # ContractActionController
 
-**Namespace**: `App\Http\Controllers\Web\Tenant`
+**Lokasi Kode**: `App\Http\Controllers\Web\Tenant`
 
-## Description
-Controller for handling requests related to ContractActionController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **ContractAction**.
 
-## Methods
-- `accept`: Handles the `accept` action.
+## Daftar Fungsi
+- **`accept`**: Menangani tindakan `accept`.

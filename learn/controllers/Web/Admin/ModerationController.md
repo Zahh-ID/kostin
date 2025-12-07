@@ -1,12 +1,12 @@
 # ModerationController
 
-**Namespace**: `App\Http\Controllers\Web\Admin`
+**Lokasi Kode**: `App\Http\Controllers\Web\Admin`
 
-## Description
-Controller for handling requests related to ModerationController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Moderation**.
 
-## Methods
-- `index`: Handles the `index` action.
-- `show`: Handles the `show` action.
-- `approve`: Handles the `approve` action.
-- `reject`: Handles the `reject` action.
+## Daftar Fungsi
+- **`index`**: Menampilkan daftar data.
+- **`show`**: Menampilkan detail lengkap dari satu data.
+- **`approve`**: Menyetujui permintaan atau data.
+- **`reject`**: Menolak permintaan atau data.

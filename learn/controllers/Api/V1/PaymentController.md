@@ -1,12 +1,12 @@
 # PaymentController
 
-**Namespace**: `App\Http\Controllers\Api\V1`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1`
 
-## Description
-Controller for handling requests related to PaymentController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Payment**.
 
-## Methods
-- `__construct`: Handles the `__construct` action.
-- `index`: Handles the `index` action.
-- `store`: Handles the `store` action.
-- `webhook`: Handles the `webhook` action.
+## Daftar Fungsi
+- **`__construct`**: Menangani tindakan `__construct`.
+- **`index`**: Menampilkan daftar data.
+- **`store`**: Menyimpan data baru ke dalam sistem.
+- **`webhook`**: Menangani tindakan `webhook`.

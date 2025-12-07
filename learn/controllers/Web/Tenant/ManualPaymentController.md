@@ -1,9 +1,9 @@
 # ManualPaymentController
 
-**Namespace**: `App\Http\Controllers\Web\Tenant`
+**Lokasi Kode**: `App\Http\Controllers\Web\Tenant`
 
-## Description
-Controller for handling requests related to ManualPaymentController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **ManualPayment**.
 
-## Methods
-- `store`: Handles the `store` action.
+## Daftar Fungsi
+- **`store`**: Menyimpan data baru ke dalam sistem.

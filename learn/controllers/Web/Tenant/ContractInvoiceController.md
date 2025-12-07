@@ -1,10 +1,10 @@
 # ContractInvoiceController
 
-**Namespace**: `App\Http\Controllers\Web\Tenant`
+**Lokasi Kode**: `App\Http\Controllers\Web\Tenant`
 
-## Description
-Controller for handling requests related to ContractInvoiceController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **ContractInvoice**.
 
-## Methods
-- `__construct`: Handles the `__construct` action.
-- `store`: Handles the `store` action.
+## Daftar Fungsi
+- **`__construct`**: Menangani tindakan `__construct`.
+- **`store`**: Menyimpan data baru ke dalam sistem.

@@ -1,11 +1,11 @@
 # ContractController
 
-**Namespace**: `App\Http\Controllers\Api\V1\Tenant`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1\Tenant`
 
-## Description
-Controller for handling requests related to ContractController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Contract**.
 
-## Methods
-- `index`: Handles the `index` action.
-- `show`: Handles the `show` action.
-- `terminate`: Handles the `terminate` action.
+## Daftar Fungsi
+- **`index`**: Menampilkan daftar data.
+- **`show`**: Menampilkan detail lengkap dari satu data.
+- **`terminate`**: Menangani tindakan `terminate`.

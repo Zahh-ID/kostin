@@ -1,12 +1,12 @@
 # TicketController
 
-**Namespace**: `App\Http\Controllers\Web\Tenant`
+**Lokasi Kode**: `App\Http\Controllers\Web\Tenant`
 
-## Description
-Controller for handling requests related to TicketController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Ticket**.
 
-## Methods
-- `index`: Handles the `index` action.
-- `create`: Handles the `create` action.
-- `store`: Handles the `store` action.
-- `show`: Handles the `show` action.
+## Daftar Fungsi
+- **`index`**: Menampilkan daftar data.
+- **`create`**: Menangani tindakan `create`.
+- **`store`**: Menyimpan data baru ke dalam sistem.
+- **`show`**: Menampilkan detail lengkap dari satu data.

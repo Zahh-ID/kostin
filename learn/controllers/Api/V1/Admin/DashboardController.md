@@ -1,24 +1,19 @@
 # DashboardController
 
-**Namespace**: `App\Http\Controllers\Api\V1\Admin`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1\Admin`
 
-## Description
-Provides the data for the Admin Dashboard, including key metrics, trends, and status counts.
+## Penjelasan Singkat
+Bagian ini adalah "pusat informasi" untuk Admin. Ia mengumpulkan semua data penting agar Admin bisa melihat kondisi aplikasi dalam sekali pandang.
 
-## Methods
+## Daftar Fungsi
 
-### `__invoke`
-- **Method**: GET
-- **Path**: `/api/v1/admin/dashboard`
-- **Description**: Returns a summary of the platform's performance.
-- **Response Data**:
-    - `revenue_this_month`: Total revenue for the current month.
-    - `registrations_this_month`: New user registrations.
-    - `pending_moderations`: Count of properties waiting for approval.
-    - `tickets_open`: Count of open support tickets.
-    - `invoices`: Breakdown of invoice statuses (paid, unpaid, etc.).
-    - `users`: Count of users by role (admin, owner, tenant).
-    - `revenue_trend`: 6-month revenue trend data.
-    - `registrations_trend`: 6-month registration trend data.
-    - `approved_properties`: Total approved properties.
-    - `rejected_properties`: Total rejected properties.
+### `__invoke` (Fungsi Utama)
+- **Kegunaan**: Menampilkan ringkasan statistik aplikasi.
+- **Data yang ditampilkan**:
+    - **Pendapatan Bulan Ini**: Total uang yang masuk dari pembayaran sewa.
+    - **Pendaftaran Baru**: Berapa banyak orang yang baru mendaftar bulan ini.
+    - **Properti Menunggu**: Jumlah kost baru yang perlu dicek dan disetujui Admin.
+    - **Tiket Terbuka**: Jumlah keluhan atau pertanyaan pengguna yang belum selesai ditangani.
+    - **Status Tagihan**: Ringkasan berapa tagihan yang sudah lunas, belum bayar, atau telat.
+    - **Jumlah Pengguna**: Total admin, pemilik kost, dan pencari kost yang terdaftar.
+    - **Grafik Tren**: Data untuk membuat grafik pendapatan dan pendaftaran selama 6 bulan terakhir.

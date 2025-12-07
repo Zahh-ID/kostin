@@ -1,11 +1,11 @@
 # TicketController
 
-**Namespace**: `App\Http\Controllers\Web\Admin`
+**Lokasi Kode**: `App\Http\Controllers\Web\Admin`
 
-## Description
-Controller for handling requests related to TicketController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Ticket**.
 
-## Methods
-- `index`: Handles the `index` action.
-- `show`: Handles the `show` action.
-- `update`: Handles the `update` action.
+## Daftar Fungsi
+- **`index`**: Menampilkan daftar data.
+- **`show`**: Menampilkan detail lengkap dari satu data.
+- **`update`**: Memperbarui atau mengubah data yang sudah ada.

@@ -1,9 +1,9 @@
 # SettingController
 
-**Namespace**: `App\Http\Controllers\Web\Admin`
+**Lokasi Kode**: `App\Http\Controllers\Web\Admin`
 
-## Description
-Controller for handling requests related to SettingController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Setting**.
 
-## Methods
-- `index`: Handles the `index` action.
+## Daftar Fungsi
+- **`index`**: Menampilkan daftar data.

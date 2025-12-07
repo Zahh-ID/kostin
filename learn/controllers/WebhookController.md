@@ -1,10 +1,10 @@
 # WebhookController
 
-**Namespace**: `App\Http\Controllers`
+**Lokasi Kode**: `App\Http\Controllers`
 
-## Description
-Controller for handling requests related to WebhookController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Webhook**.
 
-## Methods
-- `__construct`: Handles the `__construct` action.
-- `handleNotification`: Handles the `handleNotification` action.
+## Daftar Fungsi
+- **`__construct`**: Menangani tindakan `__construct`.
+- **`handleNotification`**: Menangani tindakan `handleNotification`.

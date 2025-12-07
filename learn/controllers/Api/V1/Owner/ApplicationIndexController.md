@@ -1,9 +1,9 @@
 # ApplicationIndexController
 
-**Namespace**: `App\Http\Controllers\Api\V1\Owner`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1\Owner`
 
-## Description
-Controller for handling requests related to ApplicationIndexController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **ApplicationIndex**.
 
-## Methods
-- `__invoke`: Handles the `__invoke` action.
+## Daftar Fungsi
+- **`__invoke`**: Fungsi utama yang langsung dijalankan ketika fitur ini diakses.

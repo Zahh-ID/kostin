@@ -1,9 +1,9 @@
 # PropertyController
 
-**Namespace**: `App\Http\Controllers\Api\V1\Tenant`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1\Tenant`
 
-## Description
-Controller for handling requests related to PropertyController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Property**.
 
-## Methods
-- `show`: Handles the `show` action.
+## Daftar Fungsi
+- **`show`**: Menampilkan detail lengkap dari satu data.

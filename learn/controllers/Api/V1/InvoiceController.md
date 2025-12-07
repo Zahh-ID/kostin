@@ -1,12 +1,12 @@
 # InvoiceController
 
-**Namespace**: `App\Http\Controllers\Api\V1`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1`
 
-## Description
-Controller for handling requests related to InvoiceController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Invoice**.
 
-## Methods
-- `index`: Handles the `index` action.
-- `show`: Handles the `show` action.
-- `update`: Handles the `update` action.
-- `markPaid`: Handles the `markPaid` action.
+## Daftar Fungsi
+- **`index`**: Menampilkan daftar data.
+- **`show`**: Menampilkan detail lengkap dari satu data.
+- **`update`**: Memperbarui atau mengubah data yang sudah ada.
+- **`markPaid`**: Menangani tindakan `markPaid`.

@@ -1,9 +1,9 @@
 # OverviewController
 
-**Namespace**: `App\Http\Controllers\Api\V1\Tenant`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1\Tenant`
 
-## Description
-Controller for handling requests related to OverviewController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Overview**.
 
-## Methods
-- `__invoke`: Handles the `__invoke` action.
+## Daftar Fungsi
+- **`__invoke`**: Fungsi utama yang langsung dijalankan ketika fitur ini diakses.

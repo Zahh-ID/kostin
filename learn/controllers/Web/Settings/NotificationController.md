@@ -1,9 +1,9 @@
 # NotificationController
 
-**Namespace**: `App\Http\Controllers\Web\Settings`
+**Lokasi Kode**: `App\Http\Controllers\Web\Settings`
 
-## Description
-Controller for handling requests related to NotificationController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Notification**.
 
-## Methods
-- `__invoke`: Handles the `__invoke` action.
+## Daftar Fungsi
+- **`__invoke`**: Fungsi utama yang langsung dijalankan ketika fitur ini diakses.

@@ -1,10 +1,10 @@
 # SocialAuthController
 
-**Namespace**: `App\Http\Controllers\Api\V1\Auth`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1\Auth`
 
-## Description
-Controller for handling requests related to SocialAuthController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **SocialAuth**.
 
-## Methods
-- `redirect`: Handles the `redirect` action.
-- `callback`: Handles the `callback` action.
+## Daftar Fungsi
+- **`redirect`**: Menangani tindakan `redirect`.
+- **`callback`**: Menangani tindakan `callback`.

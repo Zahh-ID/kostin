@@ -1,10 +1,10 @@
 # PropertyRoomController
 
-**Namespace**: `App\Http\Controllers\Api\V1\Owner`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1\Owner`
 
-## Description
-Controller for handling requests related to PropertyRoomController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **PropertyRoom**.
 
-## Methods
-- `index`: Handles the `index` action.
-- `storeBulk`: Handles the `storeBulk` action.
+## Daftar Fungsi
+- **`index`**: Menampilkan daftar data.
+- **`storeBulk`**: Menyimpan data baru ke dalam sistem.

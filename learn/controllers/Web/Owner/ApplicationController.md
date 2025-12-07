@@ -1,12 +1,12 @@
 # ApplicationController
 
-**Namespace**: `App\Http\Controllers\Web\Owner`
+**Lokasi Kode**: `App\Http\Controllers\Web\Owner`
 
-## Description
-Controller for handling requests related to ApplicationController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Application**.
 
-## Methods
-- `__construct`: Handles the `__construct` action.
-- `index`: Handles the `index` action.
-- `show`: Handles the `show` action.
-- `update`: Handles the `update` action.
+## Daftar Fungsi
+- **`__construct`**: Menangani tindakan `__construct`.
+- **`index`**: Menampilkan daftar data.
+- **`show`**: Menampilkan detail lengkap dari satu data.
+- **`update`**: Memperbarui atau mengubah data yang sudah ada.

@@ -1,9 +1,9 @@
 # ResetPasswordController
 
-**Namespace**: `App\Http\Controllers\Api\V1\Auth`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1\Auth`
 
-## Description
-Controller for handling requests related to ResetPasswordController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **ResetPassword**.
 
-## Methods
-- `store`: Handles the `store` action.
+## Daftar Fungsi
+- **`store`**: Menyimpan data baru ke dalam sistem.

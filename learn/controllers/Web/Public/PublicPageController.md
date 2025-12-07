@@ -1,14 +1,14 @@
 # PublicPageController
 
-**Namespace**: `App\Http\Controllers\Web\Public`
+**Lokasi Kode**: `App\Http\Controllers\Web\Public`
 
-## Description
-Controller for handling requests related to PublicPageController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **PublicPage**.
 
-## Methods
-- `home`: Handles the `home` action.
-- `about`: Handles the `about` action.
-- `faq`: Handles the `faq` action.
-- `privacy`: Handles the `privacy` action.
-- `terms`: Handles the `terms` action.
-- `contact`: Handles the `contact` action.
+## Daftar Fungsi
+- **`home`**: Melihat profil pengguna yang sedang login.
+- **`about`**: Menangani tindakan `about`.
+- **`faq`**: Menangani tindakan `faq`.
+- **`privacy`**: Menangani tindakan `privacy`.
+- **`terms`**: Menangani tindakan `terms`.
+- **`contact`**: Menangani tindakan `contact`.

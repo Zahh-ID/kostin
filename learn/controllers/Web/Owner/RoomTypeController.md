@@ -1,13 +1,13 @@
 # RoomTypeController
 
-**Namespace**: `App\Http\Controllers\Web\Owner`
+**Lokasi Kode**: `App\Http\Controllers\Web\Owner`
 
-## Description
-Controller for handling requests related to RoomTypeController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **RoomType**.
 
-## Methods
-- `index`: Handles the `index` action.
-- `show`: Handles the `show` action.
-- `create`: Handles the `create` action.
-- `store`: Handles the `store` action.
-- `edit`: Handles the `edit` action.
+## Daftar Fungsi
+- **`index`**: Menampilkan daftar data.
+- **`show`**: Menampilkan detail lengkap dari satu data.
+- **`create`**: Menangani tindakan `create`.
+- **`store`**: Menyimpan data baru ke dalam sistem.
+- **`edit`**: Menangani tindakan `edit`.

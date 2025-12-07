@@ -1,16 +1,16 @@
 # PropertyController
 
-**Namespace**: `App\Http\Controllers\Web\Owner`
+**Lokasi Kode**: `App\Http\Controllers\Web\Owner`
 
-## Description
-Controller for handling requests related to PropertyController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Property**.
 
-## Methods
-- `index`: Handles the `index` action.
-- `show`: Handles the `show` action.
-- `create`: Handles the `create` action.
-- `edit`: Handles the `edit` action.
-- `store`: Handles the `store` action.
-- `update`: Handles the `update` action.
-- `submit`: Handles the `submit` action.
-- `withdraw`: Handles the `withdraw` action.
+## Daftar Fungsi
+- **`index`**: Menampilkan daftar data.
+- **`show`**: Menampilkan detail lengkap dari satu data.
+- **`create`**: Menangani tindakan `create`.
+- **`edit`**: Menangani tindakan `edit`.
+- **`store`**: Menyimpan data baru ke dalam sistem.
+- **`update`**: Memperbarui atau mengubah data yang sudah ada.
+- **`submit`**: Mengirimkan data untuk diproses (misalnya pengajuan).
+- **`withdraw`**: Menarik kembali data yang sudah diajukan.

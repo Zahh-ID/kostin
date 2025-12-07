@@ -1,10 +1,10 @@
 # PropertyController
 
-**Namespace**: `App\Http\Controllers\Tenant`
+**Lokasi Kode**: `App\Http\Controllers\Tenant`
 
-## Description
-Controller for handling requests related to PropertyController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Property**.
 
-## Methods
-- `create`: Handles the `create` action.
-- `store`: Handles the `store` action.
+## Daftar Fungsi
+- **`create`**: Menangani tindakan `create`.
+- **`store`**: Menyimpan data baru ke dalam sistem.

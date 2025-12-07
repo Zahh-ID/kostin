@@ -1,9 +1,9 @@
 # OwnerContractController
 
-**Namespace**: `App\Http\Controllers\Api\V1\Owner`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1\Owner`
 
-## Description
-Controller for handling requests related to OwnerContractController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **OwnerContract**.
 
-## Methods
-- `terminate`: Handles the `terminate` action.
+## Daftar Fungsi
+- **`terminate`**: Menangani tindakan `terminate`.

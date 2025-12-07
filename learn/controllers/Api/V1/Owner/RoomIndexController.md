@@ -1,10 +1,10 @@
 # RoomIndexController
 
-**Namespace**: `App\Http\Controllers\Api\V1\Owner`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1\Owner`
 
-## Description
-Controller for handling requests related to RoomIndexController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **RoomIndex**.
 
-## Methods
-- `__invoke`: Handles the `__invoke` action.
-- `store`: Handles the `store` action.
+## Daftar Fungsi
+- **`__invoke`**: Fungsi utama yang langsung dijalankan ketika fitur ini diakses.
+- **`store`**: Menyimpan data baru ke dalam sistem.

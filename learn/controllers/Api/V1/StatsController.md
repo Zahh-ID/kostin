@@ -1,9 +1,9 @@
 # StatsController
 
-**Namespace**: `App\Http\Controllers\Api\V1`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1`
 
-## Description
-Controller for handling requests related to StatsController.
+## Penjelasan Singkat
+Bagian ini berfungsi untuk mengatur segala hal yang berkaitan dengan **Stats**.
 
-## Methods
-- `__invoke`: Handles the `__invoke` action.
+## Daftar Fungsi
+- **`__invoke`**: Fungsi utama yang langsung dijalankan ketika fitur ini diakses.

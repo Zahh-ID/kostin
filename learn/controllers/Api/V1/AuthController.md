@@ -1,36 +1,29 @@
 # AuthController
 
-**Namespace**: `App\Http\Controllers\Api\V1`
+**Lokasi Kode**: `App\Http\Controllers\Api\V1`
 
-## Description
-Handles standard user authentication including registration, login, logout, and retrieving the current user.
+## Penjelasan Singkat
+Bagian ini adalah "pintu gerbang" aplikasi. Ia mengatur siapa saja yang boleh masuk (login), mendaftar akun baru (register), dan keluar dari aplikasi (logout).
 
-## Methods
+## Daftar Fungsi
 
 ### `register`
-- **Method**: POST
-- **Path**: `/api/v1/auth/register`
-- **Description**: Registers a new user (tenant, owner, or admin).
-- **Parameters**:
-    - `name`: string, required
-    - `email`: string, email, required
-    - `password`: string, min 8 chars, required
-    - `role`: string (tenant, owner, admin), required
+- **Kegunaan**: Mendaftarkan pengguna baru ke dalam sistem.
+- **Data yang dibutuhkan**:
+    - `name`: Nama lengkap.
+    - `email`: Alamat email aktif.
+    - `password`: Kata sandi (minimal 8 karakter).
+    - `role`: Peran pengguna (apakah sebagai pencari kost, pemilik kost, atau admin).
 
 ### `login`
-- **Method**: POST
-- **Path**: `/api/v1/auth/login`
-- **Description**: Authenticates a user and returns an API token.
-- **Parameters**:
-    - `email`: string, required
-    - `password`: string, required
+- **Kegunaan**: Masuk ke dalam aplikasi bagi pengguna yang sudah punya akun.
+- **Data yang dibutuhkan**: Email dan Password.
+- **Hasil**: Memberikan "kunci akses" (token) agar pengguna bisa menggunakan fitur-fitur lainnya.
 
 ### `logout`
-- **Method**: POST
-- **Path**: `/api/v1/auth/logout`
-- **Description**: Revokes the current user's access token.
+- **Kegunaan**: Keluar dari aplikasi.
+- **Hasil**: "Kunci akses" (token) akan dihancurkan sehingga tidak bisa dipakai lagi.
 
 ### `me`
-- **Method**: GET
-- **Path**: `/api/v1/auth/me`
-- **Description**: Returns the currently authenticated user's details.
+- **Kegunaan**: Mengecek "Siapa saya?".
+- **Hasil**: Menampilkan data profil pengguna yang sedang login saat ini.
