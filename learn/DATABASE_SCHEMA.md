@@ -13,26 +13,35 @@ erDiagram
     USERS ||--o{ CONTRACTS : signs
     USERS ||--o{ TICKETS : reports
     USERS ||--o{ WISHLIST_ITEMS : saves
+    USERS ||--o{ PAYMENTS : makes
+    USERS ||--o{ CONVERSATION_USER : participates
+    USERS ||--o{ MESSAGES : sends
+    USERS ||--|| OWNER_WALLETS : has
 
     PROPERTIES ||--o{ ROOM_TYPES : has
-    PROPERTIES ||--o{ ROOMS : contains
-    PROPERTIES ||--o{ SHARED_TASKS : has
+    PROPERTIES ||--o{ RENTAL_APPLICATIONS : receives
+    PROPERTIES ||--o{ WISHLIST_ITEMS : listed_in
 
     ROOM_TYPES ||--o{ ROOMS : defines
+    ROOM_TYPES ||--o{ RENTAL_APPLICATIONS : requested_type
 
     ROOMS ||--o{ CONTRACTS : occupied_by
-    ROOMS ||--o{ RENTAL_APPLICATIONS : requested_in
+    ROOMS ||--o{ RENTAL_APPLICATIONS : requested_room
 
     CONTRACTS ||--o{ INVOICES : generates
     CONTRACTS ||--o{ CONTRACT_TERMINATION_REQUESTS : has
 
     INVOICES ||--o{ PAYMENTS : paid_via
 
+    PAYMENTS ||--o{ OWNER_WALLET_TRANSACTIONS : triggers
+
+    OWNER_WALLETS ||--o{ OWNER_WALLET_TRANSACTIONS : logs
+
     TICKETS ||--o{ TICKET_COMMENTS : has
     TICKETS ||--o{ TICKET_EVENTS : logs
 
-    OWNER_WALLETS ||--o{ OWNER_WALLET_TRANSACTIONS : logs
-    USERS ||--|| OWNER_WALLETS : has
+    CONVERSATIONS ||--o{ CONVERSATION_USER : has
+    CONVERSATIONS ||--o{ MESSAGES : contains
 ```
 
 ---
@@ -44,39 +53,35 @@ Tabel utama untuk menyimpan data pengguna aplikasi.
 | Kolom | Tipe Data | Deskripsi |
 |-------|-----------|-----------|
 | `id` | BIGINT (PK) | Primary Key. |
-| `name` | STRING | Nama lengkap pengguna. |
-| `email` | STRING | Alamat email (Unik). |
-| `phone` | STRING | Nomor telepon (Opsional). |
-| `role` | ENUM | Peran: `'admin'`, `'owner'`, `'tenant'`. |
-| `password` | STRING | Password terenkripsi (Bcrypt). |
-| `google_id` | STRING | ID akun Google (jika login via Google). |
+| `name` | VARCHAR | Nama lengkap pengguna. |
+| `email` | VARCHAR | Alamat email (Unik). |
+| `phone` | VARCHAR | Nomor telepon (Opsional). |
+| `role` | ENUM | Peran: `'admin'`, `'owner'`, `'tenant'`. Default: `'tenant'`. |
+| `email_verified_at` | TIMESTAMP | Waktu verifikasi email. |
+| `password` | VARCHAR | Password terenkripsi (Bcrypt). |
+| `google_id` | VARCHAR | ID akun Google (jika login via Google). |
 | `suspended_at` | TIMESTAMP | Waktu pengguna diblokir (jika ada). |
+| `remember_token` | VARCHAR | Token "Remember Me". |
+| `created_at`, `updated_at` | TIMESTAMP | Waktu pembuatan dan pembaruan data. |
 
 ### `password_reset_tokens`
 Menyimpan token untuk fitur lupa password.
 | Kolom | Tipe Data | Deskripsi |
 |-------|-----------|-----------|
-| `email` | STRING (PK) | Email pengguna. |
-| `token` | STRING | Token verifikasi. |
+| `email` | VARCHAR (PK) | Email pengguna. |
+| `token` | VARCHAR | Token verifikasi. |
 | `created_at` | TIMESTAMP | Waktu pembuatan token. |
 
 ### `sessions`
-Menyimpan sesi pengguna aktif (jika driver database digunakan).
+Menyimpan sesi pengguna aktif.
 | Kolom | Tipe Data | Deskripsi |
 |-------|-----------|-----------|
-| `id` | STRING (PK) | ID Sesi. |
+| `id` | VARCHAR (PK) | ID Sesi. |
 | `user_id` | BIGINT | ID User pemilik sesi. |
-| `payload` | LONGTEXT | Data sesi terenkripsi. |
+| `ip_address` | VARCHAR | Alamat IP pengguna. |
+| `user_agent` | TEXT | User agent browser. |
+| `payload` | LONGTEXT | Data sesi. |
 | `last_activity` | INTEGER | Timestamp aktivitas terakhir. |
-
-### `personal_access_tokens`
-Menyimpan token API (Sanctum) untuk akses mobile/eksternal.
-| Kolom | Tipe Data | Deskripsi |
-|-------|-----------|-----------|
-| `tokenable_id` | BIGINT | ID User pemilik token. |
-| `name` | STRING | Nama token. |
-| `token` | STRING | Hash token SHA-256. |
-| `abilities` | JSON | Hak akses token. |
 
 ---
 
@@ -88,41 +93,50 @@ Menyimpan data rumah kost.
 |-------|-----------|--------|-----------|
 | `id` | BIGINT (PK) | - | Primary Key. |
 | `owner_id` | BIGINT | `users.id` | Pemilik kost. |
-| `name` | STRING | - | Nama kost. |
-| `address` | STRING | - | Alamat lengkap. |
+| `name` | VARCHAR | - | Nama kost. |
+| `address` | VARCHAR | - | Alamat lengkap. |
 | `lat`, `lng` | DECIMAL | - | Koordinat lokasi. |
 | `rules_text` | TEXT | - | Peraturan kost. |
 | `photos` | JSON | - | Array URL foto-foto kost. |
 | `status` | ENUM | - | `'draft'`, `'pending'`, `'approved'`, `'rejected'`. |
+| `moderation_notes` | TEXT | - | Catatan moderasi dari admin. |
+| `moderated_by` | BIGINT | `users.id` | Admin yang memoderasi. |
+| `moderated_at` | TIMESTAMP | - | Waktu moderasi. |
 
 ### `room_types`
-Kategori atau tipe kamar.
+Kategori atau tipe kamar dalam properti.
 | Kolom | Tipe Data | Relasi | Deskripsi |
 |-------|-----------|--------|-----------|
 | `id` | BIGINT (PK) | - | Primary Key. |
 | `property_id` | BIGINT | `properties.id` | Kost induk. |
-| `name` | STRING | - | Nama tipe. |
-| `price` | INTEGER | - | Harga dasar. |
-| `facilities` | JSON | - | Daftar fasilitas. |
+| `name` | VARCHAR | - | Nama tipe kamar. |
 | `description` | TEXT | - | Deskripsi tipe kamar. |
+| `area_m2` | INT UNSIGNED | - | Luas kamar (m²). |
+| `bathroom_type` | ENUM | - | `'inside'`, `'outside'`. |
+| `base_price` | INT UNSIGNED | - | Harga sewa dasar. |
+| `deposit` | INT UNSIGNED | - | Uang jaminan (deposit). |
+| `facilities_json` | JSON | - | Daftar fasilitas kamar. |
 
 ### `rooms`
-Unit kamar fisik.
+Unit kamar fisik yang spesifik.
 | Kolom | Tipe Data | Relasi | Deskripsi |
 |-------|-----------|--------|-----------|
 | `id` | BIGINT (PK) | - | Primary Key. |
-| `property_id` | BIGINT | `properties.id` | Kost induk. |
-| `room_type_id` | BIGINT | `room_types.id` | Jenis kamar. |
-| `name` | STRING | - | Nomor kamar. |
+| `room_type_id` | BIGINT | `room_types.id` | Tipe kamar. |
+| `room_code` | VARCHAR | - | Nomor/Kode kamar (misal: "A101"). |
+| `custom_price` | INT UNSIGNED | - | Harga khusus (jika berbeda dari tipe). |
 | `status` | ENUM | - | `'available'`, `'occupied'`, `'maintenance'`. |
-| `description` | TEXT | - | Deskripsi khusus kamar (opsional). |
+| `description` | TEXT | - | Deskripsi khusus kamar. |
+| `photos_json` | JSON | - | Foto khusus kamar ini. |
+| `facilities_override_json` | JSON | - | Fasilitas khusus (override tipe). |
 
 ### `wishlist_items`
-Daftar kost favorit tenant.
+Daftar kost favorit pengguna.
 | Kolom | Tipe Data | Relasi | Deskripsi |
 |-------|-----------|--------|-----------|
-| `user_id` | BIGINT | `users.id` | Tenant. |
-| `property_id` | BIGINT | `properties.id` | Kost favorit. |
+| `id` | BIGINT (PK) | - | Primary Key. |
+| `user_id` | BIGINT | `users.id` | Pengguna. |
+| `property_id` | BIGINT | `properties.id` | Properti favorit. |
 
 ---
 
@@ -134,29 +148,50 @@ Permohonan sewa dari calon penyewa.
 |-------|-----------|--------|-----------|
 | `id` | BIGINT (PK) | - | Primary Key. |
 | `tenant_id` | BIGINT | `users.id` | Pemohon. |
-| `room_id` | BIGINT | `rooms.id` | Kamar yang diinginkan. |
-| `status` | ENUM | - | `'pending'`, `'approved'`, `'rejected'`, `'canceled'`. |
+| `property_id` | BIGINT | `properties.id` | Properti tujuan. |
+| `room_type_id` | BIGINT | `room_types.id` | Tipe kamar yang diinginkan. |
+| `room_id` | BIGINT | `rooms.id` | Kamar spesifik (opsional). |
+| `preferred_start_date` | DATE | - | Tanggal mulai yang diinginkan. |
+| `duration_months` | INT UNSIGNED | - | Durasi sewa (bulan). |
+| `occupants_count` | TINYINT | - | Jumlah penghuni. |
+| `status` | VARCHAR | - | `'pending'`, `'approved'`, `'rejected'`, `'cancelled'`. |
+| `tenant_notes` | TEXT | - | Catatan dari penyewa. |
+| `owner_notes` | TEXT | - | Catatan dari pemilik. |
+| `approved_at`, `rejected_at` | TIMESTAMP | - | Waktu persetujuan/penolakan. |
+| `terms_text` | TEXT | - | Syarat & Ketentuan sewa. |
+| `terms_accepted_at` | TIMESTAMP | - | Waktu penyewa menyetujui S&K. |
+| Data Profil Tambahan | | | `contact_phone`, `contact_email`, `budget_per_month`, `employment_status`, `company_name`, `job_title`, `monthly_income`, `has_vehicle`, `vehicle_notes`, `emergency_contact_name`, `emergency_contact_phone`. |
 
 ### `contracts`
-Perjanjian sewa aktif.
+Perjanjian sewa aktif antara pemilik dan penyewa.
 | Kolom | Tipe Data | Relasi | Deskripsi |
 |-------|-----------|--------|-----------|
 | `id` | BIGINT (PK) | - | Primary Key. |
 | `tenant_id` | BIGINT | `users.id` | Penyewa. |
-| `room_id` | BIGINT | `rooms.id` | Kamar. |
-| `start_date` | DATE | - | Mulai sewa. |
-| `end_date` | DATE | - | Selesai sewa. |
-| `price_per_month` | INTEGER | - | Harga sewa. |
-| `status` | ENUM | - | `'active'`, `'terminated'`, `'canceled'`, `'expired'`. |
+| `room_id` | BIGINT | `rooms.id` | Kamar yang disewa. |
+| `start_date` | DATE | - | Tanggal mulai sewa. |
+| `end_date` | DATE | - | Tanggal berakhir sewa. |
+| `price_per_month` | INT UNSIGNED | - | Harga sewa per bulan. |
+| `billing_day` | TINYINT | - | Tanggal penagihan bulanan. |
+| `deposit_amount` | INT UNSIGNED | - | Jumlah deposit. |
+| `status` | ENUM | - | `'draft'`, `'submitted'`, `'active'`, `'pending_renewal'`, `'terminated'`, `'canceled'`, `'expired'`. |
+| `submitted_at` | TIMESTAMP | - | Waktu kontrak diajukan. |
+| `activated_at` | TIMESTAMP | - | Waktu kontrak aktif. |
+| `terminated_at` | TIMESTAMP | - | Waktu kontrak dihentikan. |
+| `termination_reason` | TEXT | - | Alasan penghentian kontrak. |
 
 ### `contract_termination_requests`
-Permohonan pemutusan kontrak lebih awal.
+Permohonan pemutusan kontrak lebih awal oleh penyewa.
 | Kolom | Tipe Data | Relasi | Deskripsi |
 |-------|-----------|--------|-----------|
+| `id` | BIGINT (PK) | - | Primary Key. |
 | `contract_id` | BIGINT | `contracts.id` | Kontrak terkait. |
 | `tenant_id` | BIGINT | `users.id` | Pemohon. |
+| `requested_end_date` | DATE | - | Tanggal berhenti yang diminta. |
 | `reason` | TEXT | - | Alasan berhenti sewa. |
 | `status` | ENUM | - | `'pending'`, `'approved'`, `'rejected'`. |
+| `owner_notes` | TEXT | - | Catatan dari pemilik. |
+| `resolved_at` | TIMESTAMP | - | Waktu permohonan diproses. |
 
 ---
 
@@ -167,132 +202,120 @@ Tagihan sewa bulanan.
 | Kolom | Tipe Data | Relasi | Deskripsi |
 |-------|-----------|--------|-----------|
 | `id` | BIGINT (PK) | - | Primary Key. |
-| `contract_id` | BIGINT | `contracts.id` | Kontrak. |
-| `period_month` | INTEGER | - | Bulan tagihan. |
-| `amount` | INTEGER | - | Jumlah tagihan. |
-| `status` | ENUM | - | `'unpaid'`, `'paid'`, `'overdue'`. |
+| `contract_id` | BIGINT | `contracts.id` | Kontrak terkait. |
+| `period_month`, `period_year` | SMALLINT | - | Periode tagihan. |
+| `due_date` | DATE | - | Tanggal jatuh tempo. |
+| `amount` | INT UNSIGNED | - | Jumlah tagihan utama. |
+| `late_fee` | INT UNSIGNED | - | Denda keterlambatan. |
+| `total` | INT UNSIGNED | - | Total yang harus dibayar. |
+| `status` | ENUM | - | `'unpaid'`, `'paid'`, `'overdue'`, `'canceled'`, `'pending_verification'`, `'expired'`. |
+| `status_reason` | TEXT | - | Alasan status (misal: pembatalan). |
+| `qris_payload` | JSON | - | Data QRIS untuk pembayaran. |
+| `paid_at` | TIMESTAMP | - | Waktu pembayaran lunas. |
 
 ### `payments`
-Transaksi pembayaran.
+Transaksi pembayaran untuk tagihan.
 | Kolom | Tipe Data | Relasi | Deskripsi |
 |-------|-----------|--------|-----------|
 | `id` | BIGINT (PK) | - | Primary Key. |
-| `invoice_id` | BIGINT | `invoices.id` | Tagihan. |
-| `amount` | INTEGER | - | Jumlah bayar. |
-| `method` | ENUM | - | `'midtrans'`, `'manual'`. |
-| `status` | ENUM | - | `'pending'`, `'success'`, `'failed'`. |
+| `invoice_id` | BIGINT | `invoices.id` | Tagihan yang dibayar. |
+| `user_id` | BIGINT | `users.id` | Pembayar. |
+| `submitted_by` | BIGINT | `users.id` | Pengirim bukti (untuk manual). |
+| `amount` | DECIMAL | - | Jumlah yang dibayarkan. |
+| `payment_type` | ENUM | - | `'qris'`, `'manual_bank_transfer'`, `'manual_cash'`. |
+| `status` | ENUM | - | `'pending'`, `'waiting_verification'`, `'success'`, `'failed'`, `'rejected'`. |
+| `midtrans_order_id` | VARCHAR | - | ID Order Midtrans. |
+| `transaction_status` | VARCHAR | - | Status dari Midtrans. |
+| `proof_path` | VARCHAR | - | Path file bukti transfer. |
+| `verified_by` | BIGINT | `users.id` | Admin/Owner yang memverifikasi. |
+| `verified_at` | TIMESTAMP | - | Waktu verifikasi. |
+| `rejection_reason` | TEXT | - | Alasan penolakan pembayaran. |
 
 ### `owner_wallets`
-Saldo pemilik kost.
+Dompet digital pemilik kost untuk menampung pendapatan.
 | Kolom | Tipe Data | Relasi | Deskripsi |
 |-------|-----------|--------|-----------|
-| `owner_id` | BIGINT | `users.id` | Pemilik. |
-| `balance` | INTEGER | - | Saldo. |
+| `id` | BIGINT (PK) | - | Primary Key. |
+| `owner_id` | BIGINT | `users.id` | Pemilik dompet. |
+| `balance` | DECIMAL | - | Saldo saat ini. |
 
 ### `owner_wallet_transactions`
-Riwayat mutasi saldo (Masuk/Keluar).
+Riwayat transaksi (mutasi) pada dompet pemilik.
 | Kolom | Tipe Data | Relasi | Deskripsi |
 |-------|-----------|--------|-----------|
-| `owner_wallet_id` | BIGINT | `owner_wallets.id` | Dompet. |
+| `id` | BIGINT (PK) | - | Primary Key. |
+| `owner_wallet_id` | BIGINT | `owner_wallets.id` | Dompet terkait. |
+| `payment_id` | BIGINT | `payments.id` | Pembayaran terkait (sumber dana). |
 | `type` | ENUM | - | `'credit'` (Masuk), `'debit'` (Keluar). |
-| `amount` | DECIMAL | - | Jumlah uang. |
-
-### `payment_accounts`
-Rekening tujuan transfer manual (Milik Admin/System).
-| Kolom | Tipe Data | Deskripsi |
-|-------|-----------|-----------|
-| `method` | STRING | Nama Bank/E-Wallet. |
-| `account_number` | STRING | Nomor Rekening. |
-| `account_name` | STRING | Atas Nama. |
+| `amount` | DECIMAL | - | Jumlah dana. |
+| `description` | VARCHAR | - | Keterangan transaksi. |
 
 ---
 
-## 5. Dukungan & Chat (Support & Chat)
+## 5. Dukungan & Komunikasi (Support & Communication)
 
 ### `tickets`
-Tiket komplain.
+Tiket bantuan atau laporan masalah.
 | Kolom | Tipe Data | Relasi | Deskripsi |
 |-------|-----------|--------|-----------|
-| `user_id` | BIGINT | `users.id` | Pelapor. |
-| `property_id` | BIGINT | `properties.id` | Lokasi. |
-| `status` | ENUM | - | `'open'`, `'resolved'`, `'closed'`. |
+| `id` | BIGINT (PK) | - | Primary Key. |
+| `ticket_code` | VARCHAR | - | Kode unik tiket. |
+| `reporter_id` | BIGINT | `users.id` | Pelapor. |
+| `assignee_id` | BIGINT | `users.id` | Staf yang menangani. |
+| `subject` | VARCHAR | - | Judul tiket. |
+| `description` | TEXT | - | Deskripsi masalah. |
+| `category` | ENUM | - | `'technical'`, `'payment'`, `'content'`, `'abuse'`. |
+| `priority` | ENUM | - | `'low'`, `'medium'`, `'high'`, `'urgent'`. |
+| `status` | ENUM | - | `'open'`, `'in_review'`, `'escalated'`, `'resolved'`, `'rejected'`. |
+| `related_type`, `related_id` | MORPH | - | Relasi polimorfik ke objek lain (misal: Property). |
 
 ### `ticket_comments`
-Komentar pada tiket.
+Komentar atau balasan pada tiket.
 | Kolom | Tipe Data | Relasi | Deskripsi |
 |-------|-----------|--------|-----------|
-| `ticket_id` | BIGINT | `tickets.id` | Tiket. |
-| `content` | TEXT | - | Isi pesan. |
+| `id` | BIGINT (PK) | - | Primary Key. |
+| `ticket_id` | BIGINT | `tickets.id` | Tiket terkait. |
+| `user_id` | BIGINT | `users.id` | Penulis komentar. |
+| `body` | TEXT | - | Isi komentar. |
+| `attachments` | JSON | - | Lampiran file. |
 
 ### `ticket_events`
-Log perubahan status tiket (Audit Trail).
+Log aktivitas perubahan pada tiket (Audit Trail).
 | Kolom | Tipe Data | Relasi | Deskripsi |
 |-------|-----------|--------|-----------|
-| `ticket_id` | BIGINT | `tickets.id` | Tiket. |
-| `event` | STRING | - | Jenis kejadian (misal: "Status changed to Resolved"). |
+| `id` | BIGINT (PK) | - | Primary Key. |
+| `ticket_id` | BIGINT | `tickets.id` | Tiket terkait. |
+| `user_id` | BIGINT | `users.id` | Pelaku aksi. |
+| `event_type` | ENUM | - | Jenis event (e.g., `'status_changed'`, `'assigned'`). |
+| `payload` | JSON | - | Data detail event. |
 
 ### `conversations`
-Percakapan chat (Fitur Mendatang).
+Ruang percakapan chat.
 | Kolom | Tipe Data | Deskripsi |
 |-------|-----------|-----------|
-| `id` | BIGINT | Primary Key. |
+| `id` | BIGINT (PK) | Primary Key. |
+| `title` | VARCHAR | Judul percakapan (opsional). |
 | `is_group` | BOOLEAN | Apakah grup chat? |
+| `metadata` | JSON | Metadata tambahan. |
 
 ### `conversation_user`
-Tabel pivot peserta chat.
-| Kolom | Tipe Data | Relasi |
-|-------|-----------|--------|
-| `conversation_id` | BIGINT | `conversations.id` |
-| `user_id` | BIGINT | `users.id` |
-
-### `messages`
-Pesan chat.
+Tabel pivot peserta percakapan.
 | Kolom | Tipe Data | Relasi | Deskripsi |
 |-------|-----------|--------|-----------|
-| `conversation_id` | BIGINT | `conversations.id` | Chat room. |
+| `id` | BIGINT (PK) | - | Primary Key. |
+| `conversation_id` | BIGINT | `conversations.id` | Percakapan. |
+| `user_id` | BIGINT | `users.id` | Peserta. |
+| `last_read_at` | TIMESTAMP | - | Waktu terakhir membaca pesan. |
+| `role` | VARCHAR | - | Peran dalam grup (opsional). |
+
+### `messages`
+Pesan dalam percakapan.
+| Kolom | Tipe Data | Relasi | Deskripsi |
+|-------|-----------|--------|-----------|
+| `id` | BIGINT (PK) | - | Primary Key. |
+| `conversation_id` | BIGINT | `conversations.id` | Percakapan. |
 | `user_id` | BIGINT | `users.id` | Pengirim. |
 | `body` | TEXT | - | Isi pesan. |
+| `attachments` | JSON | - | Lampiran file. |
+| `read_at` | TIMESTAMP | - | Waktu dibaca (untuk 1-on-1). |
 
----
-
-## 6. Sistem & Internal (System)
-
-### `jobs`
-Antrian pekerjaan background (Queue).
-| Kolom | Deskripsi |
-|-------|-----------|
-| `queue` | Nama antrian. |
-| `payload` | Data pekerjaan. |
-| `attempts` | Jumlah percobaan. |
-
-### `job_batches`
-Kumpulan pekerjaan batch.
-
-### `failed_jobs`
-Pekerjaan yang gagal diproses.
-
-### `cache`
-Penyimpanan cache aplikasi (jika driver database digunakan).
-
-### `cache_locks`
-Kunci atomik untuk cache.
-
-### `audit_logs`
-Log aktivitas keamanan sistem.
-| Kolom | Tipe Data | Deskripsi |
-|-------|-----------|-----------|
-| `user_id` | BIGINT | Pelaku aksi. |
-| `action` | STRING | Jenis aksi (misal: "LOGIN", "DELETE"). |
-| `entity` | STRING | Objek yang diubah (misal: "Property"). |
-| `meta_json` | JSON | Detail perubahan data. |
-
-### `shared_tasks`
-Tugas bersama (Fitur Eksperimental).
-| Kolom | Tipe Data | Deskripsi |
-|-------|-----------|-----------|
-| `property_id` | BIGINT | Properti terkait. |
-| `title` | STRING | Judul tugas. |
-| `assignee_user_id` | BIGINT | Penanggung jawab. |
-
-### `shared_task_logs`
-Log penyelesaian tugas bersama.
