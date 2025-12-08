@@ -21,11 +21,17 @@ const GoogleCallbackPage = () => {
 
             try {
                 // Exchange code for token via backend
-                const { token, user } = await handleGoogleCallback(location.search);
+                const { token, user, is_new_user } = await handleGoogleCallback(location.search);
 
                 // Store token
-                localStorage.setItem('token', token);
+                localStorage.setItem('auth_token', token);
                 localStorage.setItem('user', JSON.stringify(user));
+
+                // Check if new user
+                if (is_new_user) {
+                    window.location.href = '/auth/role-selection';
+                    return;
+                }
 
                 // Redirect based on role
                 if (user.role === 'admin') {

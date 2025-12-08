@@ -66,6 +66,13 @@ export const currentUser = async () => {
   } catch (error) {
     return null;
   }
+  return null;
+}
+
+
+export const updateUserRole = async (role) => {
+  const response = await api.post('/v1/auth/role', { role });
+  return response.data;
 };
 
 export const fetchProperties = async () => {

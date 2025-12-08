@@ -84,6 +84,7 @@ Route::prefix('v1')
         Route::middleware('auth:sanctum')->group(function (): void {
             Route::post('/auth/logout', [AuthController::class, 'logout']);
             Route::get('/auth/me', [AuthController::class, 'me']);
+            Route::post('/auth/role', [AuthController::class, 'updateRole']);
 
             Route::apiResource('properties', ApiV1PropertyController::class)->except(['index', 'show']);
             Route::apiResource('invoices', ApiV1InvoiceController::class)->only(['index', 'show']);

@@ -80,6 +80,7 @@ class SocialAuthController extends Controller
         return response()->json([
             'user' => new UserResource($user),
             'token' => $token,
+            'is_new_user' => $user->wasRecentlyCreated,
         ]);
     }
 }

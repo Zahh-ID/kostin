@@ -15,6 +15,7 @@ import RegisterPage from './pages/RegisterPage.jsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 import GoogleCallbackPage from './pages/GoogleCallbackPage.jsx';
+import RoleSelectionPage from './pages/RoleSelectionPage.jsx';
 import TenantDashboard from './pages/tenant/Dashboard.jsx';
 import TenantContracts from './pages/tenant/Contracts.jsx';
 import TenantWishlist from './pages/tenant/Wishlist.jsx';
@@ -242,6 +243,7 @@ createRoot(root).render(
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
+            <Route path="/auth/role-selection" element={<RoleSelectionPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

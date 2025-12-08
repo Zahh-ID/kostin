@@ -149,4 +149,35 @@ class AuthController extends Controller
 
         return response()->json(new UserResource($user));
     }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/auth/role",
+     *     tags={"Auth"},
+     *     summary="Update user role",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"role"},
+     *             @OA\Property(property="role", type="string", enum={"tenant","owner"})
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Role updated",
+     *         @OA\JsonContent(ref="#/components/schemas/UserResource")
+     *     )
+     * )
+     */
+    public function updateRole(Request $request): JsonResponse
+    {
+        $request->validate([
+            'role' => 'required|in:tenant,owner',
+        ]);
+
+        $user = $request->user();
+        $user->update(['role' => $request->role]);
+
+        return response()->json(new UserResource($user));
+    }
 }
