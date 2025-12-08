@@ -9,39 +9,131 @@ Berikut adalah visualisasi hubungan antar tabel utama dalam database Kostin.
 ```mermaid
 erDiagram
     USERS ||--o{ PROPERTIES : owns
-    USERS ||--o{ RENTAL_APPLICATIONS : applies
-    USERS ||--o{ CONTRACTS : signs
-    USERS ||--o{ TICKETS : reports
-    USERS ||--o{ WISHLIST_ITEMS : saves
+    USERS ||--o{ CONTRACTS : "tenant of"
     USERS ||--o{ PAYMENTS : makes
+    USERS ||--o{ WISHLIST_ITEMS : saves
+    USERS ||--o{ TICKETS : reports
+    USERS ||--o{ TICKET_COMMENTS : writes
     USERS ||--o{ CONVERSATION_USER : participates
     USERS ||--o{ MESSAGES : sends
+    USERS ||--o{ RENTAL_APPLICATIONS : applies
     USERS ||--|| OWNER_WALLETS : has
 
     PROPERTIES ||--o{ ROOM_TYPES : has
     PROPERTIES ||--o{ RENTAL_APPLICATIONS : receives
-    PROPERTIES ||--o{ WISHLIST_ITEMS : listed_in
+    PROPERTIES ||--o{ WISHLIST_ITEMS : "is in"
 
     ROOM_TYPES ||--o{ ROOMS : defines
-    ROOM_TYPES ||--o{ RENTAL_APPLICATIONS : requested_type
+    ROOM_TYPES ||--o{ RENTAL_APPLICATIONS : "requested type"
 
-    ROOMS ||--o{ CONTRACTS : occupied_by
-    ROOMS ||--o{ RENTAL_APPLICATIONS : requested_room
+    ROOMS ||--o{ CONTRACTS : "is rented in"
+    ROOMS ||--o{ RENTAL_APPLICATIONS : "requested room"
 
     CONTRACTS ||--o{ INVOICES : generates
-    CONTRACTS ||--o{ CONTRACT_TERMINATION_REQUESTS : has
+    CONTRACTS ||--o{ CONTRACT_TERMINATION_REQUESTS : "has requests"
 
-    INVOICES ||--o{ PAYMENTS : paid_via
+    INVOICES ||--o{ PAYMENTS : "paid by"
 
-    PAYMENTS ||--o{ OWNER_WALLET_TRANSACTIONS : triggers
+    PAYMENTS ||--o{ OWNER_WALLET_TRANSACTIONS : "triggers"
 
-    OWNER_WALLETS ||--o{ OWNER_WALLET_TRANSACTIONS : logs
+    OWNER_WALLETS ||--o{ OWNER_WALLET_TRANSACTIONS : "has"
 
     TICKETS ||--o{ TICKET_COMMENTS : has
-    TICKETS ||--o{ TICKET_EVENTS : logs
+    TICKETS ||--o{ TICKET_EVENTS : has
 
     CONVERSATIONS ||--o{ CONVERSATION_USER : has
     CONVERSATIONS ||--o{ MESSAGES : contains
+
+    USERS {
+        bigint id PK
+        string name
+        string email
+        string role
+        string google_id
+    }
+
+    PROPERTIES {
+        bigint id PK
+        bigint owner_id FK
+        string name
+        string status
+    }
+
+    ROOM_TYPES {
+        bigint id PK
+        bigint property_id FK
+        string name
+        int base_price
+    }
+
+    ROOMS {
+        bigint id PK
+        bigint room_type_id FK
+        string room_code
+        string status
+    }
+
+    CONTRACTS {
+        bigint id PK
+        bigint tenant_id FK
+        bigint room_id FK
+        date start_date
+        string status
+    }
+
+    INVOICES {
+        bigint id PK
+        bigint contract_id FK
+        date due_date
+        int amount
+        string status
+    }
+
+    PAYMENTS {
+        bigint id PK
+        bigint invoice_id FK
+        decimal amount
+        string status
+        string payment_type
+    }
+
+    WISHLIST_ITEMS {
+        bigint id PK
+        bigint user_id FK
+        bigint property_id FK
+    }
+
+    TICKETS {
+        bigint id PK
+        bigint reporter_id FK
+        string subject
+        string status
+    }
+
+    CONVERSATIONS {
+        bigint id PK
+        boolean is_group
+    }
+
+    MESSAGES {
+        bigint id PK
+        bigint conversation_id FK
+        bigint user_id FK
+        text body
+    }
+
+    RENTAL_APPLICATIONS {
+        bigint id PK
+        bigint tenant_id FK
+        bigint property_id FK
+        string status
+    }
+
+    OWNER_WALLETS {
+        bigint id PK
+        bigint owner_id FK
+        decimal balance
+    }
 ```
 
 ---

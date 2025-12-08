@@ -22,7 +22,12 @@ const GoogleCallbackPage = () => {
             try {
                 // Exchange code for token via backend
                 // Note: We use the full URL for the callback to the backend, passing the query params
-                const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/v1/auth/google/callback${location.search}`, {
+                // Ensure /api prefix is present if VITE_API_BASE_URL doesn't have it
+                const baseUrl = import.meta.env.VITE_API_BASE_URL.endsWith('/api')
+                    ? import.meta.env.VITE_API_BASE_URL
+                    : `${import.meta.env.VITE_API_BASE_URL}/api`;
+
+                const response = await axios.get(`${baseUrl}/v1/auth/google/callback${location.search}`, {
                     withCredentials: true
                 });
 
