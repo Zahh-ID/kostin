@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import { handleGoogleCallback } from '../api/client';
 
 const GoogleCallbackPage = () => {
     const navigate = useNavigate();
@@ -21,17 +21,7 @@ const GoogleCallbackPage = () => {
 
             try {
                 // Exchange code for token via backend
-                // Note: We use the full URL for the callback to the backend, passing the query params
-                // Ensure /api prefix is present if VITE_API_BASE_URL doesn't have it
-                const baseUrl = import.meta.env.VITE_API_BASE_URL.endsWith('/api')
-                    ? import.meta.env.VITE_API_BASE_URL
-                    : `${import.meta.env.VITE_API_BASE_URL}/api`;
-
-                const response = await axios.get(`${baseUrl}/v1/auth/google/callback${location.search}`, {
-                    withCredentials: true
-                });
-
-                const { token, user } = response.data;
+                const { token, user } = await handleGoogleCallback(location.search);
 
                 // Store token
                 localStorage.setItem('token', token);

@@ -209,11 +209,8 @@ const LoginPage = () => {
               className="btn ghost full w-full flex items-center justify-center gap-2"
               onClick={async () => {
                 try {
-                  const baseUrl = import.meta.env.VITE_API_BASE_URL.endsWith('/api')
-                    ? import.meta.env.VITE_API_BASE_URL
-                    : `${import.meta.env.VITE_API_BASE_URL}/api`;
-                  const response = await import('axios').then(m => m.default.get(`${baseUrl}/v1/auth/google/redirect`));
-                  window.location.href = response.data.url;
+                  const url = await fetchGoogleAuthUrl();
+                  window.location.href = url;
                 } catch (error) {
                   console.error("Google Auth Error", error);
                   setError("Gagal menghubungkan ke Google.");

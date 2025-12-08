@@ -479,3 +479,8 @@ export const fetchGoogleAuthUrl = async () => {
   const response = await api.get('/v1/auth/google/redirect');
   return response.data.url;
 };
+
+export const handleGoogleCallback = async (searchParams) => {
+  const response = await api.get(`/v1/auth/google/callback${searchParams}`);
+  return response.data;
+};
