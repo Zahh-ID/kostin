@@ -21,7 +21,11 @@ class SocialAuthController extends Controller
     {
         Log::info('Google Auth Redirect Requested');
         try {
-            $url = Socialite::driver('google')->stateless()->redirect()->getTargetUrl();
+            $url = Socialite::driver('google')
+                ->stateless()
+                ->with(['prompt' => 'select_account'])
+                ->redirect()
+                ->getTargetUrl();
             Log::info('Google Auth Redirect URL generated: ' . $url);
             return response()->json([
                 'url' => $url,
