@@ -1,0 +1,30 @@
+# VCS & editor noise
+.git
+.gitignore
+.github
+.vscode
+.idea
+.DS_Store
+npm-debug.log
+yarn-error.log
+
+# Secrets and env files
+.env
+.env.*
+frontend/.env
+frontend/.env.*
+
+# Dependency artifacts
+vendor
+node_modules
+frontend/node_modules
+
+# Frontend build outputs & caches
+frontend/dist
+frontend/build
+frontend/.vite
+frontend/.next
+frontend/coverage
+
+# Frontend runtime storage (not needed for build; can have root-owned files)
+frontend/storage
