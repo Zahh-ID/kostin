@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiClipboard, FiCheckCircle, FiXCircle, FiClock, FiUser, FiHome, FiMessageSquare, FiX, FiCalendar } from 'react-icons/fi';
-import { fetchOwnerApplications, approveOwnerApplication, rejectOwnerApplication } from '../../api/client';
+import { fetchOwnerApplications, approveOwnerApplication, rejectOwnerApplication, fetchPropertyRooms } from '../../api/client';
 
 const OwnerApplications = () => {
   const [applications, setApplications] = useState([]);
@@ -23,13 +23,13 @@ const OwnerApplications = () => {
     }
   };
 
-  const handleApprove = async (id) => {
+  const handleApprove = async (id, roomId) => {
     try {
-      await approveOwnerApplication(id);
+      await approveOwnerApplication(id, roomId ? { room_id: roomId } : {});
       loadData();
       setSelectedApp(null);
     } catch (error) {
-      alert('Gagal menyetujui pengajuan');
+      alert('Gagal menyetujui pengajuan: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -142,7 +142,7 @@ const OwnerApplications = () => {
           <ReviewModal
             app={selectedApp}
             onClose={() => setSelectedApp(null)}
-            onApprove={() => handleApprove(selectedApp.id)}
+            onApprove={(roomId) => handleApprove(selectedApp.id, roomId)}
             onReject={() => handleReject(selectedApp.id)}
           />
         )}
@@ -226,13 +226,37 @@ const ApplicationCard = ({ app, onReview }) => {
 };
 
 const ReviewModal = ({ app, onClose, onApprove, onReject }) => {
+  const [rooms, setRooms] = useState([]);
+  const [selectedRoomId, setSelectedRoomId] = useState(app.room_id || '');
+  const [loadingRooms, setLoadingRooms] = useState(false);
+
+  useEffect(() => {
+    if (app.property_id) {
+      setLoadingRooms(true);
+      fetchPropertyRooms(app.property_id)
+        .then(data => {
+          setRooms(data.filter(r => r.status === 'available' || r.id === app.room_id));
+        })
+        .catch(console.error)
+        .finally(() => setLoadingRooms(false));
+    }
+  }, [app.property_id, app.room_id]);
+
+  const handleApproveClick = () => {
+    if (!selectedRoomId) {
+      alert('Mohon pilih kamar untuk disewakan.');
+      return;
+    }
+    onApprove(selectedRoomId);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-background border border-border rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+        className="bg-background border border-border rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden"
       >
         <div className="p-6 border-b border-border flex justify-between items-center">
           <h3 className="text-xl font-display font-bold">Review Pengajuan</h3>
@@ -257,10 +281,35 @@ const ReviewModal = ({ app, onClose, onApprove, onReject }) => {
               <FiHome className="text-primary" />
               <span className="font-medium">{app.property_name}</span>
             </div>
-            <div className="flex items-center gap-3 text-sm">
-              <span className="w-4 h-4 flex items-center justify-center text-xs font-mono border border-primary rounded text-primary font-bold">#</span>
-              <span className="font-medium">{app.room_name}</span>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-3 text-sm">
+                <span className="w-4 h-4 flex items-center justify-center text-xs font-mono border border-primary rounded text-primary font-bold">#</span>
+                <span className="font-medium">Kamar Sewa</span>
+              </div>
+              {loadingRooms ? (
+                <div className="text-xs text-text-secondary animate-pulse ml-7">Memuat daftar kamar...</div>
+              ) : (
+                <select
+                  className="ml-7 input py-2 px-3 text-sm bg-surface-highlight border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary"
+                  value={selectedRoomId}
+                  onChange={(e) => setSelectedRoomId(e.target.value)}
+                >
+                  <option value="">-- Pilih Kamar --</option>
+                  {rooms.map(room => (
+                    <option key={room.id} value={room.id}>
+                      {room.room_code} ({room.status === 'available' ? 'Tersedia' : 'Terisi'})
+                    </option>
+                  ))}
+                </select>
+              )}
+              {!selectedRoomId && (
+                <div className="ml-7 text-xs text-red-400">
+                  * Wajib pilih kamar sebelum menyetujui.
+                </div>
+              )}
             </div>
+
             <div className="flex items-center gap-3 text-sm">
               <FiCalendar className="text-primary" />
               <span className="text-text-secondary">Diajukan: {new Date(app.created_at).toLocaleDateString()}</span>
@@ -354,7 +403,7 @@ const ReviewModal = ({ app, onClose, onApprove, onReject }) => {
           <button onClick={onReject} className="btn ghost flex-1 justify-center text-red-500 hover:bg-red-500/10 hover:border-red-500/20">
             Tolak
           </button>
-          <button onClick={onApprove} className="btn primary flex-1 justify-center">
+          <button onClick={handleApproveClick} className="btn primary flex-1 justify-center">
             Setujui
           </button>
         </div>

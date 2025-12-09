@@ -76,7 +76,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Administrator', 'email' => 'admin@example.com', 'phone' => '081200000000'],
             ['name' => 'Ops Admin', 'email' => 'admin2@example.com', 'phone' => '081277788899'],
             ['name' => 'Support Admin', 'email' => 'admin3@example.com', 'phone' => '081211122233'],
-        ])->map(fn (array $data) => $this->createOrUpdateUser($data, User::ROLE_ADMIN, $password));
+        ])->map(fn(array $data) => $this->createOrUpdateUser($data, User::ROLE_ADMIN, $password));
 
         $admin = $admins->first();
         $adminOps = $admins->get(1) ?? $admin;
@@ -85,12 +85,12 @@ class DatabaseSeeder extends Seeder
         $owners = collect([
             ['name' => 'Property Owner', 'email' => 'owner@example.com', 'phone' => '081234567890'],
             ['name' => 'Cozy Host', 'email' => 'owner2@example.com', 'phone' => '081298765432'],
-        ])->map(fn (array $data) => $this->createOrUpdateUser($data, User::ROLE_OWNER, $password));
+        ])->map(fn(array $data) => $this->createOrUpdateUser($data, User::ROLE_OWNER, $password));
 
         $tenants = collect([
             ['name' => 'Sample Tenant', 'email' => 'tenant@example.com', 'phone' => '081311223344'],
             ['name' => 'Active Tenant', 'email' => 'tenant2@example.com', 'phone' => '081355667788'],
-        ])->map(fn (array $data) => $this->createOrUpdateUser($data, User::ROLE_TENANT, $password));
+        ])->map(fn(array $data) => $this->createOrUpdateUser($data, User::ROLE_TENANT, $password));
 
         $primaryOwner = $owners->first();
         $secondaryOwner = $owners->skip(1)->first();
@@ -264,7 +264,7 @@ class DatabaseSeeder extends Seeder
             [
                 'user_id' => $primaryTenant->id,
                 'submitted_by' => null,
-                'order_id' => 'ORDER-'.$overdueInvoice->id,
+                'order_id' => 'ORDER-' . $overdueInvoice->id,
                 'manual_method' => null,
                 'proof_path' => null,
                 'proof_filename' => null,
@@ -290,11 +290,11 @@ class DatabaseSeeder extends Seeder
             [
                 'user_id' => $primaryTenant->id,
                 'submitted_by' => $primaryTenant->id,
-                'order_id' => 'MANUAL-'.$openInvoice->id,
+                'order_id' => 'MANUAL-' . $openInvoice->id,
                 'manual_method' => 'BCA',
-                'proof_path' => 'manual-payments/'.$openInvoice->id.'-bukti.jpg',
+                'proof_path' => 'manual-payments/' . $openInvoice->id . '-bukti.jpg',
                 'proof_filename' => 'bukti-transfer-november.jpg',
-                'notes' => 'Transfer manual melalui BCA Mobile pada '.$now->copy()->subDay()->format('d M Y H:i'),
+                'notes' => 'Transfer manual melalui BCA Mobile pada ' . $now->copy()->subDay()->format('d M Y H:i'),
                 'amount' => $openInvoice->total,
                 'status' => 'waiting_verification',
                 'settlement_time' => null,
@@ -686,7 +686,7 @@ class DatabaseSeeder extends Seeder
             [
                 'user_id' => $secondaryTenant->id,
                 'submitted_by' => null,
-                'order_id' => 'ORDER-'.$paidInvoice->id,
+                'order_id' => 'ORDER-' . $paidInvoice->id,
                 'manual_method' => null,
                 'proof_path' => null,
                 'proof_filename' => null,
@@ -710,9 +710,9 @@ class DatabaseSeeder extends Seeder
         for ($i = 1; $i <= $longstayCount; $i++) {
             $longStayTenant = $this->createOrUpdateUser(
                 [
-                    'name' => 'Longstay Tenant '.$i,
+                    'name' => 'Longstay Tenant ' . $i,
                     'email' => "tenant-yearly{$i}@example.com",
-                    'phone' => '08139'.str_pad((string) $i, 6, '0', STR_PAD_LEFT),
+                    'phone' => '08139' . str_pad((string) $i, 6, '0', STR_PAD_LEFT),
                 ],
                 User::ROLE_TENANT,
                 $password
@@ -723,18 +723,24 @@ class DatabaseSeeder extends Seeder
                 ->inRandomOrder()
                 ->first();
 
-            if (! $roomLongStay) {
+            if (!$roomLongStay) {
                 $roomTypeFallback = RoomType::query()->first();
-                if (! $roomTypeFallback) {
+                if (!$roomTypeFallback) {
                     continue;
                 }
 
-                $roomLongStay = Room::factory()->create([
-                    'room_type_id' => $roomTypeFallback->id,
-                    'room_code' => 'L'.$i,
-                    'status' => 'available',
-                    'custom_price' => $roomTypeFallback->base_price,
-                ]);
+                $roomLongStay = Room::where('room_type_id', $roomTypeFallback->id)
+                    ->where('room_code', 'L' . $i)
+                    ->first();
+
+                if (!$roomLongStay) {
+                    $roomLongStay = Room::factory()->create([
+                        'room_type_id' => $roomTypeFallback->id,
+                        'room_code' => 'L' . $i,
+                        'status' => 'available',
+                        'custom_price' => $roomTypeFallback->base_price,
+                    ]);
+                }
             }
 
             $roomLongStay->update(['status' => 'occupied']);
@@ -796,7 +802,7 @@ class DatabaseSeeder extends Seeder
                         [
                             'user_id' => $longStayTenant->id,
                             'submitted_by' => $longStayTenant->id,
-                            'order_id' => 'LONG-'.$invoice->id,
+                            'order_id' => 'LONG-' . $invoice->id,
                             'manual_method' => null,
                             'proof_path' => null,
                             'proof_filename' => null,
@@ -842,7 +848,7 @@ class DatabaseSeeder extends Seeder
         );
 
         $globalConversation->participants()->sync(
-            $chatParticipants->mapWithKeys(fn (int $userId) => [
+            $chatParticipants->mapWithKeys(fn(int $userId) => [
                 $userId => ['last_read_at' => $now, 'role' => 'member'],
             ])->all()
         );
@@ -922,7 +928,7 @@ class DatabaseSeeder extends Seeder
     {
         $response = Http::timeout(10)->get($url);
 
-        if (! $response->successful()) {
+        if (!$response->successful()) {
             return null;
         }
 

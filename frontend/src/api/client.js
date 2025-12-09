@@ -249,7 +249,7 @@ export const createOwnerRoom = async (payload) => {
 
 export const fetchPropertyRooms = async (propertyId) => {
   const response = await api.get(`/v1/owner/properties/${propertyId}/rooms`);
-  return response.data;
+  return response.data?.data ?? [];
 };
 
 export const createPropertyRoomsBulk = async (propertyId, payload) => {
@@ -424,9 +424,9 @@ export const withdrawOwnerWallet = async (payload) => {
   return response.data;
 };
 
-export const approveOwnerApplication = async (id) => {
+export const approveOwnerApplication = async (id, data = {}) => {
 
-  const response = await api.post(`/v1/owner/applications/${id}/approve`);
+  const response = await api.post(`/v1/owner/applications/${id}/approve`, data);
   return response.data;
 };
 
