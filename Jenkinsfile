@@ -10,9 +10,12 @@ pipeline {
     stages {
         stage('Workspace Cleanup') {
             steps {
-                script {
-                    deleteDir()
-                }
+                sh '''
+                    HOST_UID=$(id -u)
+                    HOST_GID=$(id -g)
+                    docker run --rm -u root -v "$PWD":/work -w /work alpine:3.20 sh -c "chown -R ${HOST_UID}:${HOST_GID} /work || true"
+                '''
+                deleteDir()
             }
         }
 
