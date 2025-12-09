@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { FiClipboard, FiCheckCircle, FiXCircle, FiClock, FiUser, FiHome, FiMessageSquare } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FiClipboard, FiCheckCircle, FiXCircle, FiClock, FiUser, FiHome, FiMessageSquare, FiX, FiCalendar } from 'react-icons/fi';
 import { fetchOwnerApplications, approveOwnerApplication, rejectOwnerApplication } from '../../api/client';
 
 const OwnerApplications = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedApp, setSelectedApp] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -23,21 +24,21 @@ const OwnerApplications = () => {
   };
 
   const handleApprove = async (id) => {
-    if (window.confirm('Setujui pengajuan ini?')) {
-      try {
-        await approveOwnerApplication(id);
-        loadData();
-      } catch (error) {
-        alert('Gagal menyetujui pengajuan');
-      }
+    try {
+      await approveOwnerApplication(id);
+      loadData();
+      setSelectedApp(null);
+    } catch (error) {
+      alert('Gagal menyetujui pengajuan');
     }
   };
 
   const handleReject = async (id) => {
-    if (window.confirm('Tolak pengajuan ini?')) {
+    if (window.confirm('Yakin ingin menolak pengajuan ini?')) {
       try {
         await rejectOwnerApplication(id);
         loadData();
+        setSelectedApp(null);
       } catch (error) {
         alert('Gagal menolak pengajuan');
       }
@@ -124,12 +125,28 @@ const OwnerApplications = () => {
               <p className="text-text-secondary">Belum ada pengajuan sewa.</p>
             ) : (
               applications.map((app) => (
-                <ApplicationCard key={app.id} app={app} onApprove={() => handleApprove(app.id)} onReject={() => handleReject(app.id)} />
+                <ApplicationCard
+                  key={app.id}
+                  app={app}
+                  onReview={() => setSelectedApp(app)}
+                />
               ))
             )}
           </motion.div>
         </section>
       </div>
+
+      {/* Review Modal */}
+      <AnimatePresence>
+        {selectedApp && (
+          <ReviewModal
+            app={selectedApp}
+            onClose={() => setSelectedApp(null)}
+            onApprove={() => handleApprove(selectedApp.id)}
+            onReject={() => handleReject(selectedApp.id)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -147,7 +164,7 @@ const StatusCard = ({ icon, label, value, desc, color, bg, border }) => (
   </div>
 );
 
-const ApplicationCard = ({ app, onApprove, onReject }) => {
+const ApplicationCard = ({ app, onReview }) => {
   const statusConfig = {
     pending: { label: 'Pending', color: 'text-yellow-400', bg: 'bg-yellow-400/10', border: 'border-yellow-400/20', icon: <FiClock /> },
     approved: { label: 'Disetujui', color: 'text-green-400', bg: 'bg-green-400/10', border: 'border-green-400/20', icon: <FiCheckCircle /> },
@@ -193,15 +210,83 @@ const ApplicationCard = ({ app, onApprove, onReject }) => {
         )}
       </div>
 
-      <div className="flex gap-2 mt-auto">
-        <button onClick={onApprove} className="btn primary btn-sm flex-1 justify-center" disabled={app.status !== 'pending'}>
-          Approve
-        </button>
-        <button onClick={onReject} className="btn ghost btn-sm flex-1 justify-center text-red-400 hover:bg-red-400/10" disabled={app.status !== 'pending'}>
-          Reject
-        </button>
+      <div className="mt-auto">
+        {app.status === 'pending' ? (
+          <button onClick={onReview} className="btn primary btn-sm w-full justify-center">
+            Review
+          </button>
+        ) : (
+          <button className="btn ghost btn-sm w-full justify-center opacity-50 cursor-not-allowed" disabled>
+            Selesai
+          </button>
+        )}
       </div>
     </motion.div>
+  );
+};
+
+const ReviewModal = ({ app, onClose, onApprove, onReject }) => {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-background border border-border rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+      >
+        <div className="p-6 border-b border-border flex justify-between items-center">
+          <h3 className="text-xl font-display font-bold">Review Pengajuan</h3>
+          <button onClick={onClose} className="text-text-secondary hover:text-text-primary">
+            <FiX size={24} />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-surface-highlight flex items-center justify-center text-3xl text-text-secondary">
+              <FiUser />
+            </div>
+            <div>
+              <h4 className="text-lg font-bold">{app.tenant_name}</h4>
+              <p className="text-text-secondary text-sm">Calon Penyewa</p>
+            </div>
+          </div>
+
+          <div className="space-y-3 p-4 bg-surface rounded-xl border border-border">
+            <div className="flex items-center gap-3 text-sm">
+              <FiHome className="text-primary" />
+              <span className="font-medium">{app.property_name}</span>
+            </div>
+            <div className="flex items-center gap-3 text-sm">
+              <span className="w-4 h-4 flex items-center justify-center text-xs font-mono border border-primary rounded text-primary font-bold">#</span>
+              <span className="font-medium">{app.room_name}</span>
+            </div>
+            <div className="flex items-center gap-3 text-sm">
+              <FiCalendar className="text-primary" />
+              <span className="text-text-secondary">Diajukan: {new Date(app.created_at).toLocaleDateString()}</span>
+            </div>
+          </div>
+
+          {app.tenant_notes && (
+            <div>
+              <label className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-2 block">Catatan Penyewa</label>
+              <div className="p-4 bg-surface-highlight rounded-xl text-sm italic text-text-secondary">
+                "{app.tenant_notes}"
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="p-6 border-t border-border bg-surface flex gap-3">
+          <button onClick={onReject} className="btn ghost flex-1 justify-center text-red-500 hover:bg-red-500/10 hover:border-red-500/20">
+            Tolak
+          </button>
+          <button onClick={onApprove} className="btn primary flex-1 justify-center">
+            Setujui
+          </button>
+        </div>
+      </motion.div>
+    </div>
   );
 };
 
