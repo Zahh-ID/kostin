@@ -1,0 +1,38 @@
+# syntax=docker/dockerfile:1
+
+FROM composer:2.8 AS backend-deps
+WORKDIR /app
+COPY composer.json composer.lock artisan ./
+COPY bootstrap ./bootstrap
+COPY routes ./routes
+RUN composer install --no-dev --prefer-dist --no-interaction --no-progress
+COPY . .
+RUN composer dump-autoload --optimize --classmap-authoritative
+
+FROM php:8.3-cli AS backend
+WORKDIR /var/www/html
+COPY --from=backend-deps /app /var/www/html
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git unzip libzip-dev libpng-dev \
+    && docker-php-ext-install pdo_mysql zip \
+    && rm -rf /var/lib/apt/lists/* \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public \
+    && if [ -f /var/www/html/.env ]; then chown www-data:www-data /var/www/html/.env && chmod 640 /var/www/html/.env; fi
+USER www-data
+EXPOSE 5004
+CMD ["sh", "-c", "php artisan storage:link --force && php artisan serve --host=0.0.0.0 --port=5004"]
+
+FROM node:20 AS frontend-build
+WORKDIR /app
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend .
+RUN npm run build
+
+FROM node:20-alpine AS frontend
+WORKDIR /app
+RUN npm install -g serve
+RUN mkdir -p /app/build
+COPY --from=frontend-build /app/build /app/build
+EXPOSE 4174
+CMD ["serve", "-s", "build", "-l", "4174"]

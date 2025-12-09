@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: .Dockerfile
+      target: backend
+    ports:
+      - "5004:5004"
+    volumes:
+      - storage-data:/var/www/html/storage
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on: []
+
+  frontend:
+    build:
+      context: .
+      dockerfile: .Dockerfile
+      target: frontend
+    ports:
+      - "4174:4174"
+    depends_on:
+      - backend
+
+volumes:
+  storage-data:
