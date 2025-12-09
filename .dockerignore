@@ -25,6 +25,12 @@ frontend/build
 frontend/.vite
 frontend/.next
 frontend/coverage
+frontend/**/dist
+frontend/**/build
+frontend/**/.vite
+frontend/**/.next
+frontend/**/coverage
 
 # Frontend runtime storage (not needed for build; can have root-owned files)
 frontend/storage
+frontend/**/storage
