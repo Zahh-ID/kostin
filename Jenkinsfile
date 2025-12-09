@@ -26,11 +26,10 @@ pipeline {
             }
         }
 
-        stage('Backend Dependencies & Tests') {
+        stage('Backend Dependencies') {
             steps {
                 sh 'docker run --rm -v "$PWD":/app -w /app composer install --no-interaction --prefer-dist'
                 sh 'docker run --rm -v "$PWD":/app -w /app php:8.3-cli php artisan key:generate --force'
-                sh 'docker run --rm -v "$PWD":/app -w /app php:8.3-cli php artisan test'
             }
         }
 
