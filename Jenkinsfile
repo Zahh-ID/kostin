@@ -46,8 +46,8 @@ pipeline {
 
         stage('Frontend Build') {
             steps {
-                sh 'docker run --rm -v "$PWD/frontend":/app -w /app node:20 npm ci'
-                sh 'docker run --rm -v "$PWD/frontend":/app -w /app node:20 npm run build'
+                sh 'docker run --rm -u "$(id -u)":"$(id -g)" -v "$PWD/frontend":/app -w /app node:20 npm ci'
+                sh 'docker run --rm -u "$(id -u)":"$(id -g)" -v "$PWD/frontend":/app -w /app node:20 npm run build'
             }
         }
 
