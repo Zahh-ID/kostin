@@ -8,6 +8,14 @@ pipeline {
     }
 
     stages {
+        stage('Workspace Cleanup') {
+            steps {
+                script {
+                    deleteDir()
+                }
+            }
+        }
+
         stage('Checkout') {
             steps {
                 checkout scm
