@@ -3,6 +3,9 @@ pipeline {
     options {
         timestamps()
     }
+    environment {
+        COMPOSE_FILE = 'docker-composer.yml'
+    }
 
     stages {
         stage('Checkout') {
@@ -28,7 +31,7 @@ pipeline {
 
         stage('Backend Dependencies & Tests') {
             steps {
-                sh 'docker run --rm -v "$PWD":/app -w /app composer install --no-interaction --prefer-dist'
+                sh 'docker run --rm -v "$PWD":/app -w /app composer sh -c "git config --global --add safe.directory /app && composer install --no-interaction --prefer-dist"'
                 sh 'docker run --rm -v "$PWD":/app -w /app php:8.3-cli php artisan key:generate --force'
                 sh 'docker run --rm -v "$PWD":/app -w /app php:8.3-cli php artisan test'
             }
