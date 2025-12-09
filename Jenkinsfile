@@ -3,19 +3,8 @@ pipeline {
     options {
         timestamps()
     }
-    environment {
-        COMPOSE_FILE = 'docker-composer.yml'
-    }
 
     stages {
-        stage('Workspace Cleanup') {
-            steps {
-                script {
-                    deleteDir()
-                }
-            }
-        }
-
         stage('Checkout') {
             steps {
                 checkout scm
@@ -37,17 +26,18 @@ pipeline {
             }
         }
 
-        stage('Backend Dependencies') {
+        stage('Backend Dependencies & Tests') {
             steps {
-                sh 'docker run --rm -v "$PWD":/app -w /app composer sh -c "git config --global --add safe.directory /app && composer install --no-interaction --prefer-dist"'
+                sh 'docker run --rm -v "$PWD":/app -w /app composer install --no-interaction --prefer-dist'
                 sh 'docker run --rm -v "$PWD":/app -w /app php:8.3-cli php artisan key:generate --force'
+                sh 'docker run --rm -v "$PWD":/app -w /app php:8.3-cli php artisan test'
             }
         }
 
         stage('Frontend Build') {
             steps {
-                sh 'docker run --rm -u "$(id -u)":"$(id -g)" -v "$PWD/frontend":/app -w /app node:20 npm ci'
-                sh 'docker run --rm -u "$(id -u)":"$(id -g)" -v "$PWD/frontend":/app -w /app node:20 npm run build'
+                sh 'docker run --rm -v "$PWD/frontend":/app -w /app node:20 npm ci'
+                sh 'docker run --rm -v "$PWD/frontend":/app -w /app node:20 npm run build'
             }
         }
 
