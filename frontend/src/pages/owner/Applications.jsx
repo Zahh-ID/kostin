@@ -241,7 +241,7 @@ const ReviewModal = ({ app, onClose, onApprove, onReject }) => {
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-surface-highlight flex items-center justify-center text-3xl text-text-secondary">
               <FiUser />
@@ -264,6 +264,79 @@ const ReviewModal = ({ app, onClose, onApprove, onReject }) => {
             <div className="flex items-center gap-3 text-sm">
               <FiCalendar className="text-primary" />
               <span className="text-text-secondary">Diajukan: {new Date(app.created_at).toLocaleDateString()}</span>
+            </div>
+          </div>
+
+          {/* Tenant Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-surface rounded-xl border border-border">
+              <h5 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">Data Diri</h5>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="text-text-secondary block text-xs">Email</span>
+                  {app.contact_email}
+                </div>
+                <div>
+                  <span className="text-text-secondary block text-xs">Telepon</span>
+                  {app.contact_phone}
+                </div>
+                <div>
+                  <span className="text-text-secondary block text-xs">Jumlah Penghuni</span>
+                  {app.occupants_count} Orang
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-surface rounded-xl border border-border">
+              <h5 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">Pekerjaan</h5>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="text-text-secondary block text-xs">Status</span>
+                  <span className="capitalize">{app.employment_status}</span>
+                </div>
+                <div>
+                  <span className="text-text-secondary block text-xs">Perusahaan</span>
+                  {app.company_name || '-'}
+                </div>
+                <div>
+                  <span className="text-text-secondary block text-xs">Jabatan</span>
+                  {app.job_title || '-'}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-surface rounded-xl border border-border">
+              <h5 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">Kontak Darurat</h5>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="text-text-secondary block text-xs">Nama</span>
+                  {app.emergency_contact_name}
+                </div>
+                <div>
+                  <span className="text-text-secondary block text-xs">Telepon</span>
+                  {app.emergency_contact_phone}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-surface rounded-xl border border-border">
+              <h5 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">Lainnya</h5>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="text-text-secondary block text-xs">Kendaraan</span>
+                  {app.has_vehicle ? 'Ya' : 'Tidak'}
+                </div>
+                {app.has_vehicle && (
+                  <div>
+                    <span className="text-text-secondary block text-xs">Catatan Kendaraan</span>
+                    {app.vehicle_notes}
+                  </div>
+                )}
+                <div>
+                  <span className="text-text-secondary block text-xs">Durasi Sewa</span>
+                  {app.duration_months} Bulan
+                </div>
+              </div>
             </div>
           </div>
 
