@@ -2,6 +2,7 @@ pipeline {
     agent any
     options {
         timestamps()
+        skipDefaultCheckout(true)
     }
     environment {
         COMPOSE_FILE = 'docker-composer.yml'
