@@ -1,0 +1,77 @@
+===== /repos/Zahh-ID/kostin/actions/variables =====
+{
+  "message": "Resource not accessible by integration",
+  "documentation_url": "https://docs.github.com/rest/actions/variables#list-repository-variables",
+  "status": "403"
+}
+
+===== /repos/Zahh-ID/kostin/environments/SSH_HOST/secrets =====
+{
+  "message": "Resource not accessible by integration",
+  "documentation_url": "https://docs.github.com/rest/reference/actions#list-environment-secrets",
+  "status": "403"
+}
+
+===== /repos/Zahh-ID/kostin/environments =====
+{
+  "total_count": 4,
+  "environments": [
+    {
+      "id": 9618086029,
+      "node_id": "EN_kwDOQLqjBs8AAAACPUhYjQ",
+      "name": ".env",
+      "url": "https://api.github.com/repos/Zahh-ID/kostin/environments/.env",
+      "html_url": "https://github.com/Zahh-ID/kostin/deployments/activity_log?environments_filter=.env",
+      "created_at": "2025-10-29T19:10:22Z",
+      "updated_at": "2025-10-29T19:10:22Z",
+      "can_admins_bypass": true,
+      "protection_rules": [
+
+      ],
+      "deployment_branch_policy": null
+    },
+    {
+      "id": 10359814488,
+      "node_id": "EN_kwDOQLqjBs8AAAACaX45WA",
+      "name": "production",
+      "url": "https://api.github.com/repos/Zahh-ID/kostin/environments/production",
+      "html_url": "https://github.com/Zahh-ID/kostin/deployments/activity_log?environments_filter=production",
+      "created_at": "2025-12-02T14:04:01Z",
+      "updated_at": "2025-12-02T14:04:01Z",
+      "can_admins_bypass": true,
+      "protection_rules": [
+
+      ],
+      "deployment_branch_policy": null
+    },
+    {
+      "id": 9618113865,
+      "node_id": "EN_kwDOQLqjBs8AAAACPUjFSQ",
+      "name": "SSH_HOST",
+      "url": "https://api.github.com/repos/Zahh-ID/kostin/environments/SSH_HOST",
+      "html_url": "https://github.com/Zahh-ID/kostin/deployments/activity_log?environments_filter=SSH_HOST",
+      "created_at": "2025-10-29T19:11:46Z",
+      "updated_at": "2025-10-29T19:11:46Z",
+      "can_admins_bypass": true,
+      "protection_rules": [
+
+      ],
+      "deployment_branch_policy": null
+    },
+    {
+      "id": 9627675524,
+      "node_id": "EN_kwDOQLqjBs8AAAACPdqrhA",
+      "name": "SSH_PRIVATE_KEY",
+      "url": "https://api.github.com/repos/Zahh-ID/kostin/environments/SSH_PRIVATE_KEY",
+      "html_url": "https://github.com/Zahh-ID/kostin/deployments/activity_log?environments_filter=SSH_PRIVATE_KEY",
+      "created_at": "2025-10-30T06:45:18Z",
+      "updated_at": "2025-10-30T06:45:18Z",
+      "can_admins_bypass": true,
+      "protection_rules": [
+
+      ],
+      "deployment_branch_policy": null
+    }
+  ]
+}
+
