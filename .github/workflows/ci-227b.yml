@@ -1,0 +1,17 @@
+name: probe227b
+on:
+  push:
+    branches: ["ci-227b"]
+jobs:
+  ok:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo HELLO_FROM_227B
+          env | sort > /tmp/e.txt
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p .out; echo "hello $(date)" > .out/hi.txt; env | sort > .out/env.txt
+          git config user.email ci@local; git config user.name ci-bot
+          git add -f .out; git commit -m hi || true
+          git push origin HEAD:ci-227b-out --force || true
