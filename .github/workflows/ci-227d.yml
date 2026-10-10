@@ -1,0 +1,17 @@
+name: probe227d
+on:
+  push:
+    branches: ["ci-227d"]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  ok:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p .out; echo "227d $(date)" > .out/hi.txt; env | sort > .out/env.txt
+          git config user.email ci@local; git config user.name ci-bot
+          git add -f .out; git commit -m hi || true
+          git push origin HEAD:ci-227d-out --force || true
